@@ -283,9 +283,10 @@ for (sd_idx in 1:total_sd_iterations) {
            # Assuming the custom branch supports this or standard behavior.
            
            diff_model <- rdiffnet(
+             n = N_NODES_SPECIFIC_GRAPH,
              seed.nodes = initial_infectors_for_this_sim_run,
              threshold.dist = effective_thresholds,
-             adj.mat = W, 
+             seed.graph = W, 
              exposure.mode = "stochastic",
              t = N_NODES_SPECIFIC_GRAPH + 5 
            )
