@@ -1,0 +1,16 @@
+# System files
+.DS_Store
+.Rproj.user
+.Rhistory
+.RData
+
+# Large Data Files
+*.rds
+*.RData
+*.csv
+*.rdata
+
+# Ensure folders are kept
+!data/.gitkeep
+!output/.gitkeep
+!plots/.gitkeep
