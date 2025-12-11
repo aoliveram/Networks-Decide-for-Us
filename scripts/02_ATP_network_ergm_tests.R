@@ -4,7 +4,7 @@
 # Entradas:
 #   - Directorio con RDS de redes simuladas (clase 'network' de {ergm})
 # Salidas (todas comentadas; descomentar para escribir):
-#   - results/*.csv    plots/02_ATP_network_tests/*.png
+#   - results/*.csv    plots/02_ATP_network_ergm_tests/*.png
 # ===============================================================
 
 
@@ -664,7 +664,7 @@ p_log <- ggplot() +
 
 # Combinar en una sola figura (como la referencia adjunta)
 (p_lin | p_log) #+ plot_annotation(title = "Distribución de grado: ATP (rojo) vs ER (verde) y BA (morado; teóricos)")
-ggsave("plots/02_ATP_network_tests/degree_dist.pdf", width = 11, height = 4.8, dpi = 300)
+ggsave("plots/02_ATP_network_ergm_tests/degree_dist.pdf", width = 11, height = 4.8, dpi = 300)
 
 # ------------------------------------------------------------------------------
 # 1) Propiedad Small-world
@@ -682,7 +682,7 @@ ggplot(sw_scaling, aes(x = logN, y = L, group = id)) +
   labs(title = "Small-world por submuestreo (L vs log N')",
        x = "log(N')", y = "Longitud media de camino (L)") +
   theme_minimal()
-# ggsave("plots/02_ATP_network_tests/smallworld_subsampling.pdf", width = 7, height = 4.5, dpi = 300)
+# ggsave("plots/02_ATP_network_ergm_tests/smallworld_subsampling.pdf", width = 7, height = 4.5, dpi = 300)
 
 #
 # B) Rewiring: antes vs después
@@ -694,14 +694,14 @@ ggplot(filter(p1, is.finite(L) & is.finite(L_rw))) +
   geom_abline(linetype = "dashed") +
   labs(title = "Efecto del rewiring bajo en L", x = "L (antes)", y = "L (después)") +
   theme_minimal()
-# ggsave("plots/02_ATP_network_tests/rewiring_L.pdf", width = 5, height = 4, dpi = 300)
+# ggsave("plots/02_ATP_network_ergm_tests/rewiring_L.pdf", width = 5, height = 4, dpi = 300)
 
 ggplot(p1) +
   geom_point(aes(x = C_global, y = C_rw), alpha = 0.5) +
   geom_abline(linetype = "dashed") +
   labs(title = "Efecto del rewiring bajo en C_global", x = "C antes", y = "C después") +
   theme_minimal()
-# ggsave("plots/02_ATP_network_tests/rewiring_C.pdf", width = 5, height = 4, dpi = 300)
+# ggsave("plots/02_ATP_network_ergm_tests/rewiring_C.pdf", width = 5, height = 4, dpi = 300)
 
 # ------------------------------------------------------------------------------
 # 2) ATP vs BA
@@ -737,7 +737,7 @@ ggplot(ccdf_plot_df, aes(x = k, y = CCDF, color = model)) +
   labs(title = "CCDF log-log: ATP (condensada) vs BA",
        x = "k (log)", y = "P(K≥k) (log)", color = NULL) +
   theme_minimal()
-# ggsave("plots/02_ATP_network_tests/degree_ccdf_loglog_ATP_vs_BA.pdf", width = 6.5, height = 4.5, dpi = 300)
+# ggsave("plots/02_ATP_network_ergm_tests/degree_ccdf_loglog_ATP_vs_BA.pdf", width = 6.5, height = 4.5, dpi = 300)
 
 # ---------- Test formal de cola larga (power-law) ----------
 #   - p_value grande (>= 0.1) -> no podemos rechazar power-law (plausible).
@@ -816,7 +816,7 @@ ggplot(triad_long, aes(x = triad, y = prop)) +
        x = "Tipo de triada", y = "Proporción") +
   theme_minimal()
 # Referencia ER: p_bar = mean(density); p1=3p(1-p)^2, p2=3p^2(1-p), p3=p^3.
-# ggsave("plots/02_ATP_network_tests/triadic_census_summary.pdf", width = 7, height = 4, dpi = 300)
+# ggsave("plots/02_ATP_network_ergm_tests/triadic_census_summary.pdf", width = 7, height = 4, dpi = 300)
 
 # ------------------------------------------------------------------------------
 # 4) C(k) vs k y percolación
@@ -833,7 +833,7 @@ ggplot(Ck_summary, aes(x = k, y = Ck_med)) +
            label = "C_ER = <k>/N = 0.028", color = "#2ECC71") +
   labs(title = "C(k) vs k (ATP, mediana y bandas [p25,p75])",
        x = "k", y = "C(k)") + theme_minimal()
-ggsave("plots/02_ATP_network_tests/Ck_vs_k.pdf", width = 6.5, height = 4, dpi = 300)
+ggsave("plots/02_ATP_network_ergm_tests/Ck_vs_k.pdf", width = 6.5, height = 4, dpi = 300)
 
 # print(Ck_summary %>% arrange(desc(k)) %>% select(k, n) %>% head(10)) # conteo colas
 
@@ -843,7 +843,7 @@ ggplot(percolation_summary, aes(x = p, y = S_med, color = mode)) +
   labs(title = "Percolación del GCC: fallas aleatorias vs ataques por grado",
        x = "Fracción removida (p)", y = "Tamaño relativo GCC") +
   theme_minimal()
-# ggsave("plots/02_ATP_network_tests/percolation_curves.pdf", width = 6.5, height = 4, dpi = 300)
+# ggsave("plots/02_ATP_network_ergm_tests/percolation_curves.pdf", width = 6.5, height = 4, dpi = 300)
 
 
 
@@ -965,4 +965,4 @@ tex_lines <- c(
 # Escribir archivo .tex
 writeLines(tex_lines, con = "output/02_ATP_network_ergm_tests/tabla_resumen_ATP.tex")
 
-message('Archivo LaTeX escrito en: results/tabla_resumen_ATP.tex. Compila con: pdflatex results/tabla_resumen_ATP.tex')
+message('Archivo LaTeX escrito en: output/02_ATP_network_ergm_tests/tabla_resumen_ATP.tex. Compila con: pdflatex output/02_ATP_network_ergm_tests/tabla_resumen_ATP.tex')
