@@ -22,7 +22,7 @@ library(network)
 # --- 1. Preparación de Datos desde GSS 2004 ---
 
 # Cargar el dataset original de GSS 2004
-GSS_2004 <- read_dta("B - Surveys Data/GSS 2004/GSS 2004 NORC.dta")
+GSS_2004 <- read_dta("data/02_GSS_network_ergm/GSS_2004_NORC.dta")
 
 # Definir las variables sociodemográficas y de propensión a la acción que se usarán
 demographic_vars_gss <- c("age", "sex", "educ", "race", "relig")
@@ -235,7 +235,7 @@ final_gss_coefs <- c(edges = edges_calibration_result$calibrated_coef_edges, coe
 full_formula_gss <- update.formula(formula_homofilia_only, paste("~ edges + ."))
 N_SIMULACIONES <- 100
 
-output_dir <- "trabajo_1_files/GSS_network_ergm"
+output_dir <- "data/02_GSS_network_ergm"
 if (!dir.exists(output_dir)) {
   dir.create(output_dir, recursive = TRUE)
 }
