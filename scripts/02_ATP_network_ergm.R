@@ -13,10 +13,10 @@ library(doParallel)
 
 # --- 1. Preparación Datos ---
 
-ATP_W3_W4 <- readRDS("trabajo_1_files/ATP_W3_W4_input.rds")
+ATP_W3_W4 <- readRDS("data/01_ATP_GSS_imputation/ATP_W3_W4_input.rds")
 N_atp <- nrow(ATP_W3_W4)
 
-gss_egor <- readRDS("trabajo_1_files/gss_egor.rds")
+gss_egor <- readRDS("data/01_ATP_GSS_imputation/gss_egor.rds")
 gss_egos <- gss_egor$ego
 gss_alters <- gss_egor$alter
 
@@ -29,14 +29,11 @@ if (!is.factor(ATP_W3_W4$relig)) ATP_W3_W4$relig <- factor(ATP_W3_W4$relig)
 demographic_vars <- c("age", "sex", "educ_num", "race", "relig")
 metech_vars <- c("METECH_A", "METECH_B", "METECH_C", 
                  "METECH_D", "METECH_E", "METECH_F")
-mefood_vars <- c("MEFOOD_A", "MEFOOD_B", "MEFOOD_C", 
-                 "MEFOOD_D", "MEFOOD_E", "MEFOOD_F")
-attribute_vars <- c(demographic_vars, metech_vars) #, mefood_vars)
+attribute_vars <- c(demographic_vars, metech_vars)
 
 for (m_var in metech_vars) {
   if (m_var %in% names(ATP_W3_W4)) {
-    
-    # obtenemos valores numéricos
+    # Obtenemos valores numéricos
     numeric_values <- haven::zap_labels(ATP_W3_W4[[m_var]])
     
     ATP_W3_W4[[m_var]] <- case_when(
@@ -48,33 +45,15 @@ for (m_var in metech_vars) {
 }
 
 # Seleccionamos casos completos
-sapply(ATP_W3_W4[, attribute_vars], function(col) sum(is.na(col))) # verificar NA's
-sapply(ATP_W3_W4[, attribute_vars], function(col) mean(is.na(col)) * 100) # porcentaje NA's
-#ATP_W3_W4_2 <- ATP_W3_W4
 ATP_W3_W4 <- ATP_W3_W4[complete.cases(ATP_W3_W4[, attribute_vars]), ] # Quitamos NA's
 N_atp <- nrow(ATP_W3_W4) # Número de individuos en ATP
 
 # Submuestreo para red 1000 casos.
 set.seed(987)
-
 ATP_W3_W4_1000 <- ATP_W3_W4[sample(nrow(ATP_W3_W4), 1000), ]
 N_atp_1000 <- nrow(ATP_W3_W4_1000)
-sapply(ATP_W3_W4_1000[, attribute_vars], function(col) mean(is.na(col)) * 100) # porcentaje NA's
 
-# Creamos el objeto NEtwork (sin lazos, solo nodos y atributos)
-atp_base_network <- network.initialize(N_atp, directed = FALSE)
-set.vertex.attribute(atp_base_network, "age", ATP_W3_W4$age)
-set.vertex.attribute(atp_base_network, "sex", as.character(ATP_W3_W4$sex)) # ergm a veces prefiere character para nodematch
-set.vertex.attribute(atp_base_network, "educ_num", ATP_W3_W4$educ_num)
-set.vertex.attribute(atp_base_network, "race", as.character(ATP_W3_W4$race))
-set.vertex.attribute(atp_base_network, "relig", as.character(ATP_W3_W4$relig))
-set.vertex.attribute(atp_base_network, "metech_a", as.numeric(ATP_W3_W4$METECH_A))
-set.vertex.attribute(atp_base_network, "metech_b", as.numeric(ATP_W3_W4$METECH_B))
-set.vertex.attribute(atp_base_network, "metech_c", as.numeric(ATP_W3_W4$METECH_C))
-set.vertex.attribute(atp_base_network, "metech_d", as.numeric(ATP_W3_W4$METECH_D))
-set.vertex.attribute(atp_base_network, "metech_e", as.numeric(ATP_W3_W4$METECH_E))
-set.vertex.attribute(atp_base_network, "metech_f", as.numeric(ATP_W3_W4$METECH_F))
-
+# Creamos el objeto Network (sin lazos, solo nodos y atributos)
 atp_base_network_1000 <- network.initialize(N_atp_1000, directed = FALSE)
 set.vertex.attribute(atp_base_network_1000, "age", ATP_W3_W4_1000$age)
 set.vertex.attribute(atp_base_network_1000, "sex", as.character(ATP_W3_W4_1000$sex))
@@ -88,7 +67,7 @@ set.vertex.attribute(atp_base_network_1000, "metech_d", as.numeric(ATP_W3_W4_100
 set.vertex.attribute(atp_base_network_1000, "metech_e", as.numeric(ATP_W3_W4_1000$METECH_E))
 set.vertex.attribute(atp_base_network_1000, "metech_f", as.numeric(ATP_W3_W4_1000$METECH_F))
 
-# Fórmula ERGM (el término 'edge' se iterará) # Si se añade gwesp, añadir como coeficiente fijo
+# Fórmula ERGM (el término 'edge' se iterará)
 formula_homofilia_only <- ~ nodematch("race") +
                             nodematch("sex") +
                             absdiff("age") +
@@ -133,7 +112,7 @@ coef_homofilia_fijos <- setNames(
 )
 
 
-# --- 1. función de pptimización para 'edges' ---
+# --- 1. función de optimización para 'edges' ---
 
 calibrate_edges_coefficient <- function(
     atp_base_network_input,
@@ -268,22 +247,6 @@ control_sim_formula <- control.simulate.formula(
   MCMC.interval = 100 * N_atp
 )
 
-# Para ATP completa como base
-edges_var_info <- calibrate_edges_coefficient(
-  atp_base_network_input = atp_base_network,   # base clase network
-  formula_homofilia_terms = formula_homofilia_only,  # Fórmula solo con términos de homofilia (ej. ~ nodematch("race") + ...) 
-  fixed_homophily_coefs = coef_homofilia_fijos,  # Vector nombrado, con coeficientes para esos términos
-  target_density_input = 0.029,           # Densidad target
-  initial_lower_bound_edges = -10.0,      # Límite inferior para el coeficiente de edges
-  initial_upper_bound_edges = -2.0,       # Límite superior
-  max_calib_iterations = 20,              # Número máximo de iteraciones
-  density_conv_tolerance = 0.001,         # tolerancia al target_density
-  num_sim_networks = 5,             # Número de redes a simular en cada paso para promediar densidad
-  control_simulate_ergm_options = control_sim_formula # Objeto de control para simulate()
-)
-
-print(edges_var_info) #$calibrated_coef_edges -> [1] -4.3125 , $achieved_density -> [1] 0.0290549
-
 # Para ATP submuestra N=1000 como base
 edges_var_info_1000 <- calibrate_edges_coefficient(
   atp_base_network_input = atp_base_network_1000,   # base clase network (N=1000)
@@ -340,20 +303,11 @@ invisible(
             )
             
             # Guardar
-            saveRDS(ATP_network_simulated_1000, sprintf("trabajo_1_files/ATP_network_ergm/ATP_network_simulated_1000_%03d.rds", i))
+            saveRDS(ATP_network_simulated_1000, sprintf("data/02_ATP_network_ergm/ATP_net_sim_1000_%03d.rds", i))
           }
 )
 
 stopCluster(cl)
-
-
-# Estadísticos Básicos -- de Red
-ATP_network_simulated_1000 <- readRDS("trabajo_1_files/ATP_network_ergm/ATP_network_simulated_1000_001.rds")
-summary(ATP_network_simulated_1000) # Attrs: age - educ_num - race - relig - sex - (and vertex.names)
-
-network.size(ATP_network_simulated_1000)
-network.edgecount(ATP_network_simulated_1000)
-network.density(ATP_network_simulated_1000)
 
 # --- Comparación demográficos ATP original vs. ERGM simulada ---
 
