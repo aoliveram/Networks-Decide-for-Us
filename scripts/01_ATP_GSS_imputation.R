@@ -21,7 +21,7 @@ library(dplyr)
 library(ggplot2)
 
 # Cargamos datos GSS 2004
-gss_egor <- readRDS("trabajo_1_files/gss_egor.rds")
+gss_egor <- readRDS("data/01_ATP_GSS_imputation/gss_egor.rds")
 gss_egos <- gss_egor$ego
 gss_alters <- gss_egor$alter
 
@@ -30,63 +30,37 @@ hist(gss_egos$educ_num)
 unique(gss_egos$race)
 unique(gss_egos$relig)
 
-# Cargamos datos ATP W3
+# Cargamos datos ATP W3 y W4
 
-library(haven)
-ATP_W3 <- read_sav("B - Surveys Data/Datos A. Trends Panel/American-Trends-Panel-Wave-3-May-5-May-27/W3_May14/ATP W3.sav")
-
-ATP_W3_sub <- readRDS("trabajo_1_files/ATP_W3_sub.rds")
-ATP_W4_sub <- readRDS("trabajo_1_files/ATP_W4_sub.rds")
-
-diff_W3_not_in_W4 <- setdiff(ATP_W3_sub$QKEY, ATP_W4_sub$QKEY)
-diff_W4_not_in_W3 <- setdiff(ATP_W4_sub$QKEY, ATP_W3_sub$QKEY)
-
-# Eliminar sufijos _W3 y _W4 de los nombres de columnas variables
-names(ATP_W3_sub) <- gsub("_W3$", "", names(ATP_W3_sub))
-names(ATP_W4_sub) <- gsub("_W4$", "", names(ATP_W4_sub))
-
-# Agregamos columna de ola
-ATP_W3_sub$WAVE <- "W3"
-ATP_W4_sub$WAVE <- "W4"
-
-# Unimos data frames
-ATP_W3_W4 <- rbind(ATP_W3_sub, ATP_W4_sub)
-
-# Quitamos duplicados de QKEY, quedándose con la fila más reciente (W4)
-ATP_W3_W4 <- ATP_W3_W4[!duplicated(ATP_W3_W4$QKEY, fromLast = TRUE), ]
-ATP_W3_W4 <- ATP_W3_W4[order(ATP_W3_W4$QKEY), ]
-
-# Guardamos
-saveRDS(ATP_W3_W4, file = "trabajo_1_files/ATP_W3_W4.rds")
-
-ATP_W3_W4 <- readRDS("trabajo_1_files/ATP_W3_W4.rds")
+ATP_W3_W4 <- readRDS("data/01_ATP_GSS_imputation/ATP_W3_W4.rds")
 
 # Qué datos tenemos ---------------------------------
 
 labels <- sapply(ATP_W3_W4, function(x) attr(x, "label")) # same as sapply(ATP_W4_sub, function(x) attr(x, "label"))
 
+#### INNECESARIO ???
+
 # Edad
 labels[["F_AGECAT_TYPOLOGY"]]
-ATP_W3$F_AGECAT_TYPOLOGY
+unique(ATP_W3_W4$F_AGECAT_TYPOLOGY)
 
 # Educación
 labels[["F_EDUCCAT_TYPOLOGY"]]
-ATP_W3$F_EDUCCAT_TYPOLOGY
+unique(ATP_W3_W4$F_EDUCCAT_TYPOLOGY)
 
 # Race
 labels[["F_RACETHN_TYPOLOGY"]]
-ATP_W3$F_RACETHN_TYPOLOGY
+unique(ATP_W3_W4$F_RACETHN_TYPOLOGY)
 
 # Sex
 labels[["F_SEX_FINAL"]]
-ATP_W3$F_SEX_FINAL
+unique(ATP_W3_W4$F_SEX_FINAL)
 
 # Religion
 labels[["F_RELIG_TYPOLOGY"]]
-ATP_W3$F_RELIG_TYPOLOGY
+unique(ATP_W3_W4$F_RELIG_TYPOLOGY)
 
 # Ver las primeras filas del data frame
-head(ATP_W3)
 head(ATP_W3_W4)
 
 # ------------------------------------------------------------------------------
@@ -113,7 +87,6 @@ print(gss_age_proportions)
 ATP_W3_W4$F_AGECAT_TYPOLOGY_factor <- haven::as_factor(ATP_W3_W4$F_AGECAT_TYPOLOGY)
 
 atp_age_proportions <- prop.table(table(ATP_W3_W4$F_AGECAT_TYPOLOGY_factor))
-print(atp_age_proportions)
 
 # Comparación VISUAL
 
@@ -128,41 +101,13 @@ print(ggplot(ages_gss_atp, aes(x = category, y = proportion, fill = source)) +
              x = "Categoría de Edad", y = "Proporción") +
         theme_minimal() +
         theme(axis.text.x = element_text(angle = 45, hjust = 1)))
-ggsave("trabajo_1_plots/age_GSS_vs_ATP.pdf", width = 8*0.85, height = 5*0.85)
-
-# Comparación Chi-Cuadrado
-# Necesitamos las cuentas, no las proporciones
-gss_counts <- table(gss_egos$age_category_gss)
-atp_counts_raw <- table(ATP_W3_W4$F_AGECAT_TYPOLOGY_factor)
-
-# tabla de contingencia para el test
-contingency_table_age <- rbind(GSS = as.numeric(gss_counts), ATP = as.numeric(atp_counts_raw))
-colnames(contingency_table_age) <- age_labels_gss
-
-print(contingency_table_age)
-
-# Test Chi-cuadrado
-chi_sq_test_age <- chisq.test(contingency_table_age)
-print(chi_sq_test_age)
-
-if (chi_sq_test_age$p.value < 0.05) {
-  cat("Conclusión: Las distribuciones de categorías de edad entre GSS y ATP son significativamente DIFERENTES (p < 0.05).\n")
-  cat("Sin embargo, el muestreo *dentro* de los estratos definidos por las categorías ATP sigue siendo una estrategia razonable.\n")
-} else {
-  cat("Conclusión: No hay evidencia de una diferencia significativa en las distribuciones de categorías de edad (p >= 0.05).\n")
-  cat("Esto apoya la idea de que la distribución de edad categórica de GSS es comparable a la de ATP.\n")
-}
+ggsave("plots/01_ATP_GSS_imputation/age_GSS_vs_ATP.pdf", width = 8*0.85, height = 5*0.85)
 
 # ---------- Imputación de edades en ATP ---------------------------------------
 
 # PREPARACIÓN para la imputación
 # Esto crea una lista donde cada elemento es un vector de edades de GSS para esa categoría.
 gss_ages_by_category <- tapply(gss_egos$age, gss_egos$age_category_gss, list)
-
-length(gss_ages_by_category$`18-29`)+length(gss_ages_by_category$`30-49`)+length(gss_ages_by_category$`50-64`)+length(gss_ages_by_category$`65+`)
-nrow(gss_egos)
-
-print(lapply(gss_ages_by_category, head, 5))
 
 # Crear la nueva columna en ATP_W3_W4
 ATP_W3_W4$age <- NA_integer_ # Inicializar con NA
@@ -191,11 +136,11 @@ for (i in 1:nrow(ATP_W3_W4)) {
 
 summary(ATP_W3_W4$age)
 
-pdf(file = "trabajo_1_plots/age_distribution_GSS.pdf", width = 6, height = 5)
+pdf(file = "plots/01_ATP_GSS_imputation/age_distribution_GSS.pdf", width = 6, height = 5)
 hist(gss_egos$age, main = "Edades en GSS (EGO)", xlab = "Edad", ylab = "Frecuencia")
 dev.off()
 
-pdf(file = "trabajo_1_plots/age_distribution_ATP.pdf", width = 6, height = 5)
+pdf(file = "plots/01_ATP_GSS_imputation/age_distribution_ATP.pdf", width = 6, height = 5)
 hist(ATP_W3_W4$age, main = "Edades Imputadas en ATP", xlab = "Edad", ylab = "Frecuencia")
 dev.off()
 
@@ -248,8 +193,6 @@ rm(df_gss_educ, df_atp_educ)
 educ_levels <- c("HS graduate or less", "Some college", "College graduate+")
 educ_gss_atp$category <- factor(educ_gss_atp$category, levels = educ_levels)
 
-print(educ_gss_atp)
-
 plot_educ <- ggplot(educ_gss_atp, aes(x = category, y = proportion, fill = source)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Comparación de Distribuciones de Nivel Educativo (GSS vs ATP)",
@@ -260,24 +203,7 @@ plot_educ <- ggplot(educ_gss_atp, aes(x = category, y = proportion, fill = sourc
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5), # Puedes ajustar angle y hjust
         plot.title = element_text(hjust = 0.5)) # Centrar el título
 print(plot_educ)
-ggsave("trabajo_1_plots/educ_GSS_vs_ATP.pdf", plot = plot_educ, width = 8, height = 5)
-
-# Tabla de contingencia
-contingency_table_educ <- rbind(GSS = as.numeric(gss_counts), ATP = as.numeric(atp_counts))
-colnames(contingency_table_educ) <- levels(gss_egos$degree_atp_cat)
-print(contingency_table_educ)
-
-# Test Chi-cuadrado
-chi_sq_test_educ <- chisq.test(contingency_table_educ)
-print(chi_sq_test_educ)
-
-if (chi_sq_test_educ$p.value < 0.05) {
-  cat("Conclusión: Las distribuciones de categorías de educación entre GSS y ATP son significativamente DIFERENTES (p < 0.05).\n")
-  cat("Sin embargo, el muestreo *dentro* de los estratos definidos por las categorías ATP sigue siendo una estrategia razonable.\n")
-} else {
-  cat("Conclusión: No hay evidencia de una diferencia significativa en las distribuciones de categorías de educación (p >= 0.05).\n")
-  cat("Esto apoya la idea de que la distribución de educación categórica de GSS es comparable a la de ATP.\n")
-}
+ggsave("plots/01_ATP_GSS_imputation/educ_GSS_vs_ATP.pdf", plot = plot_educ, width = 8, height = 5)
 
 # ---------- Imputación de educ_num en ATP -------------------------------------
 
@@ -300,18 +226,17 @@ for (i in 1:nrow(ATP_W3_W4)) {
 
 summary(ATP_W3_W4$educ_num)
 
-pdf(file = "trabajo_1_plots/educ_distribution_GSS.pdf", width = 6, height = 5)
+pdf(file = "plots/01_ATP_GSS_imputation/educ_distribution_GSS.pdf", width = 6, height = 5)
 hist(gss_egos$educ_num, main = "Años de educación en GSS (EGO)", xlab = "Edad", ylab = "Frecuencia")
 dev.off()
 
-pdf(file = "trabajo_1_plots/educ_distribution_ATP.pdf", width = 6, height = 5)
+pdf(file = "plots/01_ATP_GSS_imputation/educ_distribution_ATP.pdf", width = 6, height = 5)
 hist(ATP_W3_W4$educ_num, main = "Años de educación imputados en ATP", xlab = "Edad", ylab = "Frecuencia")
 dev.off()
 
 # ------------------------------------------------------------------------------
 # Raza
 # ------------------------------------------------------------------------------
-
 
 # --- Veamos cómo se comparan los niveles de RAZA en GSS y en ATP ---------
 
@@ -367,8 +292,6 @@ rm(df_gss_race, df_atp_race)
 race_levels <- c("Black", "Hispanic", "White", "Other")
 race_gss_atp$category <- factor(race_gss_atp$category, levels = race_levels)
 
-print(race_gss_atp)
-
 plot_educ <- ggplot(race_gss_atp, aes(x = category, y = proportion, fill = source)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Comparación de Distribuciones de Raza (GSS vs ATP)",
@@ -379,23 +302,7 @@ plot_educ <- ggplot(race_gss_atp, aes(x = category, y = proportion, fill = sourc
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5), # Puedes ajustar angle y hjust
         plot.title = element_text(hjust = 0.5)) # Centrar el título
 print(plot_educ)
-ggsave("trabajo_1_plots/race_GSS_vs_ATP.pdf", plot = plot_educ, width = 8, height = 5)
-
-# Tabla de contingencia
-contingency_table_race_4cat <- rbind(
-  GSS = gss_race_counts_4cat[levels(gss_egos$race_4cat)],
-  ATP = atp_race_counts_4cat[levels(ATP_W3_W4$race_harmonized)]
-)
-print(contingency_table_race_4cat)
-
-# Test Chi-cuadrado
-chi_sq_test_race_4cat <- chisq.test(contingency_table_race_4cat)
-
-if (chi_sq_test_race_4cat$p.value < 0.05) {
-  cat("Conclusión RAZA (4 cat): Las distribuciones de raza entre GSS y ATP son significativamente DIFERENTES (p < 0.05).\n")
-} else {
-  cat("Conclusión RAZA (4 cat): No hay evidencia de una diferencia significativa en las distribuciones de raza (p >= 0.05).\n")
-}
+ggsave("plots/01_ATP_GSS_imputation/race_GSS_vs_ATP.pdf", plot = plot_educ, width = 8, height = 5)
 
 # ---------- Imputación de RAZA en ATP -----------------------------------------
 
@@ -430,14 +337,13 @@ for (i in atp_other_indices) {
 ATP_W3_W4$race <- factor(ATP_W3_W4$race,
                                        levels = c("Asian", "Black", "Hispanic", "White", "Other"))
 
-pdf(file = "trabajo_1_plots/race_distribution_GSS.pdf", width = 6, height = 5)
+pdf(file = "plots/01_ATP_GSS_imputation/race_distribution_GSS.pdf", width = 6, height = 5)
 plot(gss_egos$race, main = "Raza en GSS (EGO)", xlab = "Raza", ylab = "Frecuencia")
 dev.off()
 
-pdf(file = "trabajo_1_plots/race_distribution_ATP.pdf", width = 6, height = 5)
+pdf(file = "plots/01_ATP_GSS_imputation/race_distribution_ATP.pdf", width = 6, height = 5)
 plot(ATP_W3_W4$race, main = "Raza imputada en ATP", xlab = "Raza", ylab = "Frecuencia")
 dev.off()
-
 
 # ------------------------------------------------------------------------------
 # Relig
@@ -496,8 +402,6 @@ rm(df_gss_relig, df_atp_relig)
 relig_levels <- c("Catholic", "Jewish", "None", "OtherRelig", "Protestant")
 relig_gss_atp$category <- factor(relig_gss_atp$category, levels = relig_levels)
 
-print(relig_gss_atp)
-
 plot_relig <- ggplot(relig_gss_atp, aes(x = category, y = proportion, fill = source)) +
   geom_bar(stat = "identity", position = "dodge") +
   labs(title = "Comparación de Distribuciones de Religión (GSS vs ATP)",
@@ -508,30 +412,9 @@ plot_relig <- ggplot(relig_gss_atp, aes(x = category, y = proportion, fill = sou
   theme(axis.text.x = element_text(angle = 0, hjust = 0.5), # Puedes ajustar angle y hjust
         plot.title = element_text(hjust = 0.5)) # Centrar el título
 print(plot_relig)
-ggsave("trabajo_1_plots/relig_GSS_vs_ATP.pdf", plot = plot_relig, width = 8*0.85, height = 5*0.85)
+ggsave("plots/01_ATP_GSS_imputation/relig_GSS_vs_ATP.pdf", plot = plot_relig, width = 8*0.85, height = 5*0.85)
 
-# Tabla de contingencia
-contingency_table_relig <- rbind(
-  GSS = gss_relig_counts[levels(gss_egos$relig)],
-  ATP = atp_relig_counts[levels(ATP_W3_W4$relig)]
-)
-print(contingency_table_relig)
-
-# Test Chi-cuadrado
-chi_sq_test_relig <- chisq.test(contingency_table_relig)
-
-if (chi_sq_test_relig$p.value < 0.05) {
-  cat("Conclusión RELIGIÓN: Las distribuciones de religión entre GSS y ATP son significativamente DIFERENTES (p < 0.05).\n")
-} else {
-  cat("Conclusión RELIGIÓN: No hay evidencia de una diferencia significativa en las distribuciones de religión (p >= 0.05).\n")
-}
-
-# ---------- Imputación de RELIG en ATP -----------------------------------------
-
-# En GSS tengo MÁs razas
-unique(gss_egos$racecen1)
-unique(ATP_W3_W4$F_RACETHN_TYPOLOGY)
-levels(ATP_W3_W4$race_harmonized)
+# ---------- Imputación de RELIG en ATP ----------------------------------------
 
 # En GSS tengo MENOS relig
 levels(gss_egos$relig)
@@ -539,14 +422,16 @@ unique(ATP_W3_W4$F_RELIG_TYPOLOGY)
 
 # Como tengo más granuliadad de relig en ATP, entonces no tengo que imputar datos
 # de religión a ATP, sino que solo debo agrupar relig --->> ATP_W3_W4$relig
-# 
+
+# ============================= Resumen ========================================
+
 # En resumen, las variables 'armonizadas' son:
 #   
 #   1. gss_egos$age , ATP_W3_W4$age --->>> sort(unique(gss_egos$age))==sort(unique(ATP_W3_W4$age))
 #   2. gss_egos$educ_num , ATP_W3_W4$educ_num --->>> sort(unique(gss_egos$educ_num))[5:21]==sort(unique(ATP_W3_W4$educ_num))[(5-2):(21-2)]
 #   3. gss_egos$race , ATP_W3_W4$race -->> levels(gss_egos$race)==levels(ATP_W3_W4$race)
 #   4. gss_egos$relig , ATP_W3_W4$relig -->> levels(gss_egos$relig)==levels(ATP_W3_W4$relig)
-#   
+  
 # La variable 'sexo' no fue modificada.
 
 ATP_W3_W4 <- ATP_W3_W4 %>%
@@ -571,5 +456,4 @@ ATP_W3_W4 <- ATP_W3_W4 %>%
     .after = last_col()
   )
 
-write.csv(ATP_W3_W4, "trabajo_1_files/ATP_W3_W4_input.csv", row.names = FALSE)
-saveRDS(ATP_W3_W4, "trabajo_1_files/ATP_W3_W4_input.rds")
+saveRDS(ATP_W3_W4, "data/01_ATP_GSS_imputation/ATP_W3_W4_input.rds")
