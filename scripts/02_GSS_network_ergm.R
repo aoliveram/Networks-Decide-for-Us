@@ -256,7 +256,7 @@ invisible(
       verbose = FALSE
     )
     
-    saveRDS(gss_network_simulated, file.path(output_dir, sprintf("GSS_network_simulated_1000_%03d.rds", i)))
+    saveRDS(gss_network_simulated, file.path(output_dir, sprintf("GSS_net_sim_1000_%03d.rds", i)))
   }
 )
 
@@ -267,7 +267,7 @@ cat(paste("\nSimulación completada. Se guardaron", N_SIMULACIONES, "redes en la
 
 # --- 6. Verificación Rápida de una Red Simulada ---
 
-first_simulated_net <- readRDS(file.path(output_dir, "GSS_network_simulated_1000_001.rds"))
+first_simulated_net <- readRDS(file.path(output_dir, "GSS_net_sim_1000_001.rds"))
 
 cat("\n--- Resumen de la primera red simulada ---\n")
 print(summary(first_simulated_net, print.adj = FALSE))
