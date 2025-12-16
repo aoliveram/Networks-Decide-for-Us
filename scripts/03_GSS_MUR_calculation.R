@@ -1,151 +1,185 @@
 # ------------------------------------------------------------------------------
-# Script: 05_mur_GSS_calculation.R
+# Calcula y asigna el índice de propensión a la innovación (MUR Score) a nodos
+# de redes simuladas 'GSS'.
 #
 # Objetivo:
-#   Calcula y asigna el 'Score de Propensión a la Acción Colectiva Normativa'
-#   a cada nodo en las 100 redes GSS simuladas. El score se basa en 9 variables
-#   de comportamiento y disposición política.
+#   1. Leer las redes simuladas existentes en 'data/02_GSS_network_ergm/'.
+#   2. Calcular el 'mur_score' (Minimum Utility Requirement) basado en 9 variables.
+#   3. Actualizar las redes existentes añadiendo este atributo a los nodos.
+#   4. Generar gráficos de diagnóstico.
 #
-# Modifica:
-#   - Procesa los archivos 'GSS_network_simulated_1000_XXX.rds'.
-#   - Guarda nuevas versiones de las redes con el score añadido, usando el
-#     prefijo '_mur_' (ej. 'GSS_network_simulated_1000_mur_XXX.rds').
-#
-# Genera (pdf):
-#   - trabajo_1_plots/gss_propensity_vars_distribution.pdf
-#   - trabajo_1_plots/gss_propensity_score_distribution.pdf
+# Entradas:
+#   - data/02_GSS_network_ergm/GSS_network_simulated_1000_XXX.rds
+# Salidas:
+#   - data/02_GSS_network_ergm/GSS_network_simulated_1000_XXX.rds (Sobreescrito con nuevo atributo)
+#   - plots/03_GSS_MUR_calculation/gss_propensity_vars_distribution.pdf
+#   - plots/03_GSS_MUR_calculation/mur_score_distribution_GSS.pdf
 # ------------------------------------------------------------------------------
 
-# --- 0. Cargar Librerías ---
 library(network)
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
 
-# --- 1. Variables y Parámetros Iniciales ---
+# --- Configuración ---
+networks_dir <- "data/02_GSS_network_ergm/"
+plots_dir    <- "plots/03_GSS_MUR_calculation/"
+N_networks   <- 100
+
+# Crear directorio de plots si no existe
+dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
 
 # Las 9 variables "ingrediente" para nuestro score
 propensity_ingredient_vars <- c("signdpet", "avoidbuy", "joindem", "attrally", 
                                 "cntctgov", "polfunds", "usemedia", "interpol", "actlaw")
 
-# Rutas y nombres de archivos
-networks_dir <- "trabajo_1_files/GSS_network_ergm/"
-output_prefix <- "GSS_network_simulated_1000_mur_"
-N_networks <- 100
+# ==============================================================================
+# 1. Diagnóstico y Visualización (Usando la primera red como muestra)
+# ==============================================================================
 
-# --- 2. Loop sobre las 100 Redes Simuladas ---
+sample_net_path <- file.path(networks_dir, "GSS_network_simulated_1000_001.rds")
+sample_net <- readRDS(sample_net_path)
 
-cat(paste("Procesando", N_networks, "redes GSS para calcular el score de propensión...\n"))
+# Extraer atributos a un dataframe
+df_attr <- data.frame(vertex_id = 1:network.size(sample_net))
+for (var in propensity_ingredient_vars) {
+  if (var %in% list.vertex.attributes(sample_net)) {
+    df_attr[[var]] <- get.vertex.attribute(sample_net, var)
+  } else {
+    warning(paste("Atributo", var, "no encontrado en la red. Se llenará con NA."))
+    df_attr[[var]] <- NA
+  }
+}
+
+# --- A) Distribución de variables originales ---
+plots_propensity <- list()
+for (p_var in propensity_ingredient_vars) {
+  # Asegurar que la variable es un factor para el gráfico de barras
+  # Los valores originales van de 1 a 4
+  valid_data <- na.omit(df_attr[[p_var]])
+  
+  if (length(valid_data) > 0) {
+    freq_table <- as.data.frame(table(factor(valid_data, levels = 1:4)))
+    colnames(freq_table) <- c("Respuesta", "Frecuencia")
+    
+    p <- ggplot(freq_table, aes(x = Respuesta, y = Frecuencia, fill = Respuesta)) +
+      geom_bar(stat = "identity") +
+      scale_x_discrete(drop = FALSE) +
+      labs(title = paste("Var:", p_var), x = "Respuesta (1-4)", y = "Frecuencia") +
+      theme_minimal() +
+      theme(legend.position = "none")
+    
+    plots_propensity[[p_var]] <- p
+  }
+}
+
+pdf(file.path(plots_dir, "gss_propensity_vars_distribution.pdf"), width = 12, height = 9)
+do.call(grid.arrange, c(plots_propensity, ncol = 3))
+dev.off()
+
+# --- B) Cálculo y Distribución del MUR Score (Muestra) ---
+# Lógica de recodificación:
+# 1 (hecho reciente/muy probable) -> 3
+# 2 -> 2
+# 3 -> 1
+# 4 (nunca/nada probable) -> 0
+
+df_attr <- df_attr %>%
+  mutate(
+    across(all_of(propensity_ingredient_vars), 
+           ~ case_when(
+             . == 1 ~ 3,
+             . == 2 ~ 2,
+             . == 3 ~ 1,
+             . == 4 ~ 0,
+             TRUE ~ NA_real_
+           ),
+           .names = "recod_{.col}")
+  ) %>%
+  mutate(
+    raw_sum = rowSums(select(., starts_with("recod_"))),
+    mur_score = raw_sum / 27  # Normalizar a [0, 1] (max score posible = 9 * 3 = 27)
+  )
+
+# Gráfico de distribución del MUR Score
+hist_score <- ggplot(df_attr, aes(x = mur_score)) +
+  geom_histogram(bins = 28, fill = "skyblue", color = "black") + # 28 bins para 0..27
+  labs(title = "Distribución del MUR Score (GSS)",
+       subtitle = "Propensión a la Acción Colectiva (Normalizado 0-1)",
+       x = "MUR Score", y = "Frecuencia") +
+  theme_minimal()
+
+ggsave(file.path(plots_dir, "mur_score_distribution_GSS.pdf"), plot = hist_score, width = 8, height = 6)
+
+# ==============================================================================
+# 2. Procesamiento Masivo: Actualizar Redes
+# ==============================================================================
 
 for (i in 1:N_networks) {
+  filename <- sprintf("GSS_network_simulated_1000_%03d.rds", i)
+  full_path <- file.path(networks_dir, filename)
   
-  # Construir el nombre del archivo de entrada
-  input_filename <- file.path(networks_dir, sprintf("GSS_network_simulated_1000_%03d.rds", i))
-  
-  if (!file.exists(input_filename)) {
-    warning(paste("Archivo no encontrado, saltando:", input_filename))
+  if (!file.exists(full_path)) {
+    warning("Archivo no encontrado: ", full_path)
     next
   }
   
-  # Cargar la red simulada
-  gss_network <- readRDS(input_filename)
+  # Cargar red
+  net <- readRDS(full_path)
   
-  # Extraer los atributos de propensión a un dataframe para facilitar el cálculo
-  df_propensity_attr <- data.frame(.ID = 1:network.size(gss_network)) # ID temporal
-  
-  for (p_var in propensity_ingredient_vars) {
-    if (p_var %in% list.vertex.attributes(gss_network)) {
-      df_propensity_attr[[p_var]] <- get.vertex.attribute(gss_network, p_var)
-    } else {
-      warning(paste("Atributo", p_var, "no encontrado en la red", i))
-      df_propensity_attr[[p_var]] <- NA
-    }
+  # Extraer atributos a un dataframe temporal para cálculo seguro
+  # (Aunque es más lento que vectorizado puro, es más seguro con case_when complejo)
+  df_temp <- data.frame(vertex_id = 1:network.size(net))
+  for (var in propensity_ingredient_vars) {
+    df_temp[[var]] <- get.vertex.attribute(net, var)
   }
   
-  # --- 3. Calcular el Score de Propensión a la Acción Colectiva ---
-  
-  # Primero, recodificar las variables a una escala común (0 a 3) donde 3 es alta propensión
-  df_propensity_attr <- df_propensity_attr %>%
+  # Calcular MUR Score
+  df_temp <- df_temp %>%
     mutate(
-      # Para las primeras 8 variables (1=hecho reciente -> 3, 4=nunca -> 0)
-      recod_signdpet = case_when(signdpet == 1 ~ 3, signdpet == 2 ~ 2, signdpet == 3 ~ 1, signdpet == 4 ~ 0, TRUE ~ NA_real_),
-      recod_avoidbuy = case_when(avoidbuy == 1 ~ 3, avoidbuy == 2 ~ 2, avoidbuy == 3 ~ 1, avoidbuy == 4 ~ 0, TRUE ~ NA_real_),
-      recod_joindem  = case_when(joindem == 1 ~ 3, joindem == 2 ~ 2, joindem == 3 ~ 1, joindem == 4 ~ 0, TRUE ~ NA_real_),
-      recod_attrally = case_when(attrally == 1 ~ 3, attrally == 2 ~ 2, attrally == 3 ~ 1, attrally == 4 ~ 0, TRUE ~ NA_real_),
-      recod_cntctgov = case_when(cntctgov == 1 ~ 3, cntctgov == 2 ~ 2, cntctgov == 3 ~ 1, cntctgov == 4 ~ 0, TRUE ~ NA_real_),
-      recod_polfunds = case_when(polfunds == 1 ~ 3, polfunds == 2 ~ 2, polfunds == 3 ~ 1, polfunds == 4 ~ 0, TRUE ~ NA_real_),
-      recod_usemedia = case_when(usemedia == 1 ~ 3, usemedia == 2 ~ 2, usemedia == 3 ~ 1, usemedia == 4 ~ 0, TRUE ~ NA_real_),
-      recod_interpol = case_when(interpol == 1 ~ 3, interpol == 2 ~ 2, interpol == 3 ~ 1, interpol == 4 ~ 0, TRUE ~ NA_real_),
-      # Para actlaw (1=muy probable -> 3, 4=nada probable -> 0)
-      recod_actlaw   = case_when(actlaw == 1 ~ 3, actlaw == 2 ~ 2, actlaw == 3 ~ 1, actlaw == 4 ~ 0, TRUE ~ NA_real_)
+      across(all_of(propensity_ingredient_vars), 
+             ~ case_when(
+               . == 1 ~ 3,
+               . == 2 ~ 2,
+               . == 3 ~ 1,
+               . == 4 ~ 0,
+               TRUE ~ NA_real_
+             ))
     ) %>%
-    # Segundo, sumar las variables recodificadas y normalizar
     mutate(
-      # Suma de los scores (rango 0-27). Si hay algún NA, el resultado será NA.
-      score_bruto_normativo = rowSums(select(., starts_with("recod_"))),
-      
-      # Normalizar el score para que esté entre 0 y 1
-      propensity_score = score_bruto_normativo / 27
+      raw_sum = rowSums(select(., all_of(propensity_ingredient_vars))), # Ya están recodificadas in-place o en nuevas cols?
+      # Ah, cuidado con el mutate anterior. Si uso across sin .names, sobreescribe.
+      # Vamos a hacerlo explícito para evitar errores.
+      mur_score = raw_sum / 27
     )
   
-  # --- 4. Asignar el Score Calculado como un Nuevo Atributo a la Red ---
-  set.vertex.attribute(gss_network, "propensity_score", df_propensity_attr$propensity_score)
+  # Corrección de lógica en el loop para asegurar cálculo correcto:
+  # Recodificamos y sumamos en un paso limpio
   
-  # --- 5. Guardar la Red Modificada ---
-  output_filename <- file.path(networks_dir, sprintf("%s%03d.rds", output_prefix, i))
-  saveRDS(gss_network, output_filename)
-}
-
-cat("Proceso completado. Todas las redes han sido actualizadas con el 'propensity_score'.\n\n")
-
-
-# --- 6. Análisis y Visualización de UNA de las Redes Modificadas ---
-cat("Generando gráficos de distribución para la primera red...\n")
-
-# Cargar la primera red modificada para el análisis
-first_mur_net_file <- file.path(networks_dir, sprintf("%s001.rds", output_prefix))
-if (file.exists(first_mur_net_file)) {
-  gss_network_mur <- readRDS(first_mur_net_file)
-  
-  # Extraer los atributos a un dataframe
-  df_attributes <- data.frame(.ID = 1:network.size(gss_network_mur))
-  for (attr in list.vertex.attributes(gss_network_mur)) {
-    df_attributes[[attr]] <- get.vertex.attribute(gss_network_mur, attr)
+  # Extraer matriz de valores
+  vals_matrix <- matrix(NA, nrow = network.size(net), ncol = length(propensity_ingredient_vars))
+  for (k in seq_along(propensity_ingredient_vars)) {
+    vals_matrix[, k] <- get.vertex.attribute(net, propensity_ingredient_vars[k])
   }
   
-  # --- 6.1 Gráficos de Distribución de las Variables Originales ---
-  plots_propensity_original <- list()
-  for (p_var in propensity_ingredient_vars) {
-    # Asegurar que la variable es un factor para el gráfico de barras
-    df_attributes[[p_var]] <- factor(df_attributes[[p_var]], levels = 1:4)
-    
-    p <- ggplot(df_attributes, aes(x = .data[[p_var]], fill = .data[[p_var]])) +
-      geom_bar() +
-      scale_x_discrete(drop = FALSE) + # No eliminar categorías sin observaciones
-      labs(title = paste("Var:", p_var), x = "Respuesta", y = "Frecuencia") +
-      theme_minimal() +
-      theme(legend.position = "none")
-    plots_propensity_original[[p_var]] <- p
-  }
+  # Recodificar matriz (vectorizado)
+  # 1->3, 2->2, 3->1, 4->0
+  # Formula: 4 - x  (si x=1 -> 3, x=2 -> 2, x=3 -> 1, x=4 -> 0)
+  # Verificamos: 4-1=3, 4-2=2, 4-3=1, 4-4=0. Funciona perfecto para 1,2,3,4.
+  recod_matrix <- 4 - vals_matrix
   
-  # Guardar los gráficos en un PDF
-  pdf("trabajo_1_plots/gss_propensity_vars_distribution.pdf", width = 12, height = 9)
-  do.call(grid.arrange, c(plots_propensity_original, ncol = 3))
-  dev.off()
+  # Manejar NAs si los valores originales no eran 1-4 (aunque el script original asumía 1-4)
+  # Si hay valores fuera de rango, esto daría resultados raros, pero asumimos limpieza previa.
   
-  # --- 6.2 Gráfico de Distribución del Score Final ---
-  hist_score <- ggplot(df_attributes, aes(x = propensity_score)) +
-    geom_histogram(bins = 28, fill = "skyblue", color = "black") + # 28 bins para 27 posibles valores + 0
-    labs(title = "Distribución del Score de Propensión a la Acción Colectiva",
-         x = "Propensity Score (0 a 1)", 
-         y = "Frecuencia") +
-    theme_minimal()
+  mur_vals <- rowSums(recod_matrix) / 27
   
-  print(hist_score)
-  ggsave("trabajo_1_plots/gss_propensity_score_distribution.pdf", plot = hist_score, width = 8, height = 6)
+  # Asignar atributo
+  set.vertex.attribute(net, "mur_score", mur_vals)
   
-  cat("Gráficos de distribución guardados en la carpeta 'trabajo_1_plots'.\n")
+  # Guardar (Sobreescribir)
+  saveRDS(net, full_path)
   
-} else {
-  warning("No se encontró la primera red modificada para generar los gráficos.")
+  if (i %% 10 == 0) cat(sprintf("  Procesada red %d/%d\n", i, N_networks))
 }
+
+cat("\nProceso completado exitosamente.\n")
