@@ -35,6 +35,7 @@ library(patchwork)
 library(intergraph)
 library(cluster)
 library(netdiffuseR) # New dependency
+library(Matrix)
 
 # -----------------------------------------------------------------------------
 # 1. Core Parameters & Setup
@@ -42,7 +43,7 @@ library(netdiffuseR) # New dependency
 cat("Setting up core parameters...\n")
 
 CURRENT_GRAPH_TYPE_LABEL_list <- c("ATP", "ER", "ER_degseq")
-CURRENT_GRAPH_TYPE_LABEL <- CURRENT_GRAPH_TYPE_LABEL_list[2]
+CURRENT_GRAPH_TYPE_LABEL <- CURRENT_GRAPH_TYPE_LABEL_list[1]
 NETWORKS_DIR <- "data/02_ATP_network_ergm/"
 # Ensure you have 100 network files if NUM_SEED_RUNS_TOTAL is 100
 # Or adjust NUM_NETWORK_INSTANCES_AVAILABLE if you have fewer
@@ -105,7 +106,7 @@ random_degree_preserving <- function(g_base, niter_factor = 20) {
 cat("Starting grand simulation sweep...\n")
 
 strategies <- c("random", "central", "marginal", "eigen", "closeness")
-SEEDING_STRATEGY_FIXED <- strategies[3] # --> Change !!
+SEEDING_STRATEGY_FIXED <- strategies[2] # --> Change !!
 
 # This will store all raw results, one list element per SD, 
 # where each element is itself a list of results per Mean
@@ -172,7 +173,8 @@ for (sd_idx in 1:total_sd_iterations) {
       .export = c('NETWORKS_DIR', 'current_threshold_mean', 'current_tau_sd', 
                   'IUL_VALUES_SWEEP', 'H_VALUES_SWEEP', 'SEEDING_STRATEGY_FIXED',
                   'NUM_NETWORK_INSTANCES_AVAILABLE', # For modulo network index
-                  'N_NODES_GLOBAL' # Define if used, or ensure functions get N_nodes_arg
+                  'N_NODES_GLOBAL', # Define if used, or ensure functions get N_nodes_arg
+                  'CURRENT_GRAPH_TYPE_LABEL', 'random_er_same_density', 'random_degree_preserving', 'graph_density_target'
       ), 
       .errorhandling = 'pass',
       .final = function(x) { # .final to update progress after all workers return for this combo
@@ -282,13 +284,19 @@ for (sd_idx in 1:total_sd_iterations) {
       # --- REFACTORING: Use netdiffuseR instead of custom loop ---
       
       results_list <- list()
-      adj_mat <- as_adjacency_matrix(graph_for_this_run, sparse = FALSE) # Keep dense for fallback if needed, but we use sparse logic
+      # adj_mat <- as_adjacency_matrix(graph_for_this_run, sparse = FALSE) # Not needed anymore
       
       # Pre-calculate edge list and distances for sparse W calculation
       # This is done ONCE per network, outside the loops
       el <- as_edgelist(graph_for_this_run, names = FALSE)
-      # Extract distances for edges only. d_ij_matrix is symmetric/dense.
-      edge_dists <- d_ij_matrix[el]
+      
+      # Handle case with no edges (unlikely but possible)
+      if (nrow(el) == 0) {
+         edge_dists <- numeric(0)
+      } else {
+         # Extract distances for edges only. d_ij_matrix is symmetric/dense.
+         edge_dists <- d_ij_matrix[el]
+      }
       
       # OPTIMIZATION: Swap loops. 
       # W depends on h, but not on Gamma. 
@@ -297,26 +305,29 @@ for (sd_idx in 1:total_sd_iterations) {
       for (current_h in H_VALUES_SWEEP) {
            
            # --- Sparse W Calculation ---
-           # Calculate weights ONLY for existing edges
-           edge_weights <- 1 / (1 + exp((edge_dists - current_h) / 0.02))
+           if (length(edge_dists) > 0) {
+             # Calculate weights ONLY for existing edges
+             edge_weights <- 1 / (1 + exp((edge_dists - current_h) / 0.02))
+             
+             # Construct sparse adjacency matrix W
+             # Since graph is undirected, we need symmetric entries.
+             # el has (i, j). We need (i, j) and (j, i).
+             W_sparse <- Matrix::sparseMatrix(
+               i = c(el[,1], el[,2]), 
+               j = c(el[,2], el[,1]), 
+               x = c(edge_weights, edge_weights),
+               dims = c(N_NODES_SPECIFIC_GRAPH, N_NODES_SPECIFIC_GRAPH)
+             )
+           } else {
+             # Empty matrix if no edges
+             W_sparse <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(N_NODES_SPECIFIC_GRAPH, N_NODES_SPECIFIC_GRAPH))
+           }
            
-           # Construct sparse adjacency matrix W
-           # Since graph is undirected, we need symmetric entries.
-           # el has (i, j). We need (i, j) and (j, i).
-           W_sparse <- Matrix::sparseMatrix(
-             i = c(el[,1], el[,2]), 
-             j = c(el[,2], el[,1]), 
-             x = c(edge_weights, edge_weights),
-             dims = c(N_NODES_SPECIFIC_GRAPH, N_NODES_SPECIFIC_GRAPH)
-           )
-           
-           # Convert to standard matrix if rdiffnet requires it, or try passing sparse.
-           # rdiffnet usually accepts "matrix" or "dgCMatrix". 
-           # To be safe and since N=1000 is small enough, we can cast to dense matrix here 
-           # if we encounter issues, but let's try to keep it efficient.
-           # However, rdiffnet internal checks might be faster with standard matrix if it casts anyway.
-           # Given the benchmark showed huge gains in *calculation*, casting here is cheap.
-           W_final <- as.matrix(W_sparse) 
+           # Pass sparse matrix directly to rdiffnet to avoid dense conversion overhead/crashes
+           # FIX: Converting back to dense matrix to prevent worker crashes.
+           # The calculation speedup is preserved (we avoided the dense exp() calculation),
+           # but we pass a standard matrix to rdiffnet to ensure stability.
+           W_final <- as.matrix(W_sparse)
            
            for (current_Gamma in IUL_VALUES_SWEEP) {
              
