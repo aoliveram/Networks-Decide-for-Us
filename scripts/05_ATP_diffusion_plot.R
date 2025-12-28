@@ -24,19 +24,8 @@ library(patchwork)
 library(viridis) 
 
 # --- Parámetros de Análisis ---
-RESULTS_DIR_LIST <- c(
-  "trabajo_1_files/ATP_diffusion_simulation_files_sigm/",
-  "trabajo_1_files/ATP_ER_diffusion_simulation_files_sigm/",
-  "trabajo_1_files/ATP_ER_degseq_diffusion_simulation_files_sigm/"
-)
-RESULTS_DIR <- RESULTS_DIR_LIST[2]
-
-PLOTS_DIR_LIST <- c(
-  "trabajo_1_plots/ATP_diffusion_simulation_files_sigm/",
-  "trabajo_1_plots/ATP_ER_diffusion_simulation_files_sigm/",
-  "trabajo_1_plots/ATP_ER_degseq_diffusion_simulation_files_sigm/"
-)
-PLOTS_DIR <- PLOTS_DIR_LIST[2]
+RESULTS_DIR <- "output/04_ATP_diffusion_sims/"
+PLOTS_DIR <- "plots/04_ATP_diffusion_sims/"
 dir.create(PLOTS_DIR, showWarnings = FALSE, recursive = TRUE)
 
 # For annotation purposes only
@@ -51,12 +40,11 @@ THRESHOLD_MEAN_SWEEP_LIST <- c(0.3, 0.4, 0.5, 0.6)
 TAU_NORMAL_SD_SWEEP_LIST <- c(0.08, 0.12, 0.16, 0.20)
 
 strategies <- c("random", "central", "marginal", "eigen", "closeness")
-SEEDING_STRATEGY_FIXED <- strategies[1]
+SEEDING_STRATEGY_FIXED <- strategies[2]
 PHASE_TRANSITION_THRESHOLD_JUMP <- 1/3 
-#SUCCESSFUL_DIFFUSION_THRESHOLD_PROP <- 0.50 
 
 cat("Cargando resultados crudos guardados...\n")
-grand_raw_results_path <- paste0(RESULTS_DIR, "phase_transition_GRAND_COMBINED_raw_results_all_sds_means_", SEEDING_STRATEGY_FIXED, ".rds") 
+grand_raw_results_path <- paste0(RESULTS_DIR, "results_m03-06_all_", SEEDING_STRATEGY_FIXED, ".rds") 
 if (!file.exists(grand_raw_results_path)) {
   stop("Archivo de resultados crudos no encontrado: ", grand_raw_results_path)
 }
@@ -66,8 +54,8 @@ cat("Resultados cargados.\n")
 # --- PASO 0: Pre-procesar los datos crudos ---
 all_sds_transition_metric_heatmap_df_list <- list()
 all_sds_avg_adoption_heatmap_df_list    <- list()
-all_sds_avg_rational_adopt_pop_heatmap_df_list <- list() # NUEVO NOMBRE
-all_sds_avg_social_adopt_pop_heatmap_df_list   <- list() # NUEVO NOMBRE
+all_sds_avg_rational_adopt_pop_heatmap_df_list <- list() 
+all_sds_avg_social_adopt_pop_heatmap_df_list   <- list() 
 
 cat("\nPre-procesando datos crudos para todos los heatmaps...\n")
 for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
@@ -76,7 +64,7 @@ for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
   if (is.null(current_sd_all_means_raw_results_proc)) { next }
   
   heatmap_data_tm_this_sd_list_proc <- list(); heatmap_data_aa_this_sd_list_proc <- list()
-  heatmap_data_ar_pop_this_sd_list_proc <- list(); heatmap_data_as_pop_this_sd_list_proc <- list() # NUEVO
+  heatmap_data_ar_pop_this_sd_list_proc <- list(); heatmap_data_as_pop_this_sd_list_proc <- list() 
   
   for (current_threshold_mean_proc in THRESHOLD_MEAN_SWEEP_LIST) {
     mean_label_proc <- paste0("mean_", sprintf("%.2f", current_threshold_mean_proc))
@@ -91,17 +79,11 @@ for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
       group_by(run_id, social_distance_h, innovation_iul_Gamma) %>% 
       summarise(
         adopters_prop_at_cell = first(num_adopters) / first(N_nodes_actual),
-        # NUEVAS MÉTRICAS: Proporción de la población total adoptada por cada mecanismo
         prop_rational_of_pop_at_cell = first(num_adopted_rational) / first(N_nodes_actual),
         prop_social_of_pop_at_cell = first(num_adopted_social) / first(N_nodes_actual),
-        # Columnas necesarias para el heatmap de transición
-        num_adopters_at_cell = first(num_adopters), # Necesaria para is_successful_at_cell si se usa
-        n_nodes_at_cell = first(N_nodes_actual),    # Necesaria para is_successful_at_cell
+        num_adopters_at_cell = first(num_adopters), 
+        n_nodes_at_cell = first(N_nodes_actual),    
         .groups = 'drop'
-      ) %>%
-      mutate(
-        # Esta columna solo se usa para el filtro del heatmap de transiciones (si se reintroduce)
-        # is_successful_at_cell = adopters_prop_at_cell >= SUCCESSFUL_DIFFUSION_THRESHOLD_PROP 
       ) %>%
       arrange(run_id, social_distance_h, innovation_iul_Gamma) %>%
       group_by(run_id, social_distance_h) %>%
@@ -109,7 +91,7 @@ for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
         jump_at_step = adopters_prop_at_cell - lag(adopters_prop_at_cell), 
         is_transition_vs_prev_gamma = ifelse(!is.na(jump_at_step) & jump_at_step >= PHASE_TRANSITION_THRESHOLD_JUMP, 1, 0)
       ) %>%
-      group_by(run_id, social_distance_h) %>% # Re-agrupar para el siguiente mutate
+      group_by(run_id, social_distance_h) %>% 
       mutate(first_transition_IUL_for_series = if (any(is_transition_vs_prev_gamma == 1, na.rm=TRUE)) {min(innovation_iul_Gamma[which(is_transition_vs_prev_gamma == 1)])} else {NA_real_}) %>%
       ungroup() %>%
       # Ahora para las transiciones por H
@@ -119,13 +101,13 @@ for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
         jump_vs_prev_h = adopters_prop_at_cell - lag(adopters_prop_at_cell),
         is_transition_vs_prev_h = ifelse(!is.na(jump_vs_prev_h) & jump_vs_prev_h >= PHASE_TRANSITION_THRESHOLD_JUMP, 1, 0)
       ) %>%
-      group_by(run_id, innovation_iul_Gamma) %>% # Re-agrupar
+      group_by(run_id, innovation_iul_Gamma) %>% 
       mutate(first_transition_H_for_series = if (any(is_transition_vs_prev_h == 1, na.rm=TRUE)) {min(social_distance_h[which(is_transition_vs_prev_h == 1)])} else {NA_real_}) %>%
       ungroup()
     
     
     panel_data_tm_list_proc <- list(); panel_data_aa_list_proc <- list()
-    panel_data_ar_pop_list_proc <- list(); panel_data_as_pop_list_proc <- list() # NUEVO
+    panel_data_ar_pop_list_proc <- list(); panel_data_as_pop_list_proc <- list() 
     
     for (iul_val_proc in IUL_VALUES_SWEEP) {
       for (h_val_proc in H_VALUES_SWEEP) {
@@ -143,7 +125,7 @@ for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
         prop_tm_cell_combined <- length(unique_runs_transitioned_to_cell) / NUM_RUNS_THIS_COMBO_ACTUAL_PROC
         panel_data_tm_list_proc[[length(panel_data_tm_list_proc) + 1]] <- data.frame(iul=iul_val_proc, h=h_val_proc, val=prop_tm_cell_combined)
         
-        # Métricas 2, 3 (NUEVO), 4 (NUEVO)
+        # Métricas 2, 3, 4
         current_cell_data_proc <- base_run_summary_proc %>%
           filter(innovation_iul_Gamma == iul_val_proc, social_distance_h == h_val_proc)
         
@@ -162,23 +144,22 @@ for (current_tau_sd_proc in TAU_NORMAL_SD_SWEEP_LIST) {
     }
     heatmap_data_tm_this_sd_list_proc[[mean_label_proc]] <- bind_rows(panel_data_tm_list_proc) %>% mutate(tau_mean_param = current_threshold_mean_proc, proportion_value_to_plot = val, tau_sd_param = current_tau_sd_proc) %>% select(-val)
     heatmap_data_aa_this_sd_list_proc[[mean_label_proc]] <- bind_rows(panel_data_aa_list_proc) %>% mutate(tau_mean_param = current_threshold_mean_proc, mean_adopters_prop_to_plot = val, tau_sd_param = current_tau_sd_proc) %>% select(-val)
-    heatmap_data_ar_pop_this_sd_list_proc[[mean_label_proc]] <- bind_rows(panel_data_ar_pop_list_proc) %>% mutate(tau_mean_param = current_threshold_mean_proc, avg_rational_adopt_pop_to_plot = val, tau_sd_param = current_tau_sd_proc) %>% select(-val) # NUEVO
-    heatmap_data_as_pop_this_sd_list_proc[[mean_label_proc]] <- bind_rows(panel_data_as_pop_list_proc) %>% mutate(tau_mean_param = current_threshold_mean_proc, avg_social_adopt_pop_to_plot = val, tau_sd_param = current_tau_sd_proc) %>% select(-val)   # NUEVO
+    heatmap_data_ar_pop_this_sd_list_proc[[mean_label_proc]] <- bind_rows(panel_data_ar_pop_list_proc) %>% mutate(tau_mean_param = current_threshold_mean_proc, avg_rational_adopt_pop_to_plot = val, tau_sd_param = current_tau_sd_proc) %>% select(-val) 
+    heatmap_data_as_pop_this_sd_list_proc[[mean_label_proc]] <- bind_rows(panel_data_as_pop_list_proc) %>% mutate(tau_mean_param = current_threshold_mean_proc, avg_social_adopt_pop_to_plot = val, tau_sd_param = current_tau_sd_proc) %>% select(-val)   
   }
   all_sds_transition_metric_heatmap_df_list[[sd_label_proc]] <- bind_rows(heatmap_data_tm_this_sd_list_proc[!sapply(heatmap_data_tm_this_sd_list_proc, is.null)])
   all_sds_avg_adoption_heatmap_df_list[[sd_label_proc]]    <- bind_rows(heatmap_data_aa_this_sd_list_proc[!sapply(heatmap_data_aa_this_sd_list_proc, is.null)])
-  all_sds_avg_rational_adopt_pop_heatmap_df_list[[sd_label_proc]] <- bind_rows(heatmap_data_ar_pop_this_sd_list_proc[!sapply(heatmap_data_ar_pop_this_sd_list_proc, is.null)]) # NUEVO
-  all_sds_avg_social_adopt_pop_heatmap_df_list[[sd_label_proc]]   <- bind_rows(heatmap_data_as_pop_this_sd_list_proc[!sapply(heatmap_data_as_pop_this_sd_list_proc, is.null)])   # NUEVO
+  all_sds_avg_rational_adopt_pop_heatmap_df_list[[sd_label_proc]] <- bind_rows(heatmap_data_ar_pop_this_sd_list_proc[!sapply(heatmap_data_ar_pop_this_sd_list_proc, is.null)]) 
+  all_sds_avg_social_adopt_pop_heatmap_df_list[[sd_label_proc]]   <- bind_rows(heatmap_data_as_pop_this_sd_list_proc[!sapply(heatmap_data_as_pop_this_sd_list_proc, is.null)])   
 }
-cat("Pre-procesamiento de todos los datos para heatmaps completado (con nuevas métricas de tipo de adopción).\n")
+cat("Pre-procesamiento de todos los datos para heatmaps completado.\n")
 
 # --- Función Auxiliar para crear UN heatmap individual ---
 create_single_heatmap_v3 <- function(df_plot_data, fill_col_name, legend_title_text, viridis_option, 
                                      show_legend=TRUE, y_axis_label_on=TRUE, x_axis_label_on=TRUE, 
-                                     panel_row_title="") { # Cambiado panel_super_title a panel_row_title
+                                     panel_row_title="") { 
   
   if (is.null(df_plot_data) || nrow(df_plot_data) == 0 || all(is.na(df_plot_data[[fill_col_name]]))) {
-    # Si hay un título de fila, mostrarlo incluso para plot vacío, para mantener alineación
     return(ggplot() + annotate("text", x=0.5, y=0.5, label="No plottable data") + 
              theme_void() + 
              labs(title = NULL, y = if(y_axis_label_on) panel_row_title else NULL) + # Título de fila como etiqueta Y
@@ -202,29 +183,26 @@ create_single_heatmap_v3 <- function(df_plot_data, fill_col_name, legend_title_t
   x_labels <- sprintf("%.2f", x_breaks)
   
   plot_obj <- ggplot(df_plot_data, aes(x = innovation_iul_Gamma, y = social_distance_h_factor, fill = .data[[fill_col_name]])) +
-    geom_tile(color = "white", lwd = 0.1) + # Líneas blancas más sutiles
+    geom_tile(color = "white", lwd = 0.1) + # Líneas blancas
     scale_fill_viridis_c(
-      name = if(show_legend) legend_title_text else NULL, # Quitar título de leyenda si show_legend es FALSE o es NULL
-      limits = c(0, 1), option=viridis_option, n.breaks=4, na.value = "grey90" # Celdas NA en gris claro
+      name = if(show_legend) legend_title_text else NULL, 
+      limits = c(0, 1), option=viridis_option, n.breaks=4, na.value = "grey90" 
     ) +
     labs(
       x = if(x_axis_label_on) expression(paste("IUL (", Gamma, ")")) else NULL, 
-      # Título de fila (SD) ahora se manejará con patchwork o como etiqueta Y del primer plot de la fila
-      y = if(y_axis_label_on) panel_row_title else NULL, # Usar panel_row_title como etiqueta del eje Y
-      title = NULL # Los títulos de columna se pondrán encima con patchwork
+      y = if(y_axis_label_on) panel_row_title else NULL, 
+      title = NULL 
     ) +
     scale_x_continuous(breaks = x_breaks, labels= if(x_axis_label_on) x_labels else NULL, expand = c(0,0)) +
     scale_y_discrete(drop = FALSE, breaks = y_breaks, labels = if(y_axis_label_on) y_labels else NULL) + 
-    theme_minimal(base_size = 7) + # Tamaño base general más pequeño
+    theme_minimal(base_size = 7) + 
     theme(
-      # plot.title = element_text(hjust = 0.5, face = "bold", size=8), # Ya no se usa aquí
       axis.text.x = element_text(angle = 45, hjust = 1, size=6, 
-                                 color = if(x_axis_label_on) "black" else "transparent"), # Ocultar si no es la última fila
+                                 color = if(x_axis_label_on) "black" else "transparent"), 
       axis.text.y = element_text(size=6, 
-                                 color = if(y_axis_label_on) "black" else "transparent"), # Ocultar si no es la primera columna
-      #axis.title.x = element_text(size=7, margin = margin(t = 2, unit="mm")), 
+                                 color = if(y_axis_label_on) "black" else "transparent"), 
       axis.title.x = element_text(size=8, face="bold", margin = margin(t = 2, unit="mm")),
-      axis.title.y = element_text(size=8, face="bold", angle=90, margin = margin(r = 2, unit="mm")), # Para el título de fila "SD = X.XX"
+      axis.title.y = element_text(size=8, face="bold", angle=90, margin = margin(r = 2, unit="mm")), 
       legend.position = if(show_legend) "right" else "none",
       legend.title = element_text(size = 7), 
       legend.text = element_text(size = 6),
@@ -236,13 +214,12 @@ create_single_heatmap_v3 <- function(df_plot_data, fill_col_name, legend_title_t
 }
 
 
-# --- Bucle Principal de PLOTEO: Generar un PDF por cada MEAN_tau ---
+# --- Bucle Principal de PLOTEO ---
 for (current_threshold_mean_plot in THRESHOLD_MEAN_SWEEP_LIST) {
   cat(paste0("\nGenerating Consolidated PDF for Mean τ = ", current_threshold_mean_plot, "\n"))
   
   plot_list_for_this_mean_pdf_ordered <- list() 
   
-  # Definiciones de las columnas (Mismo orden que en tu PDF de ejemplo)
   metric_titles_for_cols <- c("Avg. Adoption", 
                               "Phase Trans Prob.",
                               "Avg. Adopt.\nby Rational", 
@@ -253,82 +230,70 @@ for (current_threshold_mean_plot in THRESHOLD_MEAN_SWEEP_LIST) {
                                  "avg_rational_adopt_pop_to_plot",
                                  "avg_social_adopt_pop_to_plot")  
   
-  metric_legend_titles_for_cols <- c("Mean Total\nAdopt. Prop.", # Leyenda para Col 1
-                                     "Prop. Runs with\n1st Transition", # Leyenda para Col 2
-                                     "Mean Pop. Adopted\nvia Rational",  # Leyenda para Col 3
-                                     "Mean Pop. Adopted\nvia Social Infl.") # Leyenda para Col 4
+  metric_legend_titles_for_cols <- c("Mean Total\nAdopt. Prop.", 
+                                     "Prop. Runs with\n1st Transition", 
+                                     "Mean Pop. Adopted\nvia Rational",  
+                                     "Mean Pop. Adopted\nvia Social Infl.") 
   
-  metric_color_options_for_cols <- rep("viridis", 4) # Punto 3: Todos viridis
+  metric_color_options_for_cols <- rep("viridis", 4) 
   
-  # Orden de las fuentes de datos debe coincidir con el orden de las columnas arriba
   data_sources_for_cols <- list(
-    all_sds_avg_adoption_heatmap_df_list,       # Para "Avg. Adoption"
-    all_sds_transition_metric_heatmap_df_list,  # Para "Phase Trans Prob."
-    all_sds_avg_rational_adopt_pop_heatmap_df_list, # Para "Avg. Adopt. by Rational"
-    all_sds_avg_social_adopt_pop_heatmap_df_list    # Para "Avg. Adopt. by Social Infl."
+    all_sds_avg_adoption_heatmap_df_list,       
+    all_sds_transition_metric_heatmap_df_list,  
+    all_sds_avg_rational_adopt_pop_heatmap_df_list, 
+    all_sds_avg_social_adopt_pop_heatmap_df_list    
   )
   
-  # Bucle sobre las Desviaciones Estándar (Filas del PDF)
   for (row_idx in 1:length(TAU_NORMAL_SD_SWEEP_LIST)) {
     current_tau_sd_plot <- TAU_NORMAL_SD_SWEEP_LIST[row_idx]
     sd_label_plot <- paste0("sd_", sprintf("%.2f", current_tau_sd_plot))
-    # cat(paste0("  Preparing row for SD τ = ", current_tau_sd_plot, "...\n")) # Verboso
     
-    # Crear los 4 heatmaps para esta fila (este SD_tau)
     for (col_idx in 1:4) { 
-      # Extraer el dataframe de datos pre-procesados para el SD y la Métrica actual
       df_all_means_for_sd_metric <- data_sources_for_cols[[col_idx]][[sd_label_plot]]
       
-      # Filtrar por la media actual del PDF
       current_df_for_panel <- if(!is.null(df_all_means_for_sd_metric) && nrow(df_all_means_for_sd_metric) > 0) {
         df_all_means_for_sd_metric %>% filter(tau_mean_param == current_threshold_mean_plot)
       } else { 
-        # Crear un dataframe vacío con las columnas esperadas si no hay datos
-        # para que create_single_heatmap_v3 pueda manejarlo y mostrar "No plottable data"
         data.frame(innovation_iul_Gamma=numeric(0), social_distance_h=numeric(0)) %>% 
-          mutate(!!metric_fill_vars_for_cols[col_idx] := numeric(0) ) # Añadir la columna de fill
+          mutate(!!metric_fill_vars_for_cols[col_idx] := numeric(0) ) 
       }
       
-      # Título de Fila (SD) solo para el primer plot de la fila (col_idx == 1)
-      #row_title_str <- if(col_idx == 1) paste0("SD τ=",sprintf("%.2f", current_tau_sd_plot)) else ""
       row_title_str <- if(col_idx == 1) paste0("MSP (h) - SD=",sprintf("%.2f", current_tau_sd_plot)) else ""
       
-      y_label_visible <- (col_idx == 1) # Etiqueta Y ("MSP (h)" + SD) solo para la primera columna
-      x_label_visible <- (row_idx == length(TAU_NORMAL_SD_SWEEP_LIST)) # Etiqueta X solo para la última fila
-      legend_visible <- (col_idx == 4) # Leyenda solo para la última columna de cada fila
+      y_label_visible <- (col_idx == 1) 
+      x_label_visible <- (row_idx == length(TAU_NORMAL_SD_SWEEP_LIST)) 
+      legend_visible <- (col_idx == 4) 
       
       plot_index_in_list <- ( (row_idx-1)*4 ) + col_idx
       
       plot_list_for_this_mean_pdf_ordered[[plot_index_in_list]] <- 
-        create_single_heatmap_v3( # Usando v3
+        create_single_heatmap_v3( 
           df_plot_data = current_df_for_panel, 
           fill_col_name = metric_fill_vars_for_cols[col_idx], 
-          legend_title_text = NULL, # Punto 4: Quitar título de la leyenda individual del heatmap
+          legend_title_text = NULL, 
           viridis_option = metric_color_options_for_cols[col_idx],
           show_legend = legend_visible,
           y_axis_label_on = y_label_visible,
           x_axis_label_on = x_label_visible,
-          panel_row_title = row_title_str # Este será el título de la fila, usado como etiqueta Y
+          panel_row_title = row_title_str 
         )
-    } # Fin bucle metricas (columnas)
-  } # Fin bucle SD_tau (filas)
+    } 
+  } 
   
   # --- Ensamblaje con Patchwork ---
   if (length(plot_list_for_this_mean_pdf_ordered) == (length(TAU_NORMAL_SD_SWEEP_LIST) * 4) ) {
     
     col_titles_plots <- lapply(metric_titles_for_cols, function(title) {
       ggplot() + labs(title=title) + theme_void() + 
-        theme(plot.title = element_text(hjust=0.5, size=10, face="bold", margin = margin(b=0, t=2, unit="mm"))) # Tamaño y margen título columna
+        theme(plot.title = element_text(hjust=0.5, size=10, face="bold", margin = margin(b=0, t=2, unit="mm"))) 
     })
     
     column_titles_row_layout <- Reduce(`+`, col_titles_plots) + plot_layout(ncol = 4)
     heatmaps_grid_layout <- wrap_plots(plot_list_for_this_mean_pdf_ordered, ncol = 4, byrow = TRUE)
     
-    # Ajustar alturas relativas: más para los plots, menos para los títulos de columna
     final_combined_layout <- column_titles_row_layout / heatmaps_grid_layout + 
-      plot_layout(heights = c(0.05, 1)) # Fila de títulos más pequeña
+      plot_layout(heights = c(0.05, 1)) 
     
-    # Obtener num_runs para subtítulo
     num_runs_val_subtitle <- NA 
     first_valid_sd_label <- names(all_sds_raw_results_list_from_file)[which(!sapply(all_sds_raw_results_list_from_file, is.null))[1]]
     if(!is.na(first_valid_sd_label) && !is.null(all_sds_raw_results_list_from_file[[first_valid_sd_label]])){
@@ -337,21 +302,20 @@ for (current_threshold_mean_plot in THRESHOLD_MEAN_SWEEP_LIST) {
         num_runs_val_subtitle <- length(unique(all_sds_raw_results_list_from_file[[first_valid_sd_label]][[first_valid_mean_label_for_runs]]$run_id))
       }
     }
-    if(is.na(num_runs_val_subtitle)) num_runs_val_subtitle <- "N/A" # Fallback si no se encuentran datos
+    if(is.na(num_runs_val_subtitle)) num_runs_val_subtitle <- "N/A" 
     
-    # Añadir título y subtítulo general al PDF
     final_plot_with_annotation <- final_combined_layout + 
       plot_annotation(
         title = paste("Consolidated Heatmaps for", DATASET_LABEL, "- Mean threshold =", sprintf("%.2f", current_threshold_mean_plot)),
         subtitle = paste("Thresholds ~ N(mu=", sprintf("%.2f", current_threshold_mean_plot), ", SD=var). ", 
                          num_runs_val_subtitle, " runs per (IUL,h) per individual panel. Seeding strategy: ", SEEDING_STRATEGY_FIXED,
                          sep=""),
-        theme = theme(plot.title = element_text(hjust = 0.5, face="bold", size=12), # Tamaño título principal ajustado
-                      plot.subtitle = element_text(hjust = 0.5, size=9.5)) # Tamaño subtítulo ajustado
+        theme = theme(plot.title = element_text(hjust = 0.5, face="bold", size=12), 
+                      plot.subtitle = element_text(hjust = 0.5, size=9.5)) 
       ) 
     
-    pdf_width <- 7.5  # Mantenido de tu ejemplo
-    pdf_height <- 7.0 # Ligeramente ajustado para el espaciado
+    pdf_width <- 7.5  
+    pdf_height <- 7.0 
     
     plot_filename_consolidated_final <- paste0(PLOTS_DIR, "heatmaps__seed_",SEEDING_STRATEGY_FIXED, "_mean_tau_", sprintf("%.2f", current_threshold_mean_plot), ".pdf")
     ggsave(plot_filename_consolidated_final, final_plot_with_annotation, width = pdf_width, height = pdf_height, limitsize = FALSE)
