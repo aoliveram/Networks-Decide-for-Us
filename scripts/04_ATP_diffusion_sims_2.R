@@ -37,6 +37,9 @@ library(cluster)
 library(netdiffuseR) # New dependency
 library(Matrix)
 
+# Evitar conflictos de OpenMP con FORK
+Sys.setenv(OMP_NUM_THREADS="1")
+
 # -----------------------------------------------------------------------------
 # 1. Core Parameters & Setup
 # -----------------------------------------------------------------------------
@@ -47,9 +50,10 @@ CURRENT_GRAPH_TYPE_LABEL <- CURRENT_GRAPH_TYPE_LABEL_list[1]
 NETWORKS_DIR <- "data/02_ATP_network_ergm/"
 # Ensure you have 100 network files if NUM_SEED_RUNS_TOTAL is 100
 # Or adjust NUM_NETWORK_INSTANCES_AVAILABLE if you have fewer
-NUM_NETWORK_INSTANCES_AVAILABLE <- 96 # Max number of unique network files
-NUM_SEED_RUNS_TOTAL <- 96 # Total number of simulation runs (network+seed pairs) per (Mean, SD) combo
+NUM_NETWORK_INSTANCES_AVAILABLE <- 100 # Max number of unique network files
+NUM_SEED_RUNS_TOTAL <- 100 # Total number of simulation runs (network+seed pairs) per (Mean, SD) combo
 N_NODES_GLOBAL <- 1000
+MAX_TIME_STEPS <- 200 # Optimized time steps limit
 
 # Means for Normal Threshold Distribution (τ_i) - INNER SWEEP
 THRESHOLD_MEAN_SWEEP_LIST <- c(0.3, 0.4, 0.5, 0.6)
@@ -122,6 +126,11 @@ timing_log <- data.frame(
 
 total_sd_iterations <- length(TAU_NORMAL_SD_SWEEP_LIST)
 
+# --- CLUSTER SETUP ---
+cl <- makeCluster(NUM_CORES_TO_USE, type = "FORK")
+registerDoParallel(cl)
+cat(paste0("Registered ", NUM_CORES_TO_USE, " parallel workers (FORK cluster).\n"))
+
 time_init <- Sys.time()
 for (sd_idx in 1:total_sd_iterations) {
   current_tau_sd <- TAU_NORMAL_SD_SWEEP_LIST[sd_idx]
@@ -155,9 +164,6 @@ for (sd_idx in 1:total_sd_iterations) {
     cat(paste0("   (Mean Iteration ", mean_idx, " of ", total_mean_iterations, " for current SD)\n"))
     cat(paste0("====================================================================\n"))
     
-    cl <- makeCluster(NUM_CORES_TO_USE, type = "FORK")
-    registerDoParallel(cl)
-    cat(paste0("    Registered ", NUM_CORES_TO_USE, " parallel workers.\n"))
     cat(paste0("    Starting ", NUM_SEED_RUNS_TOTAL, " simulation runs (network+seed pairs)...\n"))
     
     # Progress tracking for the current (mean, sd) combination
@@ -170,17 +176,8 @@ for (sd_idx in 1:total_sd_iterations) {
       .combine = 'list',
       .multicombine = TRUE,
       .packages = c('igraph', 'dplyr', 'readr', 'intergraph', 'cluster', 'netdiffuseR', 'Matrix'),
-      .export = c('NETWORKS_DIR', 'current_threshold_mean', 'current_tau_sd', 
-                  'IUL_VALUES_SWEEP', 'H_VALUES_SWEEP', 'SEEDING_STRATEGY_FIXED',
-                  'NUM_NETWORK_INSTANCES_AVAILABLE', # For modulo network index
-                  'N_NODES_GLOBAL', # Define if used, or ensure functions get N_nodes_arg
-                  'CURRENT_GRAPH_TYPE_LABEL', 'random_er_same_density', 'random_degree_preserving', 'graph_density_target'
-      ), 
       .errorhandling = 'pass',
-      .final = function(x) { # .final to update progress after all workers return for this combo
-        # This .final is for the whole foreach, not per worker iteration.
-        # For per-worker progress, it's more complex with doParallel.
-        # We will print progress after the parallel block.
+      .final = function(x) { 
         return(x)
       }
     ) %dopar% {
@@ -282,36 +279,33 @@ for (sd_idx in 1:total_sd_iterations) {
       initial_infectors_for_this_sim_run <- unique(initial_infectors_for_this_sim_run)
       
       # --- REFACTORING: Use netdiffuseR instead of custom loop ---
+      # OPTIMIZATION: Vectorized Multi-behavior + Sparse Matrices
       
       results_list <- list()
-      # adj_mat <- as_adjacency_matrix(graph_for_this_run, sparse = FALSE) # Not needed anymore
       
       # Pre-calculate edge list and distances for sparse W calculation
-      # This is done ONCE per network, outside the loops
       el <- as_edgelist(graph_for_this_run, names = FALSE)
       
-      # Handle case with no edges (unlikely but possible)
       if (nrow(el) == 0) {
          edge_dists <- numeric(0)
       } else {
-         # Extract distances for edges only. d_ij_matrix is symmetric/dense.
          edge_dists <- d_ij_matrix[el]
       }
       
-      # OPTIMIZATION: Swap loops. 
-      # W depends on h, but not on Gamma. 
-      # We iterate h first, calculate W once, then iterate Gamma.
+      num_iul <- length(IUL_VALUES_SWEEP)
+      
+      # Prepare lists for rdiffnet multi-behavior (vectorization of IUL)
+      # seed.p.adopt must be a list to activate multi-behavior
+      seed_p_adopt_list <- as.list(rep(0, num_iul)) 
+      # seed.nodes must be a list of numeric vectors (same seeds for all IULs)
+      seed_nodes_list <- replicate(num_iul, initial_infectors_for_this_sim_run, simplify = FALSE)
       
       for (current_h in H_VALUES_SWEEP) {
            
            # --- Sparse W Calculation ---
            if (length(edge_dists) > 0) {
-             # Calculate weights ONLY for existing edges
              edge_weights <- 1 / (1 + exp((edge_dists - current_h) / 0.02))
              
-             # Construct sparse adjacency matrix W
-             # Since graph is undirected, we need symmetric entries.
-             # el has (i, j). We need (i, j) and (j, i).
              W_sparse <- Matrix::sparseMatrix(
                i = c(el[,1], el[,2]), 
                j = c(el[,2], el[,1]), 
@@ -319,51 +313,61 @@ for (sd_idx in 1:total_sd_iterations) {
                dims = c(N_NODES_SPECIFIC_GRAPH, N_NODES_SPECIFIC_GRAPH)
              )
            } else {
-             # Empty matrix if no edges
              W_sparse <- Matrix::sparseMatrix(i=integer(0), j=integer(0), dims=c(N_NODES_SPECIFIC_GRAPH, N_NODES_SPECIFIC_GRAPH))
            }
            
-           # Pass sparse matrix directly to rdiffnet to avoid dense conversion overhead/crashes
-           # FIX: Converting back to dense matrix to prevent worker crashes.
-           # The calculation speedup is preserved (we avoided the dense exp() calculation),
-           # but we pass a standard matrix to rdiffnet to ensure stability.
-           W_final <- as.matrix(W_sparse)
+           # Construct Threshold Matrix for all IUL values simultaneously
+           # Rows: Nodes, Columns: Behaviors (IUL Values)
+           threshold_matrix <- matrix(0, nrow = N_NODES_SPECIFIC_GRAPH, ncol = num_iul)
            
-           for (current_Gamma in IUL_VALUES_SWEEP) {
+           for (i in 1:num_iul) {
+             current_Gamma <- IUL_VALUES_SWEEP[i]
+             effective_thresholds <- node_thresholds_tau_frac_specific
+             rational_indices <- which(node_mur_q_specific <= current_Gamma)
+             effective_thresholds[rational_indices] <- 1e-6 
+             threshold_matrix[, i] <- effective_thresholds
+           }
+           
+           # Run rdiffnet ONCE for all IULs (Multi-behavior)
+           diff_model <- rdiffnet(
+             n = N_NODES_SPECIFIC_GRAPH,
+             seed.nodes = seed_nodes_list,
+             seed.p.adopt = seed_p_adopt_list, # Activates multi-behavior
+             threshold.dist = threshold_matrix,
+             seed.graph = W_sparse, 
+             exposure.mode = "stochastic",
+             exposure.args = list(valued = TRUE),
+             t = MAX_TIME_STEPS, 
+             stop.no.diff = FALSE 
+           )
+           
+           # Extract results for each IUL
+           # diff_model$toa is now a matrix (N x num_iul)
+           for (i in 1:num_iul) {
+             current_Gamma <- IUL_VALUES_SWEEP[i]
              
-              # Calculate effective thresholds
-              # "Rational" agents (mur_score <= Gamma) have threshold set to epsilon (approx 0)
-              effective_thresholds <- node_thresholds_tau_frac_specific
-              rational_indices <- which(node_mur_q_specific <= current_Gamma)
-              effective_thresholds[rational_indices] <- 1e-6 # Epsilon
+             # Get TOA for this behavior (column i)
+             toa_col <- diff_model$toa[, i]
+             adopters <- which(!is.na(toa_col))
              
-               # Run rdiffnet
-               diff_model <- rdiffnet(
-                 n = N_NODES_SPECIFIC_GRAPH,
-                 seed.nodes = initial_infectors_for_this_sim_run,
-                 threshold.dist = effective_thresholds,
-                 seed.graph = W_final, 
-                 exposure.mode = "stochastic",
-                 t = N_NODES_SPECIFIC_GRAPH + 5 
-               )
-               
-               adopters <- which(!is.na(diff_model$toa))
-               non_seed_adopters <- setdiff(adopters, initial_infectors_for_this_sim_run)
-               
-               num_adopted_rational <- sum(non_seed_adopters %in% rational_indices)
-               num_adopted_social <- sum(!(non_seed_adopters %in% rational_indices))
-               
-               res_row <- data.frame(
-                 innovation_iul_Gamma = current_Gamma,
-                 social_distance_h = current_h,
-                 seed = primary_seed_for_this_run,
-                 num_adopters = length(adopters),
-                 num_steps = max(diff_model$toa, na.rm = TRUE),
-                 num_adopted_rational = num_adopted_rational,
-                 num_adopted_social = num_adopted_social,
-                 initial_cluster_size = length(initial_infectors_for_this_sim_run)
-               )
-               results_list[[length(results_list) + 1]] <- res_row
+             # Recalculate rational/social counts
+             rational_indices <- which(node_mur_q_specific <= current_Gamma)
+             non_seed_adopters <- setdiff(adopters, initial_infectors_for_this_sim_run)
+             
+             # Handle Inf/-Inf in max() if no adopters
+             num_steps_val <- if(length(adopters) > 0) max(toa_col, na.rm = TRUE) else 0
+             
+             res_row <- data.frame(
+               innovation_iul_Gamma = current_Gamma,
+               social_distance_h = current_h,
+               seed = primary_seed_for_this_run,
+               num_adopters = length(adopters),
+               num_steps = num_steps_val,
+               num_adopted_rational = sum(non_seed_adopters %in% rational_indices),
+               num_adopted_social = sum(!(non_seed_adopters %in% rational_indices)),
+               initial_cluster_size = length(initial_infectors_for_this_sim_run)
+             )
+             results_list[[length(results_list) + 1]] <- res_row
            }
       }
       
@@ -378,7 +382,6 @@ for (sd_idx in 1:total_sd_iterations) {
       return(df_one_full_run)
     } # End foreach for NUM_SEED_RUNS_TOTAL
     
-    stopCluster(cl)
     cat(paste0("    Parallel simulations for (Mean τ = ", current_threshold_mean, ", SD τ = ", current_tau_sd, ") finished.\n"))
     cat(paste0("    Collected results for ", length(list_of_results_for_this_mean_sd_combo), " runs.\n"))
     
@@ -421,29 +424,33 @@ for (sd_idx in 1:total_sd_iterations) {
   time_end_sd <- Sys.time()
   duration_sd <- as.numeric(difftime(time_end_sd, time_start_sd, units = "mins"))
   cat(paste0("    Time taken for SD ", current_tau_sd, ": ", round(duration_sd, 2), " mins.\n"))
+
+  # Add current SD time to log
+  timing_log <- rbind(timing_log, data.frame(
+    seed_strategy = SEEDING_STRATEGY_FIXED,
+    sd_param = current_tau_sd,
+    duration_mins = duration_sd
+  ))
+
+  # Save timing table (Partial save)
+  timing_file <- paste0(RESULTS_DIR, "timing_log_", SEEDING_STRATEGY_FIXED, ".csv")
+  write.csv(timing_log, timing_file, row.names = FALSE)
+  cat(paste0("    Timing data updated: ", timing_file, "\n"))
+  
+} # End outer loop for TAU_NORMAL_SD_SWEEP_LIST
+
+time_fin <- Sys.time()
+time_total_parallel <- difftime(time_fin, time_init, units = "auto")
+
 # Add total time to log
 timing_log <- rbind(timing_log, data.frame(
   seed_strategy = SEEDING_STRATEGY_FIXED,
   sd_param = NA, # NA indicates total
   duration_mins = as.numeric(difftime(time_fin, time_init, units = "mins"))
 ))
-
-# Save timing table
-timing_file <- paste0(RESULTS_DIR, "timing_log_", SEEDING_STRATEGY_FIXED, ".csv")
 write.csv(timing_log, timing_file, row.names = FALSE)
-cat(paste0("Timing data saved to: ", timing_file, "\n"))
 
-  
-  timing_log <- rbind(timing_log, data.frame(
-    seed_strategy = SEEDING_STRATEGY_FIXED,
-    sd_param = current_tau_sd,
-    duration_mins = duration_sd
-  ))
-  
-} # End outer loop for TAU_NORMAL_SD_SWEEP_LIST
-time_fin <- Sys.time()
-time_total_parallel <- difftime(time_fin, time_init, units = "auto")
-
+stopCluster(cl) # Stop cluster at the very end
 cat("\nAll simulation sweeps complete.\n")
 
 # -----------------------------------------------------------------------------
