@@ -1,29 +1,29 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Simula difusión compleja, usando thresholds de distinto μ y σ. 
-# Cada simulación utiliza una nueva instancia de red y una nueva semilla aleatoria.
-# Genera (rds):
+# Simulates complex diffusion using thresholds with different μ and σ.
+# Each simulation uses a new network instance and a new random seed.
+# Generates (rds):
 #   output/04_ATP_diffusion_sims/phase_transition_GRAND_COMBINED_raw_results_all_sds_means_XXX.
-# donde XXX == #"closeness" #"marginal" #"eigen" #"central" #"random"
-# No se generan gráficos en este script.
-# Fuentes:
-# - Redes 'ATP': data/02_ATP_network_ergm/ATP_net_sim_1000_XXX.rds
-# - Funciones de simulación: netdiffuseR (stochastic-transmission branch)
+# where XXX == #"closeness" #"marginal" #"eigen" #"central" #"random"
+# No plots are generated in this script.
+# Sources:
+# - 'ATP' Networks: data/02_ATP_network_ergm/ATP_net_sim_1000_XXX.rds
+# - Simulation functions: netdiffuseR (stochastic-transmission branch)
 #
 # # Core Parameters
-# NUM_SEED_RUNS_TOTAL     : 96 (corridas por combinación de media y desviación)
-# N_NODES_GLOBAL          : 1000 (número de nodos esperado en cada red)
+# NUM_SEED_RUNS_TOTAL     : 96 (runs per mean and deviation combination)
+# N_NODES_GLOBAL          : 1000 (expected number of nodes in each network)
 #
-# # Umbral influencia social
-# THRESHOLD_MEAN_SWEEP_LIST : c(0.3, 0.4, 0.5, 0.6)     # Media
-# TAU_NORMAL_SD_SWEEP_LIST  : c(0.08, 0.12, 0.16, 0.20) # Desviación estándar
+# # Social Influence Threshold
+# THRESHOLD_MEAN_SWEEP_LIST : c(0.3, 0.4, 0.5, 0.6)     # Mean
+# TAU_NORMAL_SD_SWEEP_LIST  : c(0.08, 0.12, 0.16, 0.20) # Standard Deviation
 #
 # # Innovation and social parameters
-# IUL_VALUES_SWEEP : seq(0.0, 1.0, by=0.025)   # Nivel de Utilidad Intrínseca Innovación
+# IUL_VALUES_SWEEP : seq(0.0, 1.0, by=0.025)   # Intrinsic Utility Level of Innovation
 # H_VALUES_SWEEP   : seq(0/12, 12/12, by=1/12) # Social flexibility
 #
-# # Distancia social: 
-# Índice de Gower a partir de (edad, educación numérica, raza, religión, sexo). 
-# La matriz resultante (d_ij_matrix) contiene [0,1].
+# # Social Distance: 
+# Gower Index based on (age, numeric education, race, religion, sex). 
+# The resulting matrix (d_ij_matrix) contains [0,1].
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 library(igraph)
@@ -37,7 +37,7 @@ library(cluster)
 library(netdiffuseR) 
 library(Matrix)
 
-# Evitar conflictos de OpenMP con FORK
+# Avoid OpenMP conflicts with FORK
 Sys.setenv(OMP_NUM_THREADS="1")
 
 # -----------------------------------------------------------------------------

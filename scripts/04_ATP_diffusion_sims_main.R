@@ -1,41 +1,49 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Script Principal para Ejecutar Simulaciones de Difusión (ATP)
+# Main Script to Run Diffusion Simulations (ATP)
 #
-# Este script configura los parámetros y ejecuta la simulación para TODAS
-# las estrategias de seeding definidas.
+# This script configures parameters and runs the simulation for ALL
+# defined seeding strategies.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Cargar la función de simulación
+# Load simulation function
 source("scripts/04_ATP_diffusion_sims.R")
 
 # -----------------------------------------------------------------------------
-# Configuración de Parámetros
+# Parameter Configuration
 # -----------------------------------------------------------------------------
 
-# 1. Umbrales de Influencia Social (Distribución Normal)
-THRESHOLD_MEAN_SWEEP_LIST <- c(0.3, 0.4, 0.5, 0.6)     # Medias
-TAU_NORMAL_SD_SWEEP_LIST  <- c(0.08, 0.12, 0.16, 0.20) # Desviaciones Estándar
+# 1. Social Influence Thresholds (Normal Distribution)
+THRESHOLD_MEAN_SWEEP_LIST <- c(0.3, 0.4, 0.5, 0.6)     # Means
+TAU_NORMAL_SD_SWEEP_LIST  <- c(0.08, 0.12, 0.16, 0.20) # Standard Deviations
 
-# 2. Tipo de Grafo
-CURRENT_GRAPH_TYPE_LABEL <- "ATP" # Opciones: "ATP", "ER"
+# 2. Graph Type
+CURRENT_GRAPH_TYPE_LABEL <- "ER" # Options: "ATP", "ER"
 
-# 3. Parámetros de Innovación y Flexibilidad Social (Barrido Interno)
-IUL_VALUES_SWEEP <- seq(0.0, 1.0, by = 0.025)   # Utilidad Intrínseca
-H_VALUES_SWEEP   <- seq(0/12, 12/12, by = 1/12) # Distancia Social
+# 3. Innovation and Social Flexibility Parameters (Internal Sweep)
+IUL_VALUES_SWEEP <- seq(0.0, 1.0, by = 0.025)   # Intrinsic Utility
+H_VALUES_SWEEP   <- seq(0/12, 12/12, by = 1/12) # Social Distance
 
-# 4. Estrategias de Seeding a Ejecutar
-# Nota: "random" y "central" ya se ejecutaron.
-strategies_to_run <- c("marginal", "eigen", "closeness")
+# 4. Seeding Strategies to Run
+strategies_to_run <- c("random", "central", "marginal", "eigen", "closeness")
+
+# 5. Output Directory Configuration
+if (CURRENT_GRAPH_TYPE_LABEL == "ATP") {
+  RESULTS_DIR <- "output/04_ATP_diffusion_sims/"
+} else if (CURRENT_GRAPH_TYPE_LABEL == "ER") {
+  RESULTS_DIR <- "output/04_ER_diffusion_sims/"
+} else {
+  RESULTS_DIR <- paste0("output/04_", CURRENT_GRAPH_TYPE_LABEL, "_diffusion_sims/")
+}
 
 # -----------------------------------------------------------------------------
-# Ejecución del Bucle Principal
+# Main Loop Execution
 # -----------------------------------------------------------------------------
 
-cat("Iniciando ejecución masiva de simulaciones...\n")
+cat("Starting massive simulation execution...\n")
 
 for (strategy in strategies_to_run) {
   
-  cat(paste0("\n\n>>> Iniciando simulaciones para estrategia: ", strategy, " <<<\n"))
+  cat(paste0("\n\n>>> Starting simulations for strategy: ", strategy, " <<<\n"))
   
   run_diffusion_simulation(
     SEEDING_STRATEGY_FIXED = strategy,
@@ -44,10 +52,11 @@ for (strategy in strategies_to_run) {
     CURRENT_GRAPH_TYPE_LABEL = CURRENT_GRAPH_TYPE_LABEL,
     IUL_VALUES_SWEEP = IUL_VALUES_SWEEP,
     H_VALUES_SWEEP = H_VALUES_SWEEP,
-    NUM_SEED_RUNS_TOTAL = 24, # Ajustado a 24 según solicitud
-    NUM_CORES_TO_USE = 8      # Ajustar según capacidad de la máquina
+    NUM_SEED_RUNS_TOTAL = 24, # Adjusted to 24 as requested
+    NUM_CORES_TO_USE = 8,     # Adjust according to machine capacity
+    RESULTS_DIR = RESULTS_DIR # Pass the dynamic directory
   )
   
 }
 
-cat("\n\nTodas las simulaciones han finalizado.\n")
+cat("\n\nAll simulations have finished.\n")
