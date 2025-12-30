@@ -13,15 +13,15 @@ source("scripts/04_ATP_diffusion_sims.R")
 # -----------------------------------------------------------------------------
 
 # 1. Social Influence Thresholds (Normal Distribution)
-THRESHOLD_MEAN_SWEEP_LIST <- c(0.3, 0.4, 0.5, 0.6)     # Means
-TAU_NORMAL_SD_SWEEP_LIST  <- c(0.08, 0.12, 0.16, 0.20) # Standard Deviations
+THRESHOLD_MEAN_SWEEP_LIST <- c(0.3, 0.4, 0.5, 0.6) # Means
+TAU_NORMAL_SD_SWEEP_LIST <- c(0.08, 0.12, 0.16, 0.20) # Standard Deviations
 
 # 2. Graph Type
 CURRENT_GRAPH_TYPE_LABEL <- "ER" # Options: "ATP", "ER"
 
 # 3. Innovation and Social Flexibility Parameters (Internal Sweep)
-IUL_VALUES_SWEEP <- seq(0.0, 1.0, by = 0.025)   # Intrinsic Utility
-H_VALUES_SWEEP   <- seq(0/12, 12/12, by = 1/12) # Social Distance
+IUL_VALUES_SWEEP <- seq(0.0, 1.0, by = 0.025) # Intrinsic Utility
+H_VALUES_SWEEP <- seq(0 / 12, 12 / 12, by = 1 / 12) # Social Distance
 
 # 4. Seeding Strategies to Run
 strategies_to_run <- c("random", "central", "marginal", "eigen", "closeness")
@@ -30,7 +30,7 @@ strategies_to_run <- c("random", "central", "marginal", "eigen", "closeness")
 if (CURRENT_GRAPH_TYPE_LABEL == "ATP") {
   RESULTS_DIR <- "output/04_ATP_diffusion_sims/"
 } else if (CURRENT_GRAPH_TYPE_LABEL == "ER") {
-  RESULTS_DIR <- "output/04_ER_diffusion_sims/"
+  RESULTS_DIR <- "output/04_ATP_ER_diffusion_sims/"
 } else {
   RESULTS_DIR <- paste0("output/04_", CURRENT_GRAPH_TYPE_LABEL, "_diffusion_sims/")
 }
@@ -42,9 +42,8 @@ if (CURRENT_GRAPH_TYPE_LABEL == "ATP") {
 cat("Starting massive simulation execution...\n")
 
 for (strategy in strategies_to_run) {
-  
   cat(paste0("\n\n>>> Starting simulations for strategy: ", strategy, " <<<\n"))
-  
+
   run_diffusion_simulation(
     SEEDING_STRATEGY_FIXED = strategy,
     THRESHOLD_MEAN_SWEEP_LIST = THRESHOLD_MEAN_SWEEP_LIST,
@@ -53,10 +52,9 @@ for (strategy in strategies_to_run) {
     IUL_VALUES_SWEEP = IUL_VALUES_SWEEP,
     H_VALUES_SWEEP = H_VALUES_SWEEP,
     NUM_SEED_RUNS_TOTAL = 24, # Adjusted to 24 as requested
-    NUM_CORES_TO_USE = 8,     # Adjust according to machine capacity
+    NUM_CORES_TO_USE = 8, # Adjust according to machine capacity
     RESULTS_DIR = RESULTS_DIR # Pass the dynamic directory
   )
-  
 }
 
 cat("\n\nAll simulations have finished.\n")
