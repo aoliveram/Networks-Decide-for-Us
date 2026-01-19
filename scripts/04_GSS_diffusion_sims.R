@@ -193,8 +193,8 @@ run_diffusion_simulation <- function(
 
         set.seed(run_idx * 3000 + round(current_threshold_mean * 100) + round(current_tau_sd * 100))
 
-        # Use propensity_score for GSS
-        node_mur_q_specific <- V(graph_for_this_run)$propensity_score
+        # Use mur_score for GSS (standardized attribute name)
+        node_mur_q_specific <- V(graph_for_this_run)$mur_score
 
         node_degrees_specific <- igraph::degree(graph_for_this_run)
 
