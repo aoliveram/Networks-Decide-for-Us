@@ -1,0 +1,19 @@
+
+== BAM Rational Adoption ==
+                      Estimate  Std. Error    z value     Pr(>|z|)
+(Intercept)         0.42813788 0.007489897  57.162054 0.000000e+00
+tau_mean           -0.18523057 0.011752815 -15.760529 5.814451e-56
+tau_sd              0.03154561 0.029380137   1.073705 2.829548e-01
+seed_typecentral   -0.05445003 0.004154941 -13.104887 3.087209e-39
+seed_typecloseness -0.05239794 0.004155123 -12.610443 1.849502e-36
+seed_typeeigen     -0.05141287 0.004155211 -12.373108 3.654018e-35
+seed_typemarginal   0.02681477 0.004162838   6.441465 1.183259e-10
+network_typeER     -0.11392126 0.002629017 -43.332267 0.000000e+00
+
+-- smooths --
+                                               edf   Ref.df   Chi.sq p-value
+s(IUL,MSP):contagion_typeInnovation       8.996930 8.999998 522837.3       0
+s(IUL,MSP):contagion_typeCollectiveAction 8.995844 8.999996 581944.0       0
+
+Deviance explained: 0.9692938
+Elapsed (s): 9.82

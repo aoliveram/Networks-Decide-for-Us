@@ -1,0 +1,19 @@
+
+== BAM Social Adoption ==
+                      Estimate  Std. Error     z value      Pr(>|z|)
+(Intercept)        -0.29977625 0.008408408  -35.651964 2.196838e-278
+tau_mean           -5.12964448 0.013700932 -374.401139  0.000000e+00
+tau_sd              4.20987709 0.032975367  127.667332  0.000000e+00
+seed_typecentral    0.03207386 0.004640244    6.912106  4.775122e-12
+seed_typecloseness  0.03271669 0.004640052    7.050932  1.777236e-12
+seed_typeeigen      0.03195054 0.004640281    6.885476  5.759479e-12
+seed_typemarginal  -0.01979558 0.004656246   -4.251403  2.124356e-05
+network_typeER     -0.42613845 0.002950501 -144.429201  0.000000e+00
+
+-- smooths --
+                                               edf Ref.df   Chi.sq p-value
+s(IUL,MSP):contagion_typeInnovation       8.998900      9 420575.2       0
+s(IUL,MSP):contagion_typeCollectiveAction 8.999218      9 424819.5       0
+
+Deviance explained: 0.7107082
+Elapsed (s): 10.57
