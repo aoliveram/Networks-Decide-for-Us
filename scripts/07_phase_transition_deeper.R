@@ -42,11 +42,25 @@ agg_df <- base_df %>%
   group_by(innovation_iul_Gamma, social_distance_h) %>%
   summarise(
     avg_steps = mean(num_steps, na.rm=TRUE),
-    max_steps = max(num_steps, na.rm=TRUE),
+    sd_steps = sd(num_steps, na.rm=TRUE),
     sd_adoption = sd(adopters_prop, na.rm=TRUE),
     avg_adoption = mean(adopters_prop, na.rm=TRUE),
     .groups = "drop"
   )
+
+# --- Correlation Table for User ---
+cat("\n=== CORRELATION BETWEEN AVG TOTAL ADOPTION AND AVG STEPS ===\n")
+cor_table <- agg_df %>%
+  group_by(social_distance_h) %>%
+  summarise(
+    Correlation = cor(avg_adoption, avg_steps, use="complete.obs"),
+    Avg_Steps_Overall = mean(avg_steps),
+    .groups = "drop"
+  )
+print(as.data.frame(cor_table))
+cat("============================================================\n\n")
+
+write.csv(cor_table, paste0(PLOTS_DIR, "correlation_adoption_steps.csv"), row.names=FALSE)
 
 # --- Method 2: Critical Slowing Down ---
 h_levels_sorted <- sprintf("%.2f", sort(unique(H_VALUES_SWEEP)))
@@ -63,76 +77,132 @@ p_steps1 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_discrete(breaks=y_breaks) + theme_minimal()
 
-p_steps2 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill = max_steps)) +
+p_steps2 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill = sd_steps)) +
   geom_tile(color="white", lwd=0.1) +
-  scale_fill_viridis_c(option="magma", name="Max Steps") +
-  labs(title="Method 2: Critical Slowing Down (Max Steps)", x="IUL", y="MSP") +
+  scale_fill_viridis_c(option="magma", name="SD Steps") +
+  labs(title="Method 2: Critical Slowing Down (SD of Steps)", x="IUL", y="MSP") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_discrete(breaks=y_breaks) + theme_minimal()
 
-ggsave(paste0(PLOTS_DIR, "method2_critical_slowing_down.pdf"), p_steps1 + p_steps2, width=11, height=4)
+ggsave(paste0(PLOTS_DIR, "method2_critical_slowing_down.pdf"), p_steps1 + p_steps2, width=12, height=5)
 
-# --- Method 4: Order Parameter & Susceptibility Exponents ---
-# Pick a fixed MSP, target MSP = 0.5
-target_msp <- H_VALUES_SWEEP[which.min(abs(H_VALUES_SWEEP - 0.5))]
+# Find the Global Maximum of Susceptibility (original Method 3 anchoring)
+global_max_idx <- which.max(agg_df$sd_adoption)
+IUL_max_suscep <- agg_df$innovation_iul_Gamma[global_max_idx]
 
-m4_df <- agg_df %>% filter(abs(social_distance_h - target_msp) < 1e-4)
+# Find the Global Maximum Jump of Adoption (Method 4 H=0 effective baseline)
+jump_df <- agg_df %>%
+  group_by(innovation_iul_Gamma) %>%
+  arrange(social_distance_h) %>%
+  summarise(max_jump = max(diff(avg_adoption), na.rm=TRUE), .groups="drop")
 
-# Find critical point IUL_c where susceptibility (var) peaks
-iul_c <- m4_df$innovation_iul_Gamma[which.max(m4_df$sd_adoption)]
+IUL_jump <- jump_df$innovation_iul_Gamma[which.max(jump_df$max_jump)]
+delta_iul <- 0.025 
 
-m4_plot_df <- m4_df %>%
-  mutate(
-    dist_to_c = innovation_iul_Gamma - iul_c,
-    abs_dist = abs(dist_to_c)
+# --- Method 4: Order Parameter & Susceptibility Exponents for MULTIPLE IULs ---
+# Effective Zero-Field Analogue swept around IUL = 0.200
+selected_iuls <- c(0.200, 0.225, 0.250, 0.275)
+
+# Snap to available grid values
+selected_iuls <- IUL_VALUES_SWEEP[sapply(selected_iuls, function(x) which.min(abs(IUL_VALUES_SWEEP - x)))]
+selected_iuls <- unique(selected_iuls)
+
+plot_list <- list()
+exponent_results <- data.frame(IUL=numeric(), MSP_c=numeric(), Gamma=numeric())
+
+for(target_iul in selected_iuls) {
+  
+  m4_df <- agg_df %>% filter(abs(innovation_iul_Gamma - target_iul) < 1e-4)
+  if(nrow(m4_df) == 0) next
+  
+  # Find critical point MSP_c where susceptibility (var) peaks
+  msp_c <- m4_df$social_distance_h[which.max(m4_df$sd_adoption)]
+  
+  m4_plot_df <- m4_df %>%
+    mutate(
+      dist_to_c = social_distance_h - msp_c,
+      abs_dist = abs(dist_to_c)
+    )
+  
+  p_beta <- ggplot(m4_plot_df, aes(x=dist_to_c, y=avg_adoption)) +
+    geom_point(color="black", size=1) + geom_line(color="grey50") +
+    geom_vline(xintercept=0, color="red", linetype="dashed") +
+    labs(title=paste0("IUL=", sprintf("%.3f", target_iul), " | MSP_c=", sprintf("%.2f", msp_c)),
+         x="MSP - MSP_c", y="Avg Adoption (Phi)") + theme_minimal(base_size=10)
+  
+  m4_gamma_df <- m4_plot_df %>% filter(abs_dist > 0, dist_to_c > 0, sd_adoption > 0)
+  
+  if(nrow(m4_gamma_df) >= 2) {
+    fit <- lm(log10(sd_adoption) ~ log10(abs_dist), data=m4_gamma_df)
+    gamma_val <- -coef(fit)[2]
+  } else {
+    gamma_val <- NA
+  }
+  
+  exponent_results <- rbind(exponent_results, data.frame(IUL=target_iul, MSP_c=msp_c, Gamma=gamma_val))
+  
+  p_gamma <- ggplot(m4_gamma_df, aes(x=abs_dist, y=sd_adoption)) +
+    geom_point(color="purple", size=1) + 
+    geom_smooth(method="lm", se=FALSE, color="blue", linewidth=0.5) +
+    scale_x_log10() + scale_y_log10() +
+    labs(title=paste0("Gamma (", sprintf("%.3f", gamma_val), ") | IUL=", sprintf("%.3f", target_iul)),
+         x="log(|MSP - MSP_c|)", y="log(Susceptibility)") + theme_minimal(base_size=10)
+  
+  plot_list[[length(plot_list) + 1]] <- p_beta
+  plot_list[[length(plot_list) + 1]] <- p_gamma
+}
+
+write.csv(exponent_results, paste0(PLOTS_DIR, "gamma_exponents.csv"), row.names=FALSE)
+
+final_m4 <- wrap_plots(plot_list, ncol = 2)
+ggsave(paste0(PLOTS_DIR, "method4_exponents.pdf"), final_m4, width=10, height=2.5 * (length(plot_list)/2))
+
+# --- Method 3: Avalanche Power Laws 3x3 Array ---
+IUL_opt <- IUL_max_suscep
+m3_slice <- agg_df %>% filter(abs(innovation_iul_Gamma - IUL_opt) < 1e-4)
+
+# 1. Critical
+msp_c_exact <- m3_slice$social_distance_h[which.max(m3_slice$sd_adoption)]
+
+# 2. Super-Critical (Disordered Phase / High MSP ~0.80)
+msp_super <- H_VALUES_SWEEP[which.min(abs(H_VALUES_SWEEP - 0.80))]
+
+# 3. Sub-Critical (Ordered Phase / Low MSP ~0.20)
+msp_sub <- H_VALUES_SWEEP[which.min(abs(H_VALUES_SWEEP - 0.20))]
+
+selected_msps_m3 <- c(msp_c_exact, msp_super, msp_sub)
+labels_m3 <- c("Critical", "Super-Critical", "Sub-Critical")
+
+# Function to generate a row of 3 plots
+build_m3_row <- function(msp_val, label_text) {
+  df_runs <- base_df %>% filter(
+    abs(innovation_iul_Gamma - IUL_opt) < 1e-4,
+    abs(social_distance_h - msp_val) < 1e-4
   )
+  
+  make_hist <- function(col_name, title_txt, fill_col) {
+    ggplot(df_runs, aes(x=.data[[col_name]])) +
+      geom_histogram(bins=100, fill=fill_col, color=NA, alpha=0.9) +
+      scale_x_continuous(limits=c(-5, 1005)) +
+      labs(title=paste0(title_txt, "\n(", label_text, ")"), 
+           subtitle=paste0("IUL=", sprintf("%.3f", IUL_opt), ", MSP=", sprintf("%.2f", msp_val)), 
+           x="Size", y="Frequency") + theme_minimal(base_size=10)
+  }
+  
+  list(
+    make_hist("num_adopters", "Total Adopters", "coral"),
+    make_hist("num_adopted_rational", "Rational Adopters", "mediumseagreen"),
+    make_hist("num_adopted_social", "Social Adopters", "orchid")
+  )
+}
 
-# Plot beta (Adoption vs IUL)
-p_beta <- ggplot(m4_plot_df, aes(x=innovation_iul_Gamma, y=avg_adoption)) +
-  geom_point(color="black") + geom_line(color="grey50") +
-  geom_vline(xintercept=iul_c, color="red", linetype="dashed") +
-  labs(title=paste0("Method 4: Order Parameter (Phi) [MSP=", sprintf("%.2f", target_msp), "]"),
-       subtitle=paste0("IUL_c = ", iul_c, " (red dashed line)"),
-       x="IUL", y="Average Total Adoption (Phi)") + theme_minimal()
+all_m3_plots <- c(
+  build_m3_row(selected_msps_m3[1], labels_m3[1]),
+  build_m3_row(selected_msps_m3[2], labels_m3[2]),
+  build_m3_row(selected_msps_m3[3], labels_m3[3])
+)
 
-# Plot gamma (Susceptibility vs |IUL-IULc|) in log-log
-m4_gamma_df <- m4_plot_df %>% filter(abs_dist > 0, dist_to_c > 0) # Approached from RHS
-p_gamma <- ggplot(m4_gamma_df, aes(x=abs_dist, y=sd_adoption)) +
-  geom_point(color="purple") + 
-  geom_smooth(method="lm", se=FALSE, color="blue", linewidth=0.5) +
-  scale_x_log10() + scale_y_log10() +
-  labs(title="Method 4: Susceptibility Exponent", subtitle="Log-Log Scale for IUL > IUL_c",
-       x="log(|IUL - IUL_c|)", y="log(Susceptibility)") + theme_minimal()
-
-ggsave(paste0(PLOTS_DIR, "method4_exponents.pdf"), p_beta + p_gamma, width=11, height=4)
-
-# --- Method 3: Avalanche Power Laws ---
-# Extract the specific runs at (IUL_c, MSP target)
-m3_runs <- base_df %>% 
-  filter(abs(social_distance_h - target_msp) < 1e-4, 
-         abs(innovation_iul_Gamma - iul_c) < 1e-4)
-
-# Also get a non-critical point for comparison (e.g. IUL = 0.75)
-iul_nc <- m4_df$innovation_iul_Gamma[which.min(abs(m4_df$innovation_iul_Gamma - 0.75))]
-m3_runs_nc <- base_df %>%
-  filter(abs(social_distance_h - target_msp) < 1e-4, 
-         abs(innovation_iul_Gamma - iul_nc) < 1e-4)
-
-# Create a combined data frame to plot histograms side by side via patchwork
-p_avl1 <- ggplot(m3_runs, aes(x=num_adopted_social)) +
-  geom_histogram(bins=15, fill="coral", color="black", alpha=0.7) +
-  scale_y_continuous(transform="log1p", breaks=c(0, 1, 5, 10, 20)) +
-  labs(title=paste0("Method 3: Avalanche Dist. (Critical)"), 
-       subtitle=paste0("IUL=", iul_c, ", MSP=", sprintf("%.2f", target_msp)), 
-       x="Social Adopters (Avalanche Size)", y="Log(Frequency)") + theme_minimal()
-
-p_avl2 <- ggplot(m3_runs_nc, aes(x=num_adopted_social)) +
-  geom_histogram(bins=15, fill="steelblue", color="black", alpha=0.7) +
-  scale_y_continuous(transform="log1p", breaks=c(0, 1, 5, 10, 20)) +
-  labs(title=paste0("Avalanche Dist. (Non-Critical)"), 
-       subtitle=paste0("IUL=", iul_nc, ", MSP=", sprintf("%.2f", target_msp)), 
-       x="Social Adopters (Avalanche Size)", y="Log(Frequency)") + theme_minimal()
-
-ggsave(paste0(PLOTS_DIR, "method3_avalanches.pdf"), p_avl1 + p_avl2, width=11, height=4)
+final_m3 <- wrap_plots(all_m3_plots, ncol=3)
+ggsave(paste0(PLOTS_DIR, "method3_avalanches.pdf"), final_m3, width=12, height=9)
 
 print("All deeper phase transition analysis plots generated successfully in plots/07_phase_transition/")
