@@ -68,7 +68,7 @@ y_breaks <- sprintf("%.2f", H_VALUES_SWEEP[seq(1, length(H_VALUES_SWEEP), by = 2
 
 agg_df_plot <- agg_df %>%
   mutate(h_factor = factor(sprintf("%.2f", social_distance_h), levels = h_levels_sorted)) %>%
-  filter(innovation_iul_Gamma <= 0.75)
+  filter(innovation_iul_Gamma <= 1.0)
 
 p_steps1 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill = avg_steps)) +
   geom_tile(color="white", lwd=0.1) +
