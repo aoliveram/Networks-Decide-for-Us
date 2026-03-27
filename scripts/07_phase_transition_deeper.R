@@ -7,15 +7,17 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(viridis)
-
+ 
 # --- Configuration ---
 RESULTS_DIR <- "output/04_GSS_diffusion_sims/"
 PLOTS_DIR <- "plots/07_phase_transition/"
+DATA_OUT_DIR <- "output/07_phase_transition/"
 SEEDING_STRATEGY <- "random"
 THRESHOLD_MEAN_TARGET <- 0.4
 TAU_SD_TARGETS <- c(0.12)
-
+ 
 dir.create(PLOTS_DIR, showWarnings = FALSE, recursive = TRUE)
+dir.create(DATA_OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
 IUL_VALUES_SWEEP <- seq(0.0, 1.0, by = 0.025)
 H_VALUES_SWEEP <- seq(0, 1, by = 1 / 12)
@@ -60,7 +62,7 @@ cor_table <- agg_df %>%
 print(as.data.frame(cor_table))
 cat("============================================================\n\n")
 
-write.csv(cor_table, paste0(PLOTS_DIR, "correlation_adoption_steps.csv"), row.names=FALSE)
+write.csv(cor_table, paste0(DATA_OUT_DIR, "correlation_adoption_steps.csv"), row.names=FALSE)
 
 # --- Method 2: Critical Slowing Down ---
 h_levels_sorted <- sprintf("%.2f", sort(unique(H_VALUES_SWEEP)))
@@ -84,7 +86,7 @@ p_steps2 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_discrete(breaks=y_breaks) + theme_minimal()
 
-ggsave(paste0(PLOTS_DIR, "method2_critical_slowing_down.pdf"), p_steps1 + p_steps2, width=12, height=5)
+ggsave(paste0(PLOTS_DIR, "method2_critical_slowing_down.pdf"), p_steps1 + p_steps2, width=8, height=3.5)
 
 # Find the Global Maximum of Susceptibility (original Method 3 anchoring)
 global_max_idx <- which.max(agg_df$sd_adoption)
@@ -152,7 +154,7 @@ for(target_iul in selected_iuls) {
   plot_list[[length(plot_list) + 1]] <- p_gamma
 }
 
-write.csv(exponent_results, paste0(PLOTS_DIR, "gamma_exponents.csv"), row.names=FALSE)
+write.csv(exponent_results, paste0(DATA_OUT_DIR, "gamma_exponents.csv"), row.names=FALSE)
 
 final_m4 <- wrap_plots(plot_list, ncol = 2)
 ggsave(paste0(PLOTS_DIR, "method4_exponents.pdf"), final_m4, width=10, height=2.5 * (length(plot_list)/2))
