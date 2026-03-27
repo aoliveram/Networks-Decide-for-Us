@@ -9,9 +9,9 @@ library(patchwork)
 library(viridis)
 
 # --- Configuration ---
-RESULTS_DIR <- "output/04_GSS_diffusion_sims/"
-PLOTS_DIR <- "plots/07_phase_transition/"
-DATA_OUT_DIR <- "output/07_phase_transition/"
+RESULTS_DIR <- "output/04_GSS_ER_diffusion_sims/"
+PLOTS_DIR <- "plots/07_phase_transition/GSS_ER/"
+DATA_OUT_DIR <- "output/07_phase_transition/GSS_ER/"
 SEEDING_STRATEGY <- "random"
 THRESHOLD_MEAN_TARGET <- 0.4
 TAU_SD_TARGETS <- c(0.12)
