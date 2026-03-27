@@ -7,7 +7,7 @@ library(ggplot2)
 library(dplyr)
 library(patchwork)
 library(viridis)
- 
+
 # --- Configuration ---
 RESULTS_DIR <- "output/04_GSS_diffusion_sims/"
 PLOTS_DIR <- "plots/07_phase_transition/"
@@ -15,7 +15,7 @@ DATA_OUT_DIR <- "output/07_phase_transition/"
 SEEDING_STRATEGY <- "random"
 THRESHOLD_MEAN_TARGET <- 0.4
 TAU_SD_TARGETS <- c(0.12)
- 
+
 dir.create(PLOTS_DIR, showWarnings = FALSE, recursive = TRUE)
 dir.create(DATA_OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
@@ -24,12 +24,12 @@ H_VALUES_SWEEP <- seq(0, 1, by = 1 / 12)
 
 # Load data
 file_path <- paste0(RESULTS_DIR, "results_m03-06_sd", sprintf("%.2f", TAU_SD_TARGETS[1]), "_", SEEDING_STRATEGY, ".rds")
-if(!file.exists(file_path)) stop("File not found")
+if (!file.exists(file_path)) stop("File not found")
 
 raw_df <- readRDS(file_path)
 mean_label <- paste0("mean_", sprintf("%.2f", THRESHOLD_MEAN_TARGET))
 if (inherits(raw_df, "list") && !is.null(raw_df[[mean_label]])) {
-    raw_df <- raw_df[[mean_label]]
+  raw_df <- raw_df[[mean_label]]
 }
 
 base_df <- raw_df %>%
@@ -43,10 +43,10 @@ base_df <- raw_df %>%
 agg_df <- base_df %>%
   group_by(innovation_iul_Gamma, social_distance_h) %>%
   summarise(
-    avg_steps = mean(num_steps, na.rm=TRUE),
-    sd_steps = sd(num_steps, na.rm=TRUE),
-    sd_adoption = sd(adopters_prop, na.rm=TRUE),
-    avg_adoption = mean(adopters_prop, na.rm=TRUE),
+    avg_steps = mean(num_steps, na.rm = TRUE),
+    sd_steps = sd(num_steps, na.rm = TRUE),
+    sd_adoption = sd(adopters_prop, na.rm = TRUE),
+    avg_adoption = mean(adopters_prop, na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -55,14 +55,14 @@ cat("\n=== CORRELATION BETWEEN AVG TOTAL ADOPTION AND AVG STEPS ===\n")
 cor_table <- agg_df %>%
   group_by(social_distance_h) %>%
   summarise(
-    Correlation = cor(avg_adoption, avg_steps, use="complete.obs"),
+    Correlation = cor(avg_adoption, avg_steps, use = "complete.obs"),
     Avg_Steps_Overall = mean(avg_steps),
     .groups = "drop"
   )
 print(as.data.frame(cor_table))
 cat("============================================================\n\n")
 
-write.csv(cor_table, paste0(DATA_OUT_DIR, "correlation_adoption_steps.csv"), row.names=FALSE)
+write.csv(cor_table, paste0(DATA_OUT_DIR, "correlation_adoption_steps.csv"), row.names = FALSE)
 
 # --- Method 2: Critical Slowing Down ---
 h_levels_sorted <- sprintf("%.2f", sort(unique(H_VALUES_SWEEP)))
@@ -70,23 +70,25 @@ y_breaks <- sprintf("%.2f", H_VALUES_SWEEP[seq(1, length(H_VALUES_SWEEP), by = 2
 
 agg_df_plot <- agg_df %>%
   mutate(h_factor = factor(sprintf("%.2f", social_distance_h), levels = h_levels_sorted)) %>%
-  filter(innovation_iul_Gamma <= 1.0)
+  filter(innovation_iul_Gamma <= 0.75)
 
 p_steps1 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill = avg_steps)) +
-  geom_tile(color="white", lwd=0.1) +
-  scale_fill_viridis_c(option="magma", name="Avg Steps") +
-  labs(title="Method 2: Critical Slowing Down (Avg Steps)", x="IUL", y="MSP") +
+  geom_tile(color = "white", lwd = 0.1) +
+  scale_fill_viridis_c(option = "magma", name = "Avg Steps") +
+  labs(title = "Method 2: Critical Slowing Down (Avg Steps)", x = "IUL", y = "MSP") +
   scale_x_continuous(expand = c(0, 0)) +
-  scale_y_discrete(breaks=y_breaks) + theme_minimal()
+  scale_y_discrete(breaks = y_breaks) +
+  theme_minimal()
 
 p_steps2 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill = sd_steps)) +
-  geom_tile(color="white", lwd=0.1) +
-  scale_fill_viridis_c(option="magma", name="SD Steps") +
-  labs(title="Method 2: Critical Slowing Down (SD of Steps)", x="IUL", y="MSP") +
+  geom_tile(color = "white", lwd = 0.1) +
+  scale_fill_viridis_c(option = "magma", name = "SD Steps") +
+  labs(title = "Method 2: Critical Slowing Down (SD of Steps)", x = "IUL", y = "MSP") +
   scale_x_continuous(expand = c(0, 0)) +
-  scale_y_discrete(breaks=y_breaks) + theme_minimal()
+  scale_y_discrete(breaks = y_breaks) +
+  theme_minimal()
 
-ggsave(paste0(PLOTS_DIR, "method2_critical_slowing_down.pdf"), p_steps1 + p_steps2, width=8, height=3.5)
+ggsave(paste0(PLOTS_DIR, "method2_critical_slowing_down.pdf"), p_steps1 + p_steps2, width = 10, height = 3)
 
 # Find the Global Maximum of Susceptibility (original Method 3 anchoring)
 global_max_idx <- which.max(agg_df$sd_adoption)
@@ -96,10 +98,10 @@ IUL_max_suscep <- agg_df$innovation_iul_Gamma[global_max_idx]
 jump_df <- agg_df %>%
   group_by(innovation_iul_Gamma) %>%
   arrange(social_distance_h) %>%
-  summarise(max_jump = max(diff(avg_adoption), na.rm=TRUE), .groups="drop")
+  summarise(max_jump = max(diff(avg_adoption), na.rm = TRUE), .groups = "drop")
 
 IUL_jump <- jump_df$innovation_iul_Gamma[which.max(jump_df$max_jump)]
-delta_iul <- 0.025 
+delta_iul <- 0.025
 
 # --- Method 4: Order Parameter & Susceptibility Exponents for MULTIPLE IULs ---
 # Effective Zero-Field Analogue swept around IUL = 0.200
@@ -110,54 +112,61 @@ selected_iuls <- IUL_VALUES_SWEEP[sapply(selected_iuls, function(x) which.min(ab
 selected_iuls <- unique(selected_iuls)
 
 plot_list <- list()
-exponent_results <- data.frame(IUL=numeric(), MSP_c=numeric(), Gamma=numeric())
+exponent_results <- data.frame(IUL = numeric(), MSP_c = numeric(), Gamma = numeric())
 
-for(target_iul in selected_iuls) {
-  
+for (target_iul in selected_iuls) {
   m4_df <- agg_df %>% filter(abs(innovation_iul_Gamma - target_iul) < 1e-4)
-  if(nrow(m4_df) == 0) next
-  
+  if (nrow(m4_df) == 0) next
+
   # Find critical point MSP_c where susceptibility (var) peaks
   msp_c <- m4_df$social_distance_h[which.max(m4_df$sd_adoption)]
-  
+
   m4_plot_df <- m4_df %>%
     mutate(
       dist_to_c = social_distance_h - msp_c,
       abs_dist = abs(dist_to_c)
     )
-  
-  p_beta <- ggplot(m4_plot_df, aes(x=dist_to_c, y=avg_adoption)) +
-    geom_point(color="black", size=1) + geom_line(color="grey50") +
-    geom_vline(xintercept=0, color="red", linetype="dashed") +
-    labs(title=paste0("IUL=", sprintf("%.3f", target_iul), " | MSP_c=", sprintf("%.2f", msp_c)),
-         x="MSP - MSP_c", y="Avg Adoption (Phi)") + theme_minimal(base_size=10)
-  
+
+  p_beta <- ggplot(m4_plot_df, aes(x = dist_to_c, y = avg_adoption)) +
+    geom_point(color = "black", size = 1) +
+    geom_line(color = "grey50") +
+    geom_vline(xintercept = 0, color = "red", linetype = "dashed") +
+    labs(
+      title = paste0("IUL=", sprintf("%.3f", target_iul), " | MSP_c=", sprintf("%.2f", msp_c)),
+      x = "MSP - MSP_c", y = "Avg Adoption (Phi)"
+    ) +
+    theme_minimal(base_size = 10)
+
   m4_gamma_df <- m4_plot_df %>% filter(abs_dist > 0, dist_to_c > 0, sd_adoption > 0)
-  
-  if(nrow(m4_gamma_df) >= 2) {
-    fit <- lm(log10(sd_adoption) ~ log10(abs_dist), data=m4_gamma_df)
+
+  if (nrow(m4_gamma_df) >= 2) {
+    fit <- lm(log10(sd_adoption) ~ log10(abs_dist), data = m4_gamma_df)
     gamma_val <- -coef(fit)[2]
   } else {
     gamma_val <- NA
   }
-  
-  exponent_results <- rbind(exponent_results, data.frame(IUL=target_iul, MSP_c=msp_c, Gamma=gamma_val))
-  
-  p_gamma <- ggplot(m4_gamma_df, aes(x=abs_dist, y=sd_adoption)) +
-    geom_point(color="purple", size=1) + 
-    geom_smooth(method="lm", se=FALSE, color="blue", linewidth=0.5) +
-    scale_x_log10() + scale_y_log10() +
-    labs(title=paste0("Gamma (", sprintf("%.3f", gamma_val), ") | IUL=", sprintf("%.3f", target_iul)),
-         x="log(|MSP - MSP_c|)", y="log(Susceptibility)") + theme_minimal(base_size=10)
-  
+
+  exponent_results <- rbind(exponent_results, data.frame(IUL = target_iul, MSP_c = msp_c, Gamma = gamma_val))
+
+  p_gamma <- ggplot(m4_gamma_df, aes(x = abs_dist, y = sd_adoption)) +
+    geom_point(color = "purple", size = 1) +
+    geom_smooth(method = "lm", se = FALSE, color = "blue", linewidth = 0.5) +
+    scale_x_log10() +
+    scale_y_log10() +
+    labs(
+      title = paste0("Gamma (", sprintf("%.3f", gamma_val), ") | IUL=", sprintf("%.3f", target_iul)),
+      x = "log(|MSP - MSP_c|)", y = "log(Susceptibility)"
+    ) +
+    theme_minimal(base_size = 10)
+
   plot_list[[length(plot_list) + 1]] <- p_beta
   plot_list[[length(plot_list) + 1]] <- p_gamma
 }
 
-write.csv(exponent_results, paste0(DATA_OUT_DIR, "gamma_exponents.csv"), row.names=FALSE)
+write.csv(exponent_results, paste0(DATA_OUT_DIR, "gamma_exponents.csv"), row.names = FALSE)
 
 final_m4 <- wrap_plots(plot_list, ncol = 2)
-ggsave(paste0(PLOTS_DIR, "method4_exponents.pdf"), final_m4, width=10, height=2.5 * (length(plot_list)/2))
+ggsave(paste0(PLOTS_DIR, "method4_exponents.pdf"), final_m4, width = 10, height = 2.5 * (length(plot_list) / 2))
 
 # --- Method 3: Avalanche Power Laws 3x3 Array ---
 IUL_opt <- IUL_max_suscep
@@ -181,16 +190,19 @@ build_m3_row <- function(msp_val, label_text) {
     abs(innovation_iul_Gamma - IUL_opt) < 1e-4,
     abs(social_distance_h - msp_val) < 1e-4
   )
-  
+
   make_hist <- function(col_name, title_txt, fill_col) {
-    ggplot(df_runs, aes(x=.data[[col_name]])) +
-      geom_histogram(bins=100, fill=fill_col, color=NA, alpha=0.9) +
-      scale_x_continuous(limits=c(-5, 1005)) +
-      labs(title=paste0(title_txt, "\n(", label_text, ")"), 
-           subtitle=paste0("IUL=", sprintf("%.3f", IUL_opt), ", MSP=", sprintf("%.2f", msp_val)), 
-           x="Size", y="Frequency") + theme_minimal(base_size=10)
+    ggplot(df_runs, aes(x = .data[[col_name]])) +
+      geom_histogram(bins = 100, fill = fill_col, color = NA, alpha = 0.9) +
+      scale_x_continuous(limits = c(-5, 1005)) +
+      labs(
+        title = paste0(title_txt, "\n(", label_text, ")"),
+        subtitle = paste0("IUL=", sprintf("%.3f", IUL_opt), ", MSP=", sprintf("%.2f", msp_val)),
+        x = "Size", y = "Frequency"
+      ) +
+      theme_minimal(base_size = 10)
   }
-  
+
   list(
     make_hist("num_adopters", "Total Adopters", "coral"),
     make_hist("num_adopted_rational", "Rational Adopters", "mediumseagreen"),
@@ -204,7 +216,7 @@ all_m3_plots <- c(
   build_m3_row(selected_msps_m3[3], labels_m3[3])
 )
 
-final_m3 <- wrap_plots(all_m3_plots, ncol=3)
-ggsave(paste0(PLOTS_DIR, "method3_avalanches.pdf"), final_m3, width=12, height=9)
+final_m3 <- wrap_plots(all_m3_plots, ncol = 3)
+ggsave(paste0(PLOTS_DIR, "method3_avalanches.pdf"), final_m3, width = 12, height = 9)
 
 print("All deeper phase transition analysis plots generated successfully in plots/07_phase_transition/")
