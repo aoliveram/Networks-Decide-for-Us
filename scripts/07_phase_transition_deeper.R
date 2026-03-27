@@ -139,10 +139,12 @@ for (target_iul in selected_iuls) {
     ) +
     theme_minimal(base_size = 10)
 
-  m4_gamma_df <- m4_plot_df %>% filter(abs_dist > 0, dist_to_c > 0, sd_adoption > 0)
-
+  m4_gamma_df <- m4_plot_df %>% 
+    filter(abs_dist > 0, dist_to_c > 0) %>%
+    mutate(sd_plot = pmax(sd_adoption, 1e-5))
+    
   if (nrow(m4_gamma_df) >= 2) {
-    fit <- lm(log10(sd_adoption) ~ log10(abs_dist), data = m4_gamma_df)
+    fit <- lm(log10(sd_plot) ~ log10(abs_dist), data = m4_gamma_df)
     gamma_val <- -coef(fit)[2]
   } else {
     gamma_val <- NA
@@ -150,7 +152,7 @@ for (target_iul in selected_iuls) {
 
   exponent_results <- rbind(exponent_results, data.frame(IUL = target_iul, MSP_c = msp_c, Gamma = gamma_val))
 
-  p_gamma <- ggplot(m4_gamma_df, aes(x = abs_dist, y = sd_adoption)) +
+  p_gamma <- ggplot(m4_gamma_df, aes(x = abs_dist, y = sd_plot)) +
     geom_point(color = "purple", size = 1) +
     geom_smooth(method = "lm", se = FALSE, color = "blue", linewidth = 0.5) +
     scale_x_log10() +
