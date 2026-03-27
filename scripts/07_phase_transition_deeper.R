@@ -118,8 +118,10 @@ for (target_iul in selected_iuls) {
   m4_df <- agg_df %>% filter(abs(innovation_iul_Gamma - target_iul) < 1e-4)
   if (nrow(m4_df) == 0) next
 
-  # Find critical point MSP_c where susceptibility (var) peaks
-  msp_c <- m4_df$social_distance_h[which.max(m4_df$sd_adoption)]
+  # Find critical point MSP_c where the macroscopic order parameter experiences the largest jump
+  m4_sorted <- m4_df %>% arrange(social_distance_h)
+  jump_idx <- which.max(c(0, diff(m4_sorted$avg_adoption)))
+  msp_c <- m4_sorted$social_distance_h[jump_idx]
 
   m4_plot_df <- m4_df %>%
     mutate(
