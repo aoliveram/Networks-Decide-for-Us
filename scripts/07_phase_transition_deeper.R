@@ -76,7 +76,7 @@ p_steps1 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill
   geom_tile(color = "white", lwd = 0.1) +
   scale_fill_viridis_c(option = "magma", name = "Avg Steps") +
   labs(title = "Method 2: Critical Slowing Down (Avg Steps)", x = "IUL", y = "MSP") +
-  scale_x_continuous(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0.0, 0.25, 0.5, 0.75), labels = c("0.00", "0.25", "0.50", "0.75")) +
   scale_y_discrete(breaks = y_breaks) +
   theme_minimal()
 
@@ -84,7 +84,7 @@ p_steps2 <- ggplot(agg_df_plot, aes(x = innovation_iul_Gamma, y = h_factor, fill
   geom_tile(color = "white", lwd = 0.1) +
   scale_fill_viridis_c(option = "magma", name = "SD Steps") +
   labs(title = "Method 2: Critical Slowing Down (SD of Steps)", x = "IUL", y = "MSP") +
-  scale_x_continuous(expand = c(0, 0)) +
+  scale_x_continuous(expand = c(0, 0), breaks = c(0.0, 0.25, 0.5, 0.75), labels = c("0.00", "0.25", "0.50", "0.75")) +
   scale_y_discrete(breaks = y_breaks) +
   theme_minimal()
 
