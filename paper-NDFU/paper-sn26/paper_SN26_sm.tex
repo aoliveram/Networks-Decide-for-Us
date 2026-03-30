@@ -128,6 +128,39 @@ Figure \ref{fig:degree_dist} demonstrates that the generated pseudo-empirical ne
     \label{fig:clustering_curves}
 \end{figure}
 
+\subsection{Empirical Homophily Strengths}
+The underlying parameters driving the ERGM calibration are derived directly from the regression results provided by Smith, McPherson, and Smith-Lovin (2014). Table \ref{tab:smith2014} replicates their main findings regarding the likelihood of confiding relationships forming based on social distance (Blau space).
+
+\begin{table}[H]
+    \centering
+    \caption{Case-Control Logistic Regression Predicting a Confiding Relationship based on General Social Survey Ego Network Data (Smith et al., 2014).}
+    \label{tab:smith2014}
+    \begin{tabular}{lcc}
+    \toprule
+    \textbf{Variable} & \textbf{Model 1} & \textbf{Model 2} \\
+    \midrule
+    Intercept & $-14.456^{***}$ (0.048) & $-14.519^{***}$ (0.057) \\
+    Different race & $-1.819^{***}$ (0.077) & $-1.959^{***}$ (0.117) \\
+    Different religion & $-1.362^{***}$ (0.044) & $-1.27^{***}$ (0.060) \\
+    Different sex & $-0.317^{***}$ (0.025) & $-0.373^{***}$ (0.033) \\
+    Education difference & $-0.049^{***}$ (0.002) & $-0.047^{***}$ (0.002) \\
+    Age difference & $-0.173^{***}$ (0.009) & $-0.157^{***}$ (0.012) \\
+    Different race $\times$ Year & & $0.264$ (0.155) \\
+    Different religion $\times$ Year & & $-0.215^{*}$ (0.092) \\
+    Different sex $\times$ Year & & $0.144^{**}$ (0.05) \\
+    Education difference $\times$ Year & & $-0.005$ (0.003) \\
+    Age difference $\times$ Year & & $-0.044^{*}$ (0.020) \\
+    Year & $-0.179^{***}$ (0.047) & $-0.052$ (0.089) \\
+    \midrule
+    $N$ (respondents) & $3,001$ & $3,001$ \\
+    $N$ (dyads) & $1,139,161$ & $1,139,161$ \\
+    \bottomrule
+    \multicolumn{3}{p{0.8\linewidth}}{\footnotesize \textit{Note:} Standard errors in parentheses are calculated using bootstrap estimates across 1,000 iterations. $^{*} p < .05$, $^{**} p < .01$, $^{***} p < .001$.}
+    \end{tabular}
+\end{table}
+
+This table fundamentally validates the ``Homophily Principle": all coefficients for socio-demographic distances are strictly negative and highly significant. Consequently, increased distance deeply diminishes interaction probability. Race and religion exert the most dramatic constraints. The magnitude of these negative coefficients guarantees that embedding these parameters inside spatial ERGMs will forcefully cluster similar individuals, ultimately forging the \textit{structural premium} analyzed inside the main text.
+
 % ==========================================
 % SECTION S3
 % ==========================================
@@ -199,5 +232,42 @@ To ensure the robustness of the structural premium, we explored interacting non-
     \caption{BAM Smooth Surfaces for Total Adoption.}
     \label{fig:bam_surfaces_total}
 \end{figure}
+
+% ==========================================
+% SECTION S5
+% ==========================================
+\section{Empirical Distributions, Survey Metrics, and Baseline Regimes}
+
+\subsection{Collective-Action Propensity: Construct Internal Reliability}
+To ensure the empirical plausibility of the ATP mapping, we derive a unidimensional Minimum Utility Requirement (MUR) score. 
+[PLACEHOLDER: Add Cronbach's alpha reliability test to verify multi-item unidimensionality for the collective-action propensity construct]. 
+
+\subsection{Empirical Distribution of the Intrinsic Utility Level (IUL) / MUR}
+The following distribution histograms (Figure \ref{fig:mur_dist}) reflect the normalized scores extracted from the ATP and GSS micro-data. We leverage the GSS structure for Figure 1 in the main manuscript because its survey distribution allows for a more granular, finely binned `collective-action propensity score`. This expanded level-count avoids artifactual stepping and renders smooth analytical heatmaps capable of correctly tracing criticality variance signatures across contiguous thresholds.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/03_GSS_MUR_calculation/GSS_mur_score_distribution.pdf}
+        \caption{MUR Profile (GSS 2004).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/03_ATP_MUR_calculation/ATP_mur_score_distribution.pdf}
+        \caption{MUR Profile (ATP 2014/2016).}
+    \end{subfigure}
+    \caption{Distribution of Minimum Utility Requirements. Lower MUR implies higher propensity towards innovation.}
+    \label{fig:mur_dist}
+\end{figure}
+
+\subsection{Criticality in Randomized (Erdős-Rényi) Networks}
+For direct comparison with the main structural signatures found across Plausible domains, Figure \ref{fig:criticality_er} documents the equivalent heatmaps corresponding to an Erdős-Rényi graph (preserving the identical total node degree and density, but destroying local structural clustering). 
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../abstract-sn26/figure1_5panels_GSS_ER.pdf}
+    \caption{Phase Transition Signatures under generic Erdős-Rényi baseline. Note the complete collapse of variance boundaries and the instantaneous system-wide discontinuity, severing the stable transition regimes found in empirically clustered homophilic topologies.}
+    \label{fig:criticality_er}
+\end{figure*}
 
 \end{document}

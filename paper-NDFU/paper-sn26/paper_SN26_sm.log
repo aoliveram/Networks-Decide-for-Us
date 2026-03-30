@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  30 MAR 2026 20:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  30 MAR 2026 20:37
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -342,7 +342,11 @@ File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count306
 \l__pdf_internal_box=\box56
 )
-(./paper_SN26_sm.aux)
+(./paper_SN26_sm.aux
+
+LaTeX Warning: Label `fig:mur_dist' multiply defined.
+
+)
 \openout1 = `paper_SN26_sm.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 26.
@@ -457,7 +461,7 @@ Overfull \hbox (0.69196pt too wide) in paragraph at lines 44--45
 [1
 
 {/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-<example-image-a.pdf, id=73, 321.2pt x 240.9pt>
+<example-image-a.pdf, id=91, 321.2pt x 240.9pt>
 File: example-image-a.pdf Graphic file (type pdf)
 <use example-image-a.pdf>
 Package pdftex.def Info: example-image-a.pdf  used on input line 66.
@@ -467,7 +471,7 @@ Package pdftex.def Info: example-image-a.pdf  used on input line 66.
 [2 </usr/local/texlive/2025/texmf-dist/tex/latex/mwe/example-image-a.pdf>]
 
 [3]
-<../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf, id=105, 794.97pt x 
+<../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf, id=125, 794.97pt x 
 346.29375pt>
 File: ../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf Graphic file (t
 ype pdf)
@@ -475,7 +479,7 @@ ype pdf)
 Package pdftex.def Info: ../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.
 pdf  used on input line 104.
 (pdftex.def)             Requested size: 203.83417pt x 88.7925pt.
-<../../plots/02_ATP_network_ergm_tests/ATP_degree_dist.pdf, id=106, 794.97pt x 
+<../../plots/02_ATP_network_ergm_tests/ATP_degree_dist.pdf, id=126, 794.97pt x 
 346.29375pt>
 File: ../../plots/02_ATP_network_ergm_tests/ATP_degree_dist.pdf Graphic file (t
 ype pdf)
@@ -483,7 +487,7 @@ ype pdf)
 Package pdftex.def Info: ../../plots/02_ATP_network_ergm_tests/ATP_degree_dist.
 pdf  used on input line 109.
 (pdftex.def)             Requested size: 203.83417pt x 88.7925pt.
-<../../plots/02_GSS_network_ergm_tests/GSS_Ck_vs_k.pdf, id=107, 469.755pt x 289
+<../../plots/02_GSS_network_ergm_tests/GSS_Ck_vs_k.pdf, id=127, 469.755pt x 289
 .08pt>
 File: ../../plots/02_GSS_network_ergm_tests/GSS_Ck_vs_k.pdf Graphic file (type 
 pdf)
@@ -491,7 +495,7 @@ pdf)
 Package pdftex.def Info: ../../plots/02_GSS_network_ergm_tests/GSS_Ck_vs_k.pdf 
  used on input line 119.
 (pdftex.def)             Requested size: 203.83417pt x 125.4356pt.
-<../../plots/02_ATP_network_ergm_tests/ATP_Ck_vs_k.pdf, id=108, 469.755pt x 289
+<../../plots/02_ATP_network_ergm_tests/ATP_Ck_vs_k.pdf, id=128, 469.755pt x 289
 .08pt>
 File: ../../plots/02_ATP_network_ergm_tests/ATP_Ck_vs_k.pdf Graphic file (type 
 pdf)
@@ -504,94 +508,122 @@ Package pdftex.def Info: ../../plots/02_ATP_network_ergm_tests/ATP_Ck_vs_k.pdf
 [4 <../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf> <../../plots/02_
 ATP_network_ergm_tests/ATP_degree_dist.pdf> <../../plots/02_GSS_network_ergm_te
 sts/GSS_Ck_vs_k.pdf> <../../plots/02_ATP_network_ergm_tests/ATP_Ck_vs_k.pdf>]
-<example-image-c.pdf, id=148, 321.2pt x 240.9pt>
+
+[5]
+<example-image-c.pdf, id=181, 321.2pt x 240.9pt>
 File: example-image-c.pdf Graphic file (type pdf)
 <use example-image-c.pdf>
-Package pdftex.def Info: example-image-c.pdf  used on input line 156.
+Package pdftex.def Info: example-image-c.pdf  used on input line 189.
 (pdftex.def)             Requested size: 203.83417pt x 152.87788pt.
 File: example-image-a.pdf Graphic file (type pdf)
 <use example-image-a.pdf>
-Package pdftex.def Info: example-image-a.pdf  used on input line 161.
+Package pdftex.def Info: example-image-a.pdf  used on input line 194.
 (pdftex.def)             Requested size: 203.83417pt x 152.87788pt.
-<example-image-b.pdf, id=149, 321.2pt x 240.9pt>
+<example-image-b.pdf, id=182, 321.2pt x 240.9pt>
 File: example-image-b.pdf Graphic file (type pdf)
 <use example-image-b.pdf>
-Package pdftex.def Info: example-image-b.pdf  used on input line 170.
+Package pdftex.def Info: example-image-b.pdf  used on input line 203.
 (pdftex.def)             Requested size: 362.37569pt x 271.79109pt.
 
 
-[5 </usr/local/texlive/2025/texmf-dist/tex/latex/mwe/example-image-c.pdf>]
-<../figures/bam_rational_surfaces.png, id=162, 1606.0pt x 803.0pt>
+[6 </usr/local/texlive/2025/texmf-dist/tex/latex/mwe/example-image-c.pdf> </usr
+/local/texlive/2025/texmf-dist/tex/latex/mwe/example-image-b.pdf>]
+<../figures/bam_rational_surfaces.png, id=197, 1606.0pt x 803.0pt>
 File: ../figures/bam_rational_surfaces.png Graphic file (type png)
 <use ../figures/bam_rational_surfaces.png>
 Package pdftex.def Info: ../figures/bam_rational_surfaces.png  used on input li
-ne 184.
+ne 217.
 (pdftex.def)             Requested size: 452.9679pt x 226.48033pt.
-<../figures/bam_social_surfaces.png, id=164, 1606.0pt x 803.0pt>
+<../figures/bam_social_surfaces.png, id=199, 1606.0pt x 803.0pt>
 File: ../figures/bam_social_surfaces.png Graphic file (type png)
 <use ../figures/bam_social_surfaces.png>
 Package pdftex.def Info: ../figures/bam_social_surfaces.png  used on input line
- 191.
+ 224.
 (pdftex.def)             Requested size: 452.9679pt x 226.48033pt.
-
-
-[6 </usr/local/texlive/2025/texmf-dist/tex/latex/mwe/example-image-b.pdf> <../f
-igures/bam_rational_surfaces.png>]
-<../figures/bam_total_surfaces.png, id=176, 1606.0pt x 803.0pt>
+<../figures/bam_total_surfaces.png, id=200, 1606.0pt x 803.0pt>
 File: ../figures/bam_total_surfaces.png Graphic file (type png)
 <use ../figures/bam_total_surfaces.png>
 Package pdftex.def Info: ../figures/bam_total_surfaces.png  used on input line 
-198.
+231.
 (pdftex.def)             Requested size: 452.9679pt x 226.48033pt.
 
 
-[7 <../figures/bam_social_surfaces.png> <../figures/bam_total_surfaces.png>]
-(./paper_SN26_sm.aux)
+[7 <../figures/bam_rational_surfaces.png> <../figures/bam_social_surfaces.png>]
+
+Overfull \hbox (19.21pt too wide) in paragraph at lines 239--239
+[]\OT1/cmr/bx/n/14.4 Empirical Dis-tri-bu-tions, Sur-vey Met-rics, and Base-lin
+e Regimes 
+ []
+
+<../../plots/03_GSS_MUR_calculation/GSS_mur_score_distribution.pdf, id=211, 578
+.16pt x 433.62pt>
+File: ../../plots/03_GSS_MUR_calculation/GSS_mur_score_distribution.pdf Graphic
+ file (type pdf)
+<use ../../plots/03_GSS_MUR_calculation/GSS_mur_score_distribution.pdf>
+Package pdftex.def Info: ../../plots/03_GSS_MUR_calculation/GSS_mur_score_distr
+ibution.pdf  used on input line 251.
+(pdftex.def)             Requested size: 203.83417pt x 152.87422pt.
+<../../plots/03_ATP_MUR_calculation/ATP_mur_score_distribution.pdf, id=212, 578
+.16pt x 433.62pt>
+File: ../../plots/03_ATP_MUR_calculation/ATP_mur_score_distribution.pdf Graphic
+ file (type pdf)
+<use ../../plots/03_ATP_MUR_calculation/ATP_mur_score_distribution.pdf>
+Package pdftex.def Info: ../../plots/03_ATP_MUR_calculation/ATP_mur_score_distr
+ibution.pdf  used on input line 256.
+(pdftex.def)             Requested size: 203.83417pt x 152.87422pt.
+
+
+[8 <../figures/bam_total_surfaces.png> <../../plots/03_GSS_MUR_calculation/GSS_
+mur_score_distribution.pdf> <../../plots/03_ATP_MUR_calculation/ATP_mur_score_d
+istribution.pdf>]
+<../abstract-sn26/figure1_5panels_GSS_ER.pdf, id=231, 578.16pt x 325.215pt>
+File: ../abstract-sn26/figure1_5panels_GSS_ER.pdf Graphic file (type pdf)
+<use ../abstract-sn26/figure1_5panels_GSS_ER.pdf>
+Package pdftex.def Info: ../abstract-sn26/figure1_5panels_GSS_ER.pdf  used on i
+nput line 268.
+(pdftex.def)             Requested size: 452.9679pt x 254.79314pt.
+
+
+[9 <../abstract-sn26/figure1_5panels_GSS_ER.pdf>] (./paper_SN26_sm.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
 
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+LaTeX Warning: There were multiply-defined labels.
 
-
-Package rerunfilecheck Warning: File `paper_SN26_sm.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `paper_SN26_sm.out':
-(rerunfilecheck)             Before: 9EF7699C99F59363FCEE6797BF0E3DB0;2517
-(rerunfilecheck)             After:  2228C1059671FD8545D8E17130E7BD8A;2348.
+Package rerunfilecheck Info: File `paper_SN26_sm.out' has not changed.
+(rerunfilecheck)             Checksum: 018D6500C6E30AFCF4B743AC2CF4E9C3;4032.
  ) 
 Here is how much of TeX's memory you used:
- 11865 strings out of 473190
- 188567 string characters out of 5715801
- 591586 words of memory out of 5000000
- 34944 multiletter control sequences out of 15000+600000
- 567063 words of font info for 67 fonts, out of 8000000 for 9000
+ 11924 strings out of 473190
+ 190504 string characters out of 5715801
+ 593937 words of memory out of 5000000
+ 34987 multiletter control sequences out of 15000+600000
+ 569598 words of font info for 77 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,8n,79p,701b,529s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-pdfTeX warning (dest): name{subsection.5.1} has been referenced but does not ex
-ist, replaced by a fixed one
-
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
-/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
-usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
-sr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr
+ 75i,13n,79p,701b,529s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
+></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
+/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></u
+sr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr
 /local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/l
 ocal/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/loc
 al/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/
-texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/t
-exlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/tex
-live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texl
-ive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texli
-ve/2025/texmf-dist/fonts/type1/public/lm/lmss17.pfb>
-Output written on paper_SN26_sm.pdf (7 pages, 644600 bytes).
+texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/tex
+live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
+ive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texliv
+e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/
+2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2
+025/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/202
+5/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/local/texlive/2025
+/texmf-dist/fonts/type1/public/lm/lmss17.pfb>
+Output written on paper_SN26_sm.pdf (9 pages, 719028 bytes).
 PDF statistics:
- 247 PDF objects out of 1000 (max. 8388607)
- 196 compressed objects within 2 object streams
- 46 named destinations out of 1000 (max. 500000)
- 131 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 327 PDF objects out of 1000 (max. 8388607)
+ 256 compressed objects within 3 object streams
+ 55 named destinations out of 1000 (max. 500000)
+ 178 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -37,7 +37,7 @@
 % ABSTRACT
 % ==========================================
 \begin{abstract}
-The diffusion of collective behaviors is often modeled using synthetic network topologies, ignoring the empirical reality of multidimensional homophily. This paper asks: how do empirically calibrated topologies act as an autonomous causal force in diffusion outcomes? We impute plausible network structures based on homophily parameters from the GSS (2004) onto attitudinal survey respondents (ATP 2014/2016). Simulating a hybrid complex contagion, we compare these empirical topologies against degree-preserving randomized baselines. We identify two structural mechanisms: First, empirical homophily yields a structural premium, reducing the odds of adoption failure by 57\% through local echo chambers. Second, topology governs empirical cFurthermore, the homophilic network anchors the system to a scaling domain closely predicted by Mean-Field continuous percolation ($\gamma \to 1$), proving that empirical boundaries constrain social volatility to a robust Universality Class governed by Critical Slowing Down (see Section S3 of the Supplementary Material for extended derivations). Ultimately, network structure acts as an active mechanism that decisively shapes the volume and dynamics of collective behavior.
+The diffusion of collective behaviors is often modeled using synthetic network topologies, ignoring the empirical reality of multidimensional homophily. This paper asks: how do empirically calibrated topologies act as an autonomous causal force in diffusion outcomes? We impute plausible network structures based on homophily parameters from the GSS (2004) onto attitudinal survey respondents (ATP 2014/2016). Simulating a hybrid complex contagion, we compare these empirical topologies against degree-preserving randomized baselines. We identify two structural mechanisms: First, empirical homophily yields a structural premium, reducing the odds of adoption failure by 57\% through local echo chambers. Second, topology governs empirical criticality. Homophilic networks yield predictable, continuous phase transitions (Mean-Field universality, $\gamma \approx 1$), whereas randomized topologies collapse into discontinuous regime shifts. Ultimately, network structure acts as an active mechanism that decisively shapes the volume and dynamics of collective behavior.
 \end{abstract}
 
 \begin{keyword}
@@ -97,7 +97,7 @@ where adoption via influence occurs if $\tau_i \le \tilde{E}_i$ ($\tau_i$ is the
 where $U_{ij} \sim \text{Unif}(0, 1)$ and $\sigma(z) = 1 / (1 + \exp(-z/T))$.
 
 \subsection{Network Imputation Pipeline}
-To overcome synthetic limitations, we employ the imputation pipeline established by \citet{mcpherson2019network}. Using Exponential Random Graph Models (ERGMs), we extract homophily strength parameters across demographic dimensions (Age, Sex, Education, Race, Religion) from the representative ego-centric General Social Survey (GSS 2004). 
+To overcome synthetic limitations, we employ the imputation pipeline established by \citet{mcpherson2019network}. Using Exponential Random Graph Models (ERGMs), we extract homophily strength parameters across demographic dimensions (Age, Sex, Education, Race, Religion) from the representative ego-centric General Social Survey \citep{smith2014social}. As detailed in Section S2 of the Supplementary Material, the regression parameters indicate that distance strictly constrains interaction probability---particularly regarding race and religion differences. 
 
 We impute these structures onto $N=1000$ respondents from the American Trends Panel (ATP). This generates ``plausible" topologies that respect empirical clustering while assigning realistic behavioral propensities (e.g., ``Openness to Innovation" and ``Collective Action" scores) derived directly from ATP items.
 
@@ -160,7 +160,7 @@ Beyond volume, the network topology dictates \textit{how} adoption occurs. Figur
 \begin{figure*}[t]
     \centering
     \includegraphics[width=1\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}
-    \caption{\textit{Adoption Regimes and Phase Transition Signatures.} Top row: Average Total, Rational, and Social Adoption heatmaps. Bottom row (left): Susceptibility $\chi = \text{Var}(\Phi)$ via the Fluctuation-Dissipation Theorem, with the phase boundary visible as a ridge of high variance. Bottom row (right): Standard Deviation of simulation relaxation time; its divergence is the signature of Critical Slowing Down. Simulations based on a GSS plausible network, $\tau_{sd}=0.12$, and random seeding.}
+    \caption{\textit{Adoption Regimes and Phase Transition Signatures.} Top row: Average Total, Rational, and Social Adoption heatmaps. Bottom row (left): Susceptibility $\chi = \text{Var}(\Phi)$ via the Fluctuation-Dissipation Theorem, with the phase boundary visible as a ridge of high variance. Bottom row (right): Standard Deviation of simulation relaxation time; its divergence is the signature of Critical Slowing Down. Simulations based on a GSS plausible network, $\tau_{sd}=0.12$, and random seeding (see Section S5 for equivalent signatures under Erdős-Rényi topologies).}
     \label{fig:criticality}
 \end{figure*}
 
@@ -232,6 +232,9 @@ McPherson, M., Smith, J.~A., 2019. Network imputation: Using ego-network data to
 
 \bibitem[{Oliver(1993)}]{oliver1993formal}
 Oliver, P.~E., 1993. Formal models of collective action. Annual Review of Sociology 19, 271--300.
+
+\bibitem[{Smith et~al.(2014)Smith, McPherson, and Smith-Lovin}]{smith2014social}
+Smith, J.~A., McPherson, M., Smith-Lovin, L., 2014. Social Distance in the United States: Sex, Race, Religion, Age, and Education Homophily among Confidants, 1985 to 2004. American Sociological Review 79 (3), 432--456.
 
 \bibitem[{Talaga and Nowak(2020)}]{talaga2020homophily}
 Talaga, S., Nowak, A., 2020. Homophily as a Process Generating Social Networks: Insights from Social Distance Attachment Model. Journal of Artificial Societies and Social Simulation 23 (2), 6.

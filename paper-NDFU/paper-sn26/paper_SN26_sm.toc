@@ -6,7 +6,12 @@
 \contentsline {paragraph}{Updating (Stochastic Exposure)}{3}{section*.4}%
 \contentsline {paragraph}{Stopping Criteria}{3}{section*.5}%
 \contentsline {section}{\numberline {S3}Network Imputation and Topological Validation}{4}{section.3}%
+\contentsline {subsection}{\numberline {S3.1}Empirical Homophily Strengths}{5}{subsection.3.1}%
 \contentsline {section}{\numberline {S4}Extended Criticality Analysis: Plausible vs. Randomized}{5}{section.4}%
 \contentsline {subsection}{\numberline {S4.1}Mean-Field Derivation}{5}{subsection.4.1}%
-\contentsline {subsection}{\numberline {S4.2}Avalanche Size Spectra and Critical Scaling}{5}{subsection.4.2}%
-\contentsline {section}{\numberline {S5}BAM Regression Model Surfaces}{6}{section.5}%
+\contentsline {subsection}{\numberline {S4.2}Avalanche Size Spectra and Critical Scaling}{6}{subsection.4.2}%
+\contentsline {section}{\numberline {S5}BAM Regression Model Surfaces}{7}{section.5}%
+\contentsline {section}{\numberline {S6}Empirical Distributions, Survey Metrics, and Baseline Regimes}{8}{section.6}%
+\contentsline {subsection}{\numberline {S6.1}Collective-Action Propensity: Construct Internal Reliability}{8}{subsection.6.1}%
+\contentsline {subsection}{\numberline {S6.2}Empirical Distribution of the Intrinsic Utility Level (IUL) / MUR}{8}{subsection.6.2}%
+\contentsline {subsection}{\numberline {S6.3}Criticality in Randomized (Erdős-Rényi) Networks}{9}{subsection.6.3}%
