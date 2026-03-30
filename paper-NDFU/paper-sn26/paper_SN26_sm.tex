@@ -60,13 +60,37 @@ For collective action simulations, the propensity score was generated from respo
     \item Joined an Internet political forum or discussion group.
 \end{enumerate}
 
-% --- PLACEHOLDER: Histogram of MUR ---
+\subsection{Collective-Action Propensity: Construct Internal Reliability}
+To ensure the empirical plausibility of the ATP mapping, we derive a unidimensional Minimum Utility Requirement (MUR) score. 
+[PLACEHOLDER: Add Cronbach's alpha reliability test to verify multi-item unidimensionality for the collective-action propensity construct]. 
+
+\subsection{Empirical Distribution of the Intrinsic Utility Level (IUL) / MUR}
+The following distribution histograms (Figure \ref{fig:mur_dist}) reflect the normalized scores extracted from the ATP and GSS micro-data. We leverage the GSS structure for Figure 1 in the main manuscript because its survey distribution allows for a more granular, finely binned \textit{collective-action propensity score}. This expanded level-count avoids artifactual stepping and renders smooth analytical heatmaps capable of correctly tracing criticality variance signatures across contiguous thresholds.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{example-image-a} % REPLACE WITH: ATP Propensity histogram from slide 38/52
-    \caption{Empirical Distribution of the Minimum Utility Requirement ($q_i$) extracted from the ATP respondents.}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/03_GSS_MUR_calculation/GSS_mur_score_distribution.pdf}
+        \caption{MUR Profile (GSS 2004).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/03_ATP_MUR_calculation/ATP_mur_score_distribution.pdf}
+        \caption{MUR Profile (ATP 2014/2016).}
+    \end{subfigure}
+    \caption{Distribution of Minimum Utility Requirements ($q_i$). Lower MUR implies higher propensity towards innovation.}
     \label{fig:mur_dist}
 \end{figure}
+
+\subsection{Criticality Heatmaps in Randomized (Erdős-Rényi) Networks}
+For direct comparison with the main structural signatures found across Plausible domains in the main text, Figure \ref{fig:criticality_er} documents the equivalent heatmaps corresponding to an Erdős-Rényi graph. This baseline identically preserves total node degree and density, but destroys local multidimensional homophily and structural clustering. 
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../abstract-sn26/figure1_5panels_GSS_ER.pdf}
+    \caption{Phase Transition Signatures under generic Erdős-Rényi baseline. Note the complete collapse of variance boundaries and the instantaneous system-wide discontinuity, severing the stable transition regimes found in empirically clustered homophilic topologies.}
+    \label{fig:criticality_er}
+\end{figure*}
 
 % ==========================================
 % SECTION S1: ODD Protocol Summary
@@ -180,29 +204,37 @@ Minimizing free energy requires $\frac{\partial f}{\partial \Phi} = 0$. By diffe
 As $H \to 0$, $\Phi \to 0$ for $T > T_c$. Thus, susceptibility diverges strictly as $\chi \sim |T - T_c|^{-1}$. Extracting an empirical $\gamma \approx 1$ confirms the system obeys continuous macroscopic scaling.
 
 \subsection{Avalanche Size Spectra and Critical Scaling}
-As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The Erdős-Rényi random graphs exhibit collapsed binary spectra, representing a first-order discontinuity.
+As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The Erdős-Rényi random graphs exhibit collapsed binary spectra, representing a first-order discontinuity. 
+To rigorously trace these transitions, we sweep the simulation domain while fixing the Intrinsic Utility Level (IUL) constant. As the systemic threshold ($MSP$) crosses the empirical boundary $MSP_c$, cascading ``avalanches" (adoption sizes) transition structurally.
 
-% --- PLACEHOLDER: Avalanche Spectra and Log-Log plots ---
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{example-image-c} % REPLACE WITH: Avalanche Spectra (PDF pg 3)
+        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS/method3_avalanches.pdf}
         \caption{GSS: Scale-free power-law bimodality.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{example-image-a} % REPLACE WITH: Avalanche Spectra (PDF pg 4)
+        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS_ER/method3_avalanches.pdf}
         \caption{Erdős-Rényi: Collapsed binary cascade spectra.}
     \end{subfigure}
-    \caption{Avalanche Size Spectra comparison.}
+    \caption{Avalanche Size Spectra comparison evaluated around the critical variance boundaries $\max(\text{Var}(\Phi))$.}
     \label{fig:spectra}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{example-image-b} % REPLACE WITH: Log-log plots (PDF pg 5 and 6)
-    \caption{Log-log plots of susceptibility vs $|MSP - MSP_c|$. Plausible networks (left) show continuous universal estimators ($\gamma \approx 1$). Erdős-Rényi networks (right) show discontinuous logarithmic cliffs.}
-    \label{fig:loglog}
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS/method2_critical_slowing_down.pdf}
+        \caption{GSS: Divergence indicates continuous domains.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS_ER/method2_critical_slowing_down.pdf}
+        \caption{Erdős-Rényi: Suppressed transition boundaries.}
+    \end{subfigure}
+    \caption{Critical Slowing Down: Variance of required execution ticks before the structural plateau.}
+    \label{fig:csd_plots}
 \end{figure}
 
 % ==========================================
@@ -232,42 +264,5 @@ To ensure the robustness of the structural premium, we explored interacting non-
     \caption{BAM Smooth Surfaces for Total Adoption.}
     \label{fig:bam_surfaces_total}
 \end{figure}
-
-% ==========================================
-% SECTION S5
-% ==========================================
-\section{Empirical Distributions, Survey Metrics, and Baseline Regimes}
-
-\subsection{Collective-Action Propensity: Construct Internal Reliability}
-To ensure the empirical plausibility of the ATP mapping, we derive a unidimensional Minimum Utility Requirement (MUR) score. 
-[PLACEHOLDER: Add Cronbach's alpha reliability test to verify multi-item unidimensionality for the collective-action propensity construct]. 
-
-\subsection{Empirical Distribution of the Intrinsic Utility Level (IUL) / MUR}
-The following distribution histograms (Figure \ref{fig:mur_dist}) reflect the normalized scores extracted from the ATP and GSS micro-data. We leverage the GSS structure for Figure 1 in the main manuscript because its survey distribution allows for a more granular, finely binned `collective-action propensity score`. This expanded level-count avoids artifactual stepping and renders smooth analytical heatmaps capable of correctly tracing criticality variance signatures across contiguous thresholds.
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{../../plots/03_GSS_MUR_calculation/GSS_mur_score_distribution.pdf}
-        \caption{MUR Profile (GSS 2004).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{../../plots/03_ATP_MUR_calculation/ATP_mur_score_distribution.pdf}
-        \caption{MUR Profile (ATP 2014/2016).}
-    \end{subfigure}
-    \caption{Distribution of Minimum Utility Requirements. Lower MUR implies higher propensity towards innovation.}
-    \label{fig:mur_dist}
-\end{figure}
-
-\subsection{Criticality in Randomized (Erdős-Rényi) Networks}
-For direct comparison with the main structural signatures found across Plausible domains, Figure \ref{fig:criticality_er} documents the equivalent heatmaps corresponding to an Erdős-Rényi graph (preserving the identical total node degree and density, but destroying local structural clustering). 
-
-\begin{figure*}[h]
-    \centering
-    \includegraphics[width=1\textwidth]{../abstract-sn26/figure1_5panels_GSS_ER.pdf}
-    \caption{Phase Transition Signatures under generic Erdős-Rényi baseline. Note the complete collapse of variance boundaries and the instantaneous system-wide discontinuity, severing the stable transition regimes found in empirically clustered homophilic topologies.}
-    \label{fig:criticality_er}
-\end{figure*}
 
 \end{document}
