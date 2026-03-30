@@ -10,11 +10,10 @@
 *.csv
 *.rdata
 
-# Ensure folders are kept
+# Enforce tracking of specific folders
 !data/.gitkeep
 !output/.gitkeep
 !plots/.gitkeep
 
-# Paper NDFU
-paper-NDFU/
+# Ignore playground
 playground/

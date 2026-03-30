@@ -1,0 +1,51 @@
+% ******** DO NOT EDIT ****************
+\documentclass[10pt]{article}
+% \usepackage{mathptmx}
+\usepackage[letterpaper,margin=20mm]{geometry}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\renewcommand{\familydefault}{\sfdefault}
+\pagestyle{empty}
+\setlength{\parskip}{0.25\baselineskip}
+\renewcommand{\title}[1]{{\noindent\large\bfseries#1\medskip\\}}
+\renewcommand{\author}[2]{{\noindent #1 \medskip\\ \noindent \small #2 \medskip\\}}
+% *************************************
+
+\begin{document}
+
+% ********** USER DEFINED *************
+
+% Enter title here
+\title{Networks Decide for Us: Emergence of Adoption in Homophily-Imputed Social Topologies}
+\author{
+% Enter author(s) here
+Aníbal Olivera Morales\textsuperscript{1}
+}
+{
+% Enter affiliation(s) here
+1. Centro de Investigación en Complejidad Social, Universidad de Concepción, Chile\\
+}
+
+% Enter abstract here. Please keep everything within one page.
+The diffusion of collective behaviors is often modeled as either a result of individual utility maximization or a contagion process. However, empirical reality suggests a hybrid mechanism where individuals weigh both their intrinsic preferences and the influence of their peers. Furthermore, the structure of these peer networks is rarely random; it is shaped by deeply ingrained homophilic forces [3]. In this work, we emphasize that macro-level social behavior is an emergent property of the relational structure, which cannot be explained solely by the aggregate of individual preferences. We argue that ``networks decide for us'': conditional on fixed individual-level propensity distributions, the relational structure systematically alters adoption outcomes.
+
+We address the scarcity of whole-network data in representative surveys by developing a novel imputation pipeline. We estimate homophily parameters from ego-centric network data (GSS 2004) and impute plausible network structures to large-scale attitudinal surveys (ATP 2016). This allows us to simulate diffusion on populations with empirically grounded distributions of both demographics and behavioral propensities. We employ a hybrid adoption model that integrates \textit{Rational Choice} (driven by intrinsic utility) and \textit{Selective Social Influence}. The latter extends classic threshold models [2, 4] by explicitly weighting influence by social proximity, thus making exposure selective.
+
+By comparing our "plausible" networks against random baselines (preserving degree distribution), we quantify the "structural premium" of diffusion. We find that randomizing structure significantly depresses adoption, particularly for social contagion (reducing the odds of adoption by approximately 57\%). Furthermore, we observe non-linear phase transitions where diffusion feasibility depends critically on the interplay between intrinsic utility and social flexibility (Figure 1). Our results suggest that network topology is not a neutral carrier of information but a causal condition that actively enables or constrains social change.
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figure.pdf}
+  \caption{Adoption Regimes. Heatmaps ($SD=0.12$) showing from left to right: (1) Avg. Total Adoption (Rational + Social), (2) Probability of Phase Transition (abrupt jumps in adoption), (3) Avg. Adoption by Rational Choice, and (4) Avg. Adoption by Social Influence. Axes represent Intrinsic Utility Level (IUL, $x$-axis) and Maximum Social Proximity (MSP, $y$-axis). The sharp transition zone (yellow) indicates where social flexibility ($h$) allows reinforcement to overcome resistance.}
+\end{figure}
+
+\bigskip
+{\small
+\noindent[1] Tur, E.M., Zeppini, P., \& Frenken, K. (2024). Diffusion in small worlds with homophily and social reinforcement. \textit{Social Networks}, 76, 12-21.\\
+\noindent[2] Valente, T. W. (1996). Social network thresholds in the diffusion of innovations. \textit{Social Networks}, 18(1), 69-89.\\
+\noindent[3] McPherson, M., \& Smith, J. A. (2019). Network effects in Blau space: Imputing social context from survey data. \textit{Socius}, 5, 2378023119865457.\\
+\noindent[4] Granovetter, M. (1978). Threshold models of collective behavior. \textit{American Journal of Sociology}, 83(6), 1420–1443.
+}
+
+% *************************************
+\end{document}

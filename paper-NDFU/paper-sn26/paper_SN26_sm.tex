@@ -1,0 +1,203 @@
+\documentclass[11pt,a4paper]{article}
+
+% ==========================================
+% PACKAGES & FORMATTING
+% ==========================================
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{hyperref}
+
+% Differentiate figures/tables from main text
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\theequation}{S\arabic{equation}}
+\renewcommand{\thesection}{S\arabic{section}}
+
+\title{\Large \textbf{Supplementary Material for:\\Networks Decide for Us: Emergence of Adoption in Homophily-Imputed Social Topologies}}
+\author{Aníbal Olivera Morales, Jorge Fábrega Lacoa}
+% \author{Aníbal Olivera Morales, Jorge Fábrega Lacoa, Thomas W. Valente}
+\date{March 27, 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\vspace{1cm}
+
+% ==========================================
+% SECTION S1
+% ==========================================
+\section{Survey Items and Propensity Distributions}
+
+To assign behavioral propensities (Minimum Utility Requirements, $q_i$) to the agents in our imputed topologies, we utilized specific batteries of items from the American Trends Panel (ATP). 
+
+\subsection{Openness to Innovation Score (ATP 2014)}
+The openness to innovation score was constructed using binary responses to the following items:
+\begin{enumerate}
+    \item Usually try new products before others do. (\textit{Pro-innovation})
+    \item Prefer my tried and trusted brands. (\textit{Anti-innovation})
+    \item Like being able to tell others about new brands and products I have tried. (\textit{Pro-innovation})
+    \item Like the variety of trying new products. (\textit{Pro-innovation})
+    \item Feel more comfortable using familiar brands and products. (\textit{Anti-innovation})
+    \item Wait until I hear about others' experiences before I try new products. (\textit{Anti-innovation})
+\end{enumerate}
+
+\subsection{Collective Action Propensity Score (ATP 2016)}
+For collective action simulations, the propensity score was generated from responses regarding political and social participation. Respondents indicated whether they had engaged in actions (e.g., in the past year, distant past, might do it, or would never do it):
+\begin{enumerate}
+    \item Signed a petition.
+    \item Boycotted, or deliberately bought, certain products.
+    \item Took part in a demonstration.
+    \item Attended a political meeting or rally.
+    \item Contacted a politician or a civil servant to express views.
+    \item Donated money or raised funds for a social/political activity.
+    \item Contacted or appeared in the media to express views.
+    \item Joined an Internet political forum or discussion group.
+\end{enumerate}
+
+% --- PLACEHOLDER: Histogram of MUR ---
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{example-image-a} % REPLACE WITH: ATP Propensity histogram from slide 38/52
+    \caption{Empirical Distribution of the Minimum Utility Requirement ($q_i$) extracted from the ATP respondents.}
+    \label{fig:mur_dist}
+\end{figure}
+
+% ==========================================
+% SECTION S1: ODD Protocol Summary
+% ==========================================
+\section{Agent-Based Model: ODD Protocol Summary}
+
+To ensure reproducibility, we outline the primary rules of our complex contagion model following the Overview, Design concepts, and Details (ODD) protocol logic.
+
+\paragraph{Initialization (Seeding)} 
+Depending on the experimental block, the simulation initializes with either a random node or a strategically pivotal node (e.g., highest Degree, Closeness, Eigenvector). If the selected node requires social reinforcement (threshold count $>1$) to adopt, the algorithm forces adoption on the initiator and iteratively seeds up to the required threshold boundary of the initiator's neighborhood.
+
+\paragraph{Updating (Stochastic Exposure)}
+Agent behavior is updated using a stochastic, asynchronous network exposure model via \texttt{netdiffuseR}. At each simulation tick, non-adopters calculate their exposure to adoptions in their local neighborhood. Instead of deterministic synchronous updates---which often trap systems in artificial, oscillating stable states---agents probabilistically transition based on their specific threshold profiles $\tau_i$, which are drawn from $\sim N(\mu, \sigma^2)$ distributions spanning rational and social components.
+
+\paragraph{Stopping Criteria}
+The simulation halts under two conditions: (1) an absorbing state is reached wherein no novel adoptions occurred during the current iteration (verified internally by the non-changing diffusion state), or (2) the simulation exceeds a maximum execution limit of $t=200$ steps. Throughout our parameter sweeps, $t=200$ safely encapsulated the full cascade lifetime even at critical phase transitions.
+
+% ==========================================
+% SECTION S2
+% ==========================================
+\newpage
+\section{Network Imputation and Topological Validation}
+
+Following McPherson and Smith (2019), we mapped ego-centric data from the General Social Survey (GSS 2004) onto the ATP sample to construct whole networks ($N=1000$) using Exponential Random Graph Models (ERGMs). 
+
+The reliance on empirical topologies instead of synthetic baselines is theoretically motivated: as Talaga and Nowak (2020) note, ``real-world social networks often exhibit a set of characteristic structural properties that do not occur jointly as often in different kinds of complex networks \dots well-known generic models such as Erdős-Rényi random graphs or preferential attachment networks may not fit well to the social problem at hand.''
+
+To reflect this reality, our ERGM directly incorporated fixed homophily coefficients mapping multiple dimensions in Blau space: categorical homophily for race (\texttt{nodematch("race")}), sex, and religion, alongside continuous absolute difference effects for age (\texttt{absdiff("age")}) and years of education. The base likelihood for forming an edge (\texttt{edges}) was calibrated iteratively via MCMC simulations (burn-in $= 1000 \times N$, interval $= 100 \times N$) until reaching a stable expected empirical target density of $\approx 0.029$. We generated 100 independent topological realizations to act as our Plausible simulation substrates.
+
+Figure \ref{fig:degree_dist} demonstrates that the generated pseudo-empirical networks successfully maintain realistic, right-skewed topological features that traditional models fail to capture jointly. Furthermore, Figure \ref{fig:clustering_curves} validates that empirical structures sustain high localized clustering across degree scales compared to theoretical controls.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}
+        \caption{GSS respondents.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/02_ATP_network_ergm_tests/ATP_degree_dist.pdf}
+        \caption{ATP respondents.}
+    \end{subfigure}
+    \caption{Degree distributions of the imputed networks plotted against theoretical models (Degree-Preserving Randomized, Barabási-Albert). The empirical imputations accurately capture real-world right-skewed degree structures.}
+    \label{fig:degree_dist}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/02_GSS_network_ergm_tests/GSS_Ck_vs_k.pdf}
+        \caption{Clustering vs. Degree (GSS).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{../../plots/02_ATP_network_ergm_tests/ATP_Ck_vs_k.pdf}
+        \caption{Clustering vs. Degree (ATP).}
+    \end{subfigure}
+    \caption{Local clustering coefficient $C(k)$ as a function of degree $k$. The imputed topologies maintain rich local triad closures characteristic of social structures.}
+    \label{fig:clustering_curves}
+\end{figure}
+
+% ==========================================
+% SECTION S3
+% ==========================================
+\section{Extended Criticality Analysis: Plausible vs. Randomized}
+
+The mathematical relevance of recovering the critical exponent $\gamma = 1$ in the main text is rooted in Landau's phenomenological theory of phase transitions. 
+
+\subsection{Mean-Field Derivation}
+The free energy density $f(\Phi)$ of the interacting system expanded around the order parameter $\Phi$ is:
+\begin{equation}
+    f(\Phi) = f_0 + \frac{1}{2}a(T - T_c)\Phi^2 + \frac{1}{4}b\Phi^4 - H\Phi
+\end{equation}
+Minimizing free energy requires $\frac{\partial f}{\partial \Phi} = 0$. By differentiating the equilibrium condition with respect to an external field $H$, we find the isothermal susceptibility $\chi$:
+\begin{equation}
+    a(T - T_c)\chi + 3b\Phi^2\chi - 1 = 0 \implies \chi = \frac{1}{a(T - T_c) + 3b\Phi^2}
+\end{equation}
+As $H \to 0$, $\Phi \to 0$ for $T > T_c$. Thus, susceptibility diverges strictly as $\chi \sim |T - T_c|^{-1}$. Extracting an empirical $\gamma \approx 1$ confirms the system obeys continuous macroscopic scaling.
+
+\subsection{Avalanche Size Spectra and Critical Scaling}
+As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The Erdős-Rényi random graphs exhibit collapsed binary spectra, representing a first-order discontinuity.
+
+% --- PLACEHOLDER: Avalanche Spectra and Log-Log plots ---
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{example-image-c} % REPLACE WITH: Avalanche Spectra (PDF pg 3)
+        \caption{GSS: Scale-free power-law bimodality.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{example-image-a} % REPLACE WITH: Avalanche Spectra (PDF pg 4)
+        \caption{Erdős-Rényi: Collapsed binary cascade spectra.}
+    \end{subfigure}
+    \caption{Avalanche Size Spectra comparison.}
+    \label{fig:spectra}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{example-image-b} % REPLACE WITH: Log-log plots (PDF pg 5 and 6)
+    \caption{Log-log plots of susceptibility vs $|MSP - MSP_c|$. Plausible networks (left) show continuous universal estimators ($\gamma \approx 1$). Erdős-Rényi networks (right) show discontinuous logarithmic cliffs.}
+    \label{fig:loglog}
+\end{figure}
+
+% ==========================================
+% SECTION S4
+% ==========================================
+\section{BAM Regression Model Surfaces}
+
+To ensure the robustness of the structural premium, we explored interacting non-linear terms across multiple dimensions. The following figures visualize the non-linear interaction terms $s(\text{IUL}, \text{MSP})$ estimated by the Big Additive Models (BAMs) across all contagion types (Innovation and Collective Action) for Rational, Social, and Total Adoption.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{../figures/bam_rational_surfaces.png}
+    \caption{BAM Smooth Surfaces for Rational Adoption.}
+    \label{fig:bam_surfaces_rational}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{../figures/bam_social_surfaces.png}
+    \caption{BAM Smooth Surfaces for Social Adoption.}
+    \label{fig:bam_surfaces_social}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{../figures/bam_total_surfaces.png}
+    \caption{BAM Smooth Surfaces for Total Adoption.}
+    \label{fig:bam_surfaces_total}
+\end{figure}
+
+\end{document}

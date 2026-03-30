@@ -1,0 +1,143 @@
+\documentclass[11pt,a4paper]{article}
+
+% ==========================================
+% PACKAGES & FORMATTING
+% ==========================================
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{hyperref}
+
+% Differentiate figures/tables from main text
+\renewcommand{\thefigure}{S\arabic{figure}}
+\renewcommand{\thetable}{S\arabic{table}}
+\renewcommand{\theequation}{S\arabic{equation}}
+\renewcommand{\thesection}{S\arabic{section}}
+
+\title{\Large \textbf{Supplementary Material for:\\Networks Decide for Us: Emergence of Adoption in Homophily-Imputed Social Topologies}}
+\author{Aníbal Olivera-Morales, Jorge Fábrega-Lacoa, Thomas W. Valente}
+\date{March 27, 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\vspace{1cm}
+
+% ==========================================
+% SECTION S1
+% ==========================================
+\section{Survey Items and Propensity Distributions}
+
+To assign behavioral propensities (Minimum Utility Requirements, $q_i$) to the agents in our imputed topologies, we utilized specific batteries of items from the American Trends Panel (ATP). 
+
+\subsection{Openness to Innovation Score (ATP 2014)}
+The openness to innovation score was constructed using binary responses to the following items:
+\begin{enumerate}
+    \item Usually try new products before others do. (\textit{Pro-innovation})
+    \item Prefer my tried and trusted brands. (\textit{Anti-innovation})
+    \item Like being able to tell others about new brands and products I have tried. (\textit{Pro-innovation})
+    \item Like the variety of trying new products. (\textit{Pro-innovation})
+    \item Feel more comfortable using familiar brands and products. (\textit{Anti-innovation})
+    \item Wait until I hear about others' experiences before I try new products. (\textit{Anti-innovation})
+\end{enumerate}
+
+\subsection{Collective Action Propensity Score (ATP 2016)}
+For collective action simulations, the propensity score was generated from responses regarding political and social participation. Respondents indicated whether they had engaged in actions (e.g., in the past year, distant past, might do it, or would never do it):
+\begin{enumerate}
+    \item Signed a petition.
+    \item Boycotted, or deliberately bought, certain products.
+    \item Took part in a demonstration.
+    \item Attended a political meeting or rally.
+    \item Contacted a politician or a civil servant to express views.
+    \item Donated money or raised funds for a social/political activity.
+    \item Contacted or appeared in the media to express views.
+    \item Joined an Internet political forum or discussion group.
+\end{enumerate}
+
+% --- PLACEHOLDER: Histogram of MUR ---
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{example-image-a} % REPLACE WITH: ATP Propensity histogram from slide 38/52
+    \caption{Empirical Distribution of the Minimum Utility Requirement ($q_i$) extracted from the ATP respondents.}
+    \label{fig:mur_dist}
+\end{figure}
+
+% ==========================================
+% SECTION S2
+% ==========================================
+\newpage
+\section{Network Imputation and Topological Validation}
+
+Following McPherson and Smith (2019), we mapped ego-centric data from the General Social Survey (GSS 2004) onto the ATP sample to construct whole networks using Exponential Random Graph Models (ERGMs). Figure \ref{fig:degree_dist} demonstrates that the generated pseudo-empirical networks maintain realistic topological features.
+
+% --- PLACEHOLDER: Degree distributions ---
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{example-image-b} % REPLACE WITH: Degree distribution plot from slide 36/49
+    \caption{Degree distributions of the imputed networks (ATP/GSS) plotted against theoretical models (Erdős-Rényi, Barabási-Albert). The empirical imputation accurately captures real-world right-skewed degree structures.}
+    \label{fig:degree_dist}
+\end{figure}
+
+% ==========================================
+% SECTION S3
+% ==========================================
+\section{Extended Criticality Analysis: GSS vs. GSS-ER}
+
+The mathematical relevance of recovering the critical exponent $\gamma = 1$ in the main text is rooted in Landau's phenomenological theory of phase transitions. 
+
+\subsection{Mean-Field Derivation}
+The free energy density $f(\Phi)$ of the interacting system expanded around the order parameter $\Phi$ is:
+\begin{equation}
+    f(\Phi) = f_0 + \frac{1}{2}a(T - T_c)\Phi^2 + \frac{1}{4}b\Phi^4 - H\Phi
+\end{equation}
+Minimizing free energy requires $\frac{\partial f}{\partial \Phi} = 0$. By differentiating the equilibrium condition with respect to an external field $H$, we find the isothermal susceptibility $\chi$:
+\begin{equation}
+    a(T - T_c)\chi + 3b\Phi^2\chi - 1 = 0 \implies \chi = \frac{1}{a(T - T_c) + 3b\Phi^2}
+\end{equation}
+As $H \to 0$, $\Phi \to 0$ for $T > T_c$. Thus, susceptibility diverges strictly as $\chi \sim |T - T_c|^{-1}$. Extracting an empirical $\gamma \approx 1$ confirms the system obeys continuous macroscopic scaling.
+
+\subsection{Avalanche Size Spectra and Critical Scaling}
+As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The GSS-ER networks exhibit collapsed binary spectra, representing a first-order discontinuity.
+
+% --- PLACEHOLDER: Avalanche Spectra and Log-Log plots ---
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{example-image-c} % REPLACE WITH: Avalanche Spectra (PDF pg 3)
+        \caption{GSS: Scale-free power-law bimodality.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{example-image-a} % REPLACE WITH: Avalanche Spectra (PDF pg 4)
+        \caption{GSS-ER: Collapsed binary cascade spectra.}
+    \end{subfigure}
+    \caption{Avalanche Size Spectra comparison.}
+    \label{fig:spectra}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{example-image-b} % REPLACE WITH: Log-log plots (PDF pg 5 and 6)
+    \caption{Log-log plots of susceptibility vs $|MSP - MSP_c|$. GSS networks (left) show continuous universal estimators ($\gamma \approx 1$). GSS-ER networks (right) show discontinuous logarithmic cliffs.}
+    \label{fig:loglog}
+\end{figure}
+
+% ==========================================
+% SECTION S4
+% ==========================================
+\section{Extended BAM Regression Results}
+
+To ensure the robustness of the structural premium, we ran simulations across multiple seeding strategies (Random, Central, Marginal, Closeness, Eigenvalue). Figure \ref{fig:bam_full} contains the complete summary statistics for the Big Additive Models (BAMs).
+
+% --- PLACEHOLDER: Full R output screenshot ---
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{example-image-c} % REPLACE WITH: Slide 57 code screenshot
+    \caption{Full BAM output summary for Total Adoption and Social Adoption models across all seeding strategies and network types.}
+    \label{fig:bam_full}
+\end{figure}
+
+\end{document}

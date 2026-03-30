@@ -1,0 +1,506 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2867
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww15780\viewh9720\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs28 \cf0 ================================================================================\
+REPORTE SOCIOL\'d3GICO PARA ESCRITURA DE PAPER (INPUT PARA Antigravity)\
+Proyecto: \'93Networks Decide for Us\'94\
+Fecha: 20 de enero, 2026\
+Autor: Revisor de An\'edbal Olivera M.\
+================================================================================\
+\
+FUENTES DISPONIBLES EN LA CARPETA DEL PROYECTO (REFERENCIA INTERNA)\
+- Presentaci\'f3n: \'93Networks Decide for Us\'94 (slides)  \
+- Paper te\'f3rico base: Tur, Zeppini & Frenken (2024), \'93Diffusion in small worlds with homophily and social reinforcement: A theoretical model\'94. Social Networks, 76:12\'9621. \
+\
+NOTA DE USO\
+Este documento est\'e1 escrito como \'93brief sociol\'f3gico\'94 para orientar la escritura\
+del paper completo. No es un abstract final. Su objetivo es:\
+(1) definir el argumento sociol\'f3gico central (\'93la red decide\'94),\
+(2) mapear contribuciones te\'f3ricas y metodol\'f3gicas,\
+(3) ordenar resultados emp\'edricos (simulaci\'f3n + regresi\'f3n) en una narrativa publicable,\
+(4) proponer una arquitectura de paper y una lista de figuras/tablas,\
+(5) anticipar cr\'edticas t\'edpicas (validez, identificaci\'f3n, robustez) y c\'f3mo responder.\
+\
+================================================================================\
+1. IDEA CENTRAL DEL PAPER (CLAIM SOCIOL\'d3GICO)\
+================================================================================\
+\
+Tesis general (en una frase):\
+Los niveles sociales de adopci\'f3n (innovaci\'f3n y acci\'f3n colectiva) no se explican\
+s\'f3lo por atributos individuales; emergen de la estructura relacional que organiza\
+exposici\'f3n, refuerzo y compatibilidad social. En ese sentido, \'93las redes deciden\
+por nosotros\'94.\
+\
+Qu\'e9 significa \'93decidir\'94 aqu\'ed (definici\'f3n operacional):\
+- \'93Decidir\'94 NO implica agencia de la red, sino un hecho causal/contrafactual:\
+  manteniendo constantes (i) la distribuci\'f3n poblacional de preferencias/umbrales\
+  y (ii) reglas micro de adopci\'f3n (elecci\'f3n racional + influencia selectiva),\
+  la topolog\'eda social cambia sistem\'e1ticamente la probabilidad y magnitud de\
+  adopci\'f3n.\
+- El test emp\'edrico central es contrafactual: reemplazar la red plausible por una\
+  red aleatoria (ER, mismo tama\'f1o y densidad), y observar la ca\'edda de adopci\'f3n.\
+  Si la adopci\'f3n fuera \'93individualista\'94 (explicable s\'f3lo por preferencias y utilidad),\
+  el reemplazo de estructura debiera tener un efecto menor o nulo en adopci\'f3n total,\
+  especialmente cuando el componente racional domina. No ocurre: la estructura\
+  importa de forma grande y consistente.\
+\
+Interpretaci\'f3n sociol\'f3gica (macro-micro):\
+- El \'93macro\'94 (nivel de adopci\'f3n agregado) no es suma lineal del \'93micro\'94\
+  (preferencias individuales). Es un resultado de coordinaci\'f3n local, redundancia,\
+  clustering, caminos de informaci\'f3n y composici\'f3n homof\'edlica de vecindarios.\
+- La red produce \'93contextos de decisi\'f3n\'94 distintos: la misma distribuci\'f3n de\
+  propensi\'f3n individual puede traducirse en difusi\'f3n amplia o difusi\'f3n truncada,\
+  dependiendo de c\'f3mo se organizan (i) los lazos (estructura) y (ii) la similitud\
+  entre quienes est\'e1n conectados (homofilia estructural).\
+\
+Contribuci\'f3n conceptual concreta:\
+- El paper no s\'f3lo afirma \'93las redes importan\'94. Afirma que la red define el \'93r\'e9gimen\'94\
+  de difusi\'f3n: hay configuraciones donde (a) la adopci\'f3n es casi enteramente racional\
+  y predecible, y otras donde (b) la adopci\'f3n depende de contagio complejo y se vuelve\
+  sensible a topolog\'eda, seeds y heterogeneidad de umbrales.\
+- En t\'e9rminos de teor\'eda sociol\'f3gica, el proyecto ataca el problema del \'93reduccionismo\
+  estructural\'94 y su inverso (reduccionismo individualista) proponiendo un modelo\
+  h\'edbrido: individuos con preferencias + redes que organizan exposici\'f3n y refuerzo,\
+  con influencia social selectiva (homofilia como filtro).\
+\
+================================================================================\
+2. MOTIVACI\'d3N SUSTANTIVA: DOS DOMINIOS, UNA MISMA GRAM\'c1TICA SOCIAL\
+================================================================================\
+\
+El paper tiene una ventaja rara: dos fen\'f3menos distintos, mismo motor formal.\
+A) Difusi\'f3n de innovaciones (ATP: apertura a la innovaci\'f3n)\
+B) Acci\'f3n colectiva / normas (GSS: propensi\'f3n a acci\'f3n colectiva)\
+\
+Motivaci\'f3n sociol\'f3gica com\'fan:\
+- Innovaci\'f3n y acci\'f3n colectiva se parecen en lo esencial: ambos son \'93conductas\
+  binarias\'94 con costos/beneficios, incertidumbre y dependencia social (refuerzo).\
+- En ambos casos, observar adopci\'f3n en clusters puede significar dos cosas:\
+  (i) homofilia (los similares se agrupan y ya estaban \'93predispuestos\'94), o\
+  (ii) influencia (la adopci\'f3n se transmite). En datos observacionales, ambos\
+  mecanismos se confunden. Por eso el paper no promete \'93identificar causalidad\'94\
+  con datos observacionales puros; promete construir un laboratorio computacional\
+  calibrado con encuestas representativas para evaluar el rol de topolog\'eda y\
+  composici\'f3n.\
+\
+Por qu\'e9 es sociol\'f3gicamente relevante:\
+- Porque desplaza la pregunta \'93qui\'e9n adopta\'94 a \'93en qu\'e9 estructura social es posible\
+  que adopten\'94. La estructura no es un \'93ruido\'94, es parte del fen\'f3meno.\
+- Porque ofrece un puente entre tradici\'f3n de difusi\'f3n (Rogers/Valente) y tradici\'f3n\
+  de acci\'f3n colectiva (Olson/Granovetter), mostrando que ambos pueden modelarse\
+  como coordinaci\'f3n bajo umbrales con heterogeneidad y refuerzo social.\
+\
+================================================================================\
+3. MARCO TE\'d3RICO: TUR ET AL. (2024) COMO ANDAMIO FORMAL\
+================================================================================\
+\
+Qu\'e9 te aporta Tur et al. (2024) para TU paper (sin entrar en detalles t\'e9cnicos):\
+1) Un lenguaje claro para separar tres ingredientes:\
+   - Preferencias individuales (m\'ednimo requerido para adoptar; \'93resistencia\'94)\
+   - Estructura de red (clustering / caminos / redundancia)\
+   - Refuerzo social (adopci\'f3n se vuelve m\'e1s probable con m\'e1s adoptantes vecinos)\
+\
+2) Un punto clave compatible con tu tesis:\
+   - Con homofilia fuerte, la difusi\'f3n se \'93lineariza\'94: el tama\'f1o final se acerca a\
+     \'93todos los que estar\'edan dispuestos adoptan\'94, porque la informaci\'f3n y compatibilidad\
+     se alinean en vecindarios.\
+   - Sin homofilia, la estructura puede generar \'93fallas de informaci\'f3n\'94 y umbrales de\
+     percolaci\'f3n: una peque\'f1a diferencia en utilidad produce hit vs flop.\
+\
+3) Lo que TU proyecto agrega (diferenciador sociol\'f3gico-metodol\'f3gico):\
+   - Tur trabaja con estructuras te\'f3ricas (small worlds) y preferencias simuladas.\
+   - T\'fa llevas la l\'f3gica a redes plausibles imputadas desde encuestas reales, con\
+     homofilia estimada en m\'faltiples dimensiones demogr\'e1ficas (en lugar de un\
+     \'93ordenamiento idealizado\'94) y con distribuciones emp\'edricas de predisposici\'f3n\
+     (apertura a la innovaci\'f3n / acci\'f3n colectiva) imputadas a nodos.\
+\
+4) Pivote ret\'f3rico para el paper:\
+   - \'93Tur muestra que topolog\'eda + homofilia + refuerzo producen reg\'edmenes de difusi\'f3n.\
+     Nosotros mostramos lo mismo, pero en un marco calibrado con poblaci\'f3n real,\
+     y adem\'e1s lo validamos con un contrafactual fuerte: al desarmar la red (ER),\
+     la adopci\'f3n cae significativamente.\'94\
+\
+================================================================================\
+4. DATOS Y CONSTRUCCI\'d3N DE POBLACI\'d3N SIMULADA (LO \'93SOCIAL\'94 DEL SETUP)\
+================================================================================\
+\
+4.1. Qu\'e9 haces, en t\'e9rminos sociol\'f3gicos\
+- Tomas encuestas representativas como ventanas parciales a la sociedad:\
+  - GSS 2004: te permite observar ego-net (v\'ednculos de confidencia) + demograf\'eda.\
+  - ATP 2016 (Waves 3 y 4): te permite medir \'93apertura a la innovaci\'f3n\'94 y demograf\'eda.\
+  - GSS 2004 adicionalmente: te permite medir \'93propensi\'f3n a la acci\'f3n colectiva\'94.\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0   - Los individuos que respondieron el m\'f3dulo de Ego-net en GSS 2004 no necesariamente son los mismo que respondieron el m\'f3dulo de \'93propensi\'f3n a la acci\'f3n colectiva\'94.\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 - El aporte no es solo \'93hacer una red\'94. Es imputar tambi\'e9n \'93contexto social\'94:\
+  convertir una encuesta sin red en una encuesta con estructura relacional plausible,\
+  manteniendo representatividad de atributos y homofilia.\
+\
+4.2. Variables latentes / constructos (qu\'e9 representan socialmente)\
+A) Openness to Innovations (ATP)\
+- Captura disposici\'f3n subjetiva a probar, explorar, tolerar incertidumbre, y la\
+  identidad de \'93early adopter\'94. Sociol\'f3gicamente, se puede leer como:\
+  - orientaci\'f3n al riesgo,\
+  - capital cultural de consumo,\
+  - o \'93apertura\'94 como rasgo disposicional relevante para difusi\'f3n.\
+\
+B) Propensi\'f3n a Acci\'f3n Colectiva (GSS)\
+- Captura un mix de repertorios de participaci\'f3n (petici\'f3n, boicot, protesta, reuni\'f3n,\
+  contacto a autoridades, donaci\'f3n, etc.). Sociol\'f3gicamente, se puede leer como:\
+  - disponibilidad a incurrir en costos por bienes colectivos,\
+  - eficacia percibida / disposici\'f3n normativa,\
+  - repertorio c\'edvico.\
+\
+4.3. Imputaci\'f3n de redes: innovaci\'f3n metodol\'f3gica (por qu\'e9 importa)\
+- Problema est\'e1ndar: encuestas con ego-net son caras y raras; la mayor\'eda de encuestas\
+  masivas no tiene red.\
+- Tu soluci\'f3n: usar una encuesta con ego-net (GSS) para estimar fuerzas homof\'edlicas\
+  por dimensi\'f3n demogr\'e1fica (edad, sexo, educaci\'f3n, raza, religi\'f3n), y luego usar\
+  esas fuerzas para imputar una estructura plausible a otra encuesta representativa\
+  que s\'ed tiene el outcome disposicional (ATP: apertura), pero no tiene red.\
+\
+- Resultado: redes \'93ATP\'94 y \'93GSS\'94 plausibles de 1000 nodos, cada nodo con atributos\
+  sociodemogr\'e1ficos y un atributo conductual/disposicional imputado desde encuesta.\
+\
+4.4. Qu\'e9 quiere ver un revisor (y c\'f3mo lo enmarcas)\
+- \'93Plausible\'94 no significa \'93verdadera\'94. Significa: consistente con restricciones\
+  emp\'edricas observables:\
+  (i) distribuci\'f3n marginal de demograf\'eda,\
+  (ii) patrones de homofilia estimados,\
+  (iii) propiedades macro de redes sociales t\'edpicas (clustering, distribuci\'f3n de grados,\
+       mixing por atributos).\
+- Tu paper debe decir expl\'edcitamente qu\'e9 propiedades comparas y qu\'e9 \'93tests de plausibilidad\'94\
+  usas (aunque sea descriptivo): densidad, clustering, assortativity, distribuci\'f3n de grados,\
+  componentes, distancias geod\'e9sicas, etc.\
+\
+================================================================================\
+5. MODELO DE ADOPCI\'d3N: H\'cdBRIDO Y SOCIOL\'d3GICAMENTE INTERPRETABLE\
+================================================================================\
+\
+5.1. Dos v\'edas de adopci\'f3n (la s\'edntesis)\
+(1) Elecci\'f3n racional:\
+- Adopci\'f3n ocurre cuando la utilidad intr\'ednseca de la innovaci\'f3n (IUL) supera el\
+  umbral individual (o su requisito m\'ednimo).\
+- Sociol\'f3gicamente: preferencias, costos/beneficios, \'93me conviene\'94, \'93me sirve\'94.\
+\
+(2) Influencia social (contagio complejo con refuerzo):\
+- La adopci\'f3n puede ocurrir cuando la exposici\'f3n efectiva a adoptantes supera un\
+  umbral (tau). Pero no toda exposici\'f3n cuenta: es selectiva.\
+- La exposici\'f3n efectiva depende de la similitud social (distancia) y de una\
+  tolerancia m\'e1xima a disimilitud (MSP: Maximum Social Proximity).\
+- Sociol\'f3gicamente: influencia no es homog\'e9nea; depende de credibilidad,\
+  identificaci\'f3n y cierre social. Los \'93similares\'94 pesan m\'e1s.\
+\
+5.2. Por qu\'e9 la influencia es \'93selectiva\'94 y no global\
+- En la vida social, no todos los vecinos son \'93igualmente influyentes\'94.\
+- Homofilia no s\'f3lo organiza qui\'e9n se relaciona con qui\'e9n; tambi\'e9n organiza\
+  qu\'e9 informaci\'f3n es tomada como v\'e1lida, y qu\'e9 conductas son percibidas como\
+  relevantes o imitables.\
+- El par\'e1metro MSP opera como flexibilidad cultural/identitaria:\
+  - MSP bajo: s\'f3lo los muy similares influyen (cierre, segmentaci\'f3n, c\'e1maras de eco, individuos con poca flexibilidad de influencia).\
+  - MSP alto: influencia atraviesa fronteras (puentes, heterogeneidad tolerada, individuos con alta flexibilidad de influencia).\
+\
+5.3. Lectura sociol\'f3gica del espacio de par\'e1metros\
+- IUL (atractividad intr\'ednseca) es \'93calidad/ventaja\'94 del comportamiento o innovaci\'f3n.\
+- MSP (flexibilidad) es \'93porosidad social\'94 frente a disimilitud.\
+- tau_mean y tau_sd (umbral medio y dispersi\'f3n) son \'93clima de resistencia\'94 y\
+  \'93heterogeneidad disposicional\'94 en la poblaci\'f3n.\
+- seed strategy es \'93intervenci\'f3n\'94: a qui\'e9n expones primero (\'e9lite central vs m\'e1rgenes).\
+- network type es \'93instituci\'f3n social\'94: el entorno relacional (plausible-realista vs aleatorio).\
+\
+================================================================================\
+6. DISE\'d1O EXPERIMENTAL: EL LABORATORIO COMPUTACIONAL\
+================================================================================\
+\
+6.1. Estructura general\
+- Dos familias de redes plausibles (ATP y GSS; N=1000).\
+- Dos tipos de red para comparaci\'f3n:\
+  - Red plausible (imputada y calibrada).\
+  - Red ER (aleatoria, preservando tama\'f1o y densidad).\
+\
+- Exploraci\'f3n amplia de par\'e1metros:\
+  - IUL: 41 niveles.\
+  - MSP: 13 niveles.\
+  - Umbrales ~ Normal: 4 medias x 4 desviaciones.\
+  - 5 estrategias de seeds (random, central, closeness, eigen, marginal).\
+  - R\'e9plicas por configuraci\'f3n.\
+  - Dos \'93contagion types\'94: Innovation y Collective Action.\
+\
+Resultado: 4,093,440 de corridas individuales.\
+\
+6.2. Qu\'e9 hace \'93publicable\'94 este dise\'f1o\
+- No es una demostraci\'f3n anecd\'f3tica. Es una cartograf\'eda del espacio de posibilidades.\
+- Permite:\
+  (a) separar reg\'edmenes (dominio racional vs dominio social),\
+  (b) identificar interacciones no lineales (IUL x MSP),\
+  (c) evaluar robustez (seed strategy, heterogeneidad, tipo de contagio),\
+  (d) generar evidencia contrafactual fuerte (plausible vs ER).\
+\
+================================================================================\
+7. RESULTADOS CUANTITATIVOS: LECTURA SOCIOL\'d3GICA DE LAS REGRESIONES (BAM)\
+================================================================================\
+\
+Modelo estad\'edstico usado:\
+- BAM (mgcv): logit(P(adopt)) = intercepto + f(IUL, MSP) + efectos param\'e9tricos\
+  de tau_mean, tau_sd, seed_type, network_type + smooth por tipo de contagio.\
+\
+Tres outcomes:\
+(1) Adopt_rational: adopci\'f3n por v\'eda racional\
+(2) Adopt_social: adopci\'f3n por v\'eda influencia social\
+(3) Adopt_total: adopci\'f3n final total\
+\
+7.1. Hallazgo \'93estrella\'94: el contrafactual ER reduce adopci\'f3n\
+- Total adoption:\
+  network_typeER = -0.849960  -> OR \uc0\u8776  exp(-0.85) \u8776  0.43\
+  Interpretaci\'f3n: en red ER, las odds de adopci\'f3n total caen cerca de 57%\
+  respecto a red plausible, ceteris paribus.\
+\
+- Social adoption:\
+  network_typeER = -0.426138  -> OR \uc0\u8776  0.65\
+  Interpretaci\'f3n: la red aleatoria reduce marcadamente la adopci\'f3n por contagio.\
+\
+- Rational adoption:\
+  network_typeER = -0.113921  -> OR \uc0\u8776  0.89\
+  Interpretaci\'f3n: incluso la adopci\'f3n racional se ve afectada por topolog\'eda,\
+  aunque mucho menos. Esto es coherente: la v\'eda racional depende menos de\
+  exposici\'f3n social, pero no es completamente inmune al contexto (por ejemplo,\
+  porque \'93ser informado\'94 o condiciones de activaci\'f3n pueden interactuar).\
+\
+Traducci\'f3n sociol\'f3gica:\
+- La topolog\'eda \'93realista\'94 (con clustering y homofilia calibrada) crea rutas de\
+  exposici\'f3n y refuerzo compatibles; la red ER destruye esa organizaci\'f3n.\
+- Por eso, \'93desarmar la red\'94 no s\'f3lo cambia el camino de difusi\'f3n; cambia la\
+  tasa final alcanzable.\
+\
+7.2. Umbrales: el clima de resistencia domina la historia (tau_mean)\
+- tau_mean es fuertemente negativo en social y total:\
+  - Social: -5.1296 (enorme)\
+  - Total:  -6.9440 (enorme)\
+  Interpretaci\'f3n: aumentar el umbral medio colapsa la difusi\'f3n.\
+\
+Lectura sociol\'f3gica:\
+- Hay sociedades \'93r\'edgidas\'94 y \'93flexibles\'94 (o dominios de conducta m\'e1s r\'edgidos).\
+  Un peque\'f1o desplazamiento del \'93clima disposicional\'94 altera masivamente el\
+  resultado macro. Esto es compatible con narrativas de tipping points:\
+  no basta la atracci\'f3n del producto o el incentivo individual; importa el\
+  r\'e9gimen social de resistencia.\
+\
+7.3. Heterogeneidad en umbrales (tau_sd) impulsa contagio y total\
+- tau_sd es muy positivo en social y total:\
+  - Social: +4.2099\
+  - Total:  +5.9425\
+- En racional es peque\'f1o y no significativo al 5% (p\uc0\u8776 0.283).\
+\
+Interpretaci\'f3n sociol\'f3gica:\
+- La heterogeneidad crea \'93minor\'edas susceptibles\'94 que pueden iniciar cascadas o\
+  mantener focos de adopci\'f3n que luego generan refuerzo local.\
+- Esto encaja con teor\'edas de masa cr\'edtica: no necesitas que el promedio sea favorable;\
+  necesitas una estructura + distribuci\'f3n que permita que algunos adopten temprano\
+  y gatillen refuerzo.\
+\
+7.4. Estrategias de seeds: el centro social importa, pero depende del mecanismo\
+- En adopci\'f3n total y social:\
+  seeds centrales/closeness/eigen son positivos; seeds marginales negativos.\
+  Total: coef ~ +0.118 a +0.120 (OR \uc0\u8776  1.13)\
+  Social: coef ~ +0.032 (OR \uc0\u8776  1.03)\
+  Marginal (total): -0.0668 (OR \uc0\u8776  0.94)\
+  Marginal (social): -0.0198 (OR \uc0\u8776  0.98)\
+\
+Lectura:\
+- Para contagio y adopci\'f3n agregada, iniciar en el centro acelera exposici\'f3n redundante\
+  y refuerzo: los hubs maximizan alcance temprano y densidad de se\'f1ales.\
+\
+- En adopci\'f3n racional, el signo se invierte:\
+  central/closeness/eigen negativos (~ -0.051 a -0.054), marginal positivo (+0.0268).\
+  Interpretaci\'f3n plausible: cuando la v\'eda racional domina, el \'93centro\'94 puede generar\
+  redundancia (muchos vecinos ya expuestos) y saturaci\'f3n, mientras que en m\'e1rgenes\
+  puedes activar bolsillos de individuos que igual habr\'edan adoptado por utilidad,\
+  pero que requieren ser \'93informados\'94 en su periferia.\
+\
+Mensaje para el paper:\
+- No hay una \'93mejor\'94 estrategia universal. Hay una estrategia \'f3ptima condicionada\
+  por el mecanismo dominante. Esto es sociol\'f3gicamente importante: pol\'edtica p\'fablica,\
+  marketing o movilizaci\'f3n no deber\'eda tratar a la red como mero canal neutro.\
+\
+7.5. Interacci\'f3n no lineal IUL x MSP (smooths altamente significativos)\
+- En los tres modelos, s(IUL, MSP) es altamente significativa, con edf ~ 9.\
+- Adem\'e1s, hay smooths separados por contagion_type:\
+  - Innovation vs CollectiveAction: ambos importan, sugiriendo superficies distintas.\
+\
+Traducci\'f3n:\
+- La atractividad intr\'ednseca no \'93se suma\'94 linealmente a la flexibilidad social.\
+  Hay regiones del espacio donde peque\'f1os cambios en IUL o MSP producen cambios\
+  grandes en adopci\'f3n (zonas de transici\'f3n / fronteras de r\'e9gimen).\
+- Esto es el puente natural hacia tus heatmaps (fase 1 del proyecto) y hacia una\
+  narrativa de \'93reg\'edmenes de difusi\'f3n\'94 (fase 2 con regresi\'f3n).\
+\
+7.6. M\'e9trica de ajuste: qu\'e9 sugiere sobre determinismo vs contingencia\
+- Racional: deviance explained ~ 0.969 (casi determinista).\
+- Social:  ~ 0.711 (m\'e1s ruido / dependencia estructural).\
+- Total:   ~ 0.822 (combinaci\'f3n; el componente social agrega incertidumbre).\
+\
+Lectura:\
+- La parte racional es \'93predecible\'94 porque depende de comparaciones directas\
+  utilidad-umbral.\
+- La parte social es \'93m\'e1s sociol\'f3gica\'94 en el sentido fuerte: depende del entramado,\
+  rutas de exposici\'f3n y estructura local.\
+\
+================================================================================\
+8. \'93NETWORKS DECIDE FOR US\'94: C\'d3MO CONVERTIR RESULTADOS EN ARGUMENTO\
+================================================================================\
+\
+Para que el paper no quede como \'93simulaciones + GAM\'94, necesitas un hilo narrativo.\
+Propuesta de argumento en tres escalones:\
+\
+Escal\'f3n 1: Microfundamentos realistas (anti-reduccionismo)\
+- Los individuos importan: hay heterogeneidad en predisposici\'f3n (openness / acci\'f3n\
+  colectiva) y en resistencia (umbral).\
+- Pero los individuos no viven aislados: la exposici\'f3n es relacional y selectiva.\
+\
+Escal\'f3n 2: El mecanismo social (homofilia + refuerzo) produce reg\'edmenes\
+- MSP controla si la influencia cruza fronteras sociales.\
+- tau_mean y tau_sd definen si la sociedad est\'e1 \'93lista\'94 para coordinar.\
+- IUL define el \'93m\'e9rito\'94 del comportamiento.\
+- La combinaci\'f3n produce regiones donde:\
+  (a) difusi\'f3n es baja y estable,\
+  (b) difusi\'f3n es alta y estable,\
+  (c) hay transiciones abruptas (tipping/phase-like behavior).\
+\
+Escal\'f3n 3: Contrafactual estructural (la prueba fuerte)\
+- Con los mismos individuos y reglas, si desarmas la red plausible y la reemplazas\
+  por ER, la adopci\'f3n cae sustantivamente, especialmente en contagio social y total.\
+- Por tanto, la estructura relacional no es un detalle: es parte del fen\'f3meno.\
+- Conclusi\'f3n sociol\'f3gica: el \'93contexto social\'94 (red) act\'faa como causa estructurante\
+  del resultado macro.\
+\
+Frase final tipo \'93discussion\'94:\
+- \'93La adopci\'f3n es una propiedad emergente: depende del acoplamiento entre\
+  distribuci\'f3n de predisposici\'f3n y la arquitectura de lazos. En ese acoplamiento,\
+  la red \'91decide\'92 el rango de resultados posibles, y la intervenci\'f3n individual\
+  opera dentro de esas restricciones.\'94\
+\
+================================================================================\
+9. CONTRIBUCIONES DEL PAPER (PARA SECCI\'d3N \'93CONTRIBUTIONS\'94)\
+================================================================================\
+\
+Contribuci\'f3n 1: Imputaci\'f3n de contexto social a encuestas sin red\
+- Procedimiento que toma ego-net (GSS) para estimar homofilia y luego imputar\
+  redes plausibles a encuestas representativas con outcomes relevantes (ATP).\
+- Valor: abre la puerta a estudiar difusi\'f3n con encuestas masivas sin medir redes.\
+\
+Contribuci\'f3n 2: Modelo h\'edbrido (racional + influencia selectiva)\
+- Integra elecci\'f3n racional con contagio complejo y homofilia como filtro\
+  (MSP). No asume influencia homog\'e9nea.\
+\
+Contribuci\'f3n 3: Evidencia contrafactual estructural con big simulation + BAM\
+- No s\'f3lo \'93mostramos\'94 heatmaps; cuantificamos efectos netos con modelos aditivos\
+  generalizados y un contrafactual claro (ER vs plausible).\
+- Mensaje: la estructura realista aumenta la eficiencia de difusi\'f3n.\
+\
+Contribuci\'f3n 4: Unificaci\'f3n emp\'edrica de innovaci\'f3n y acci\'f3n colectiva\
+- Mismo laboratorio formal para dos dominios; permite comparar \'93mecanismos\'94\
+  m\'e1s que casos aislados.\
+\
+================================================================================\
+10. AMENAZAS A LA VALIDEZ Y C\'d3MO ANTICIPARLAS (SECCI\'d3N LIMITATIONS)\
+================================================================================\
+\
+(1) \'93Imputaci\'f3n \uc0\u8800  red real\'94\
+Respuesta:\
+- Reconocer expl\'edcitamente: no identificas redes verdaderas; construyes redes\
+  plausibles consistentes con restricciones observables.\
+- Mostrar checks de plausibilidad (propiedades macro + mixing por atributos).\
+- El objetivo no es predecir una red real, sino evaluar sensibilidad de difusi\'f3n\
+  a estructuras compatibles con homofilia estimada.\
+\
+(2) \'93ER no es el \'fanico contrafactual\'94\
+Respuesta:\
+- S\'ed: ER captura \'93desorden relacional\'94 manteniendo densidad y tama\'f1o.\
+- Debes estar seguro si tu estrategia de aleatorizaci\'f3n fue con degree-preserving randomization (corroborar). \
+- Puedes proponer robustez futura:  configuration model,\
+  edge swaps preservando grado, o randomizaci\'f3n preservando mixing matrix.\
+- Pero para el argumento central, ER ya ofrece contraste fuerte y claro:\
+  destruye clustering/homofilia estructural.\
+\
+(3) \'93Separaci\'f3n racional/social depende de definici\'f3n\'94\
+Respuesta:\
+- Definir con precisi\'f3n operacional cu\'e1ndo un evento se clasifica como \'93racional\'94\
+  vs \'93social\'94.\
+- Mostrar que el patr\'f3n macro (ER perjudica mucho m\'e1s social que racional) es\
+  coherente con esa definici\'f3n.\
+\
+(4) \'93Identificaci\'f3n influencia vs homofilia\'94\
+Respuesta:\
+- Tu paper evita prometer identificaci\'f3n en datos observacionales; en cambio,\
+  construye un laboratorio donde puedes manipular estructura manteniendo\
+  constantes individuos, y medir efectos.\
+- Eso es exactamente el tipo de estrategia que Tur et al. discuten como necesaria\
+  para disentangling en un contexto experimental/simulado.\
+\
+--------------------------------------------------------------------------------\
+11. ELEMENTOS DE ORIGINALIDAD A ENFATIZAR EN LA INTRODUCCI\'d3N\
+--------------------------------------------------------------------------------\
+Para evitar que el art\'edculo sea percibido como "una simulaci\'f3n de difusi\'f3n m\'e1s", \
+la introducci\'f3n debe destacar tempranamente dos puntos de novedad:\
+\
+10.1 Fundamentaci\'f3n emp\'edrica de la estructura y las preferencias\
+La mayor\'eda de las simulaciones de difusi\'f3n suelen incurrir en uno de los \
+siguientes supuestos:\
+- Asumen una estructura de red predefinida (p. ej., mundo peque\'f1o o libre \
+  de escala).\
+- Y/o asumen propensiones de adopci\'f3n simplificadas (uniformes o arbitrarias).\
+\
+En contraste, este estudio ancla ambos elementos:\
+- La formaci\'f3n de la red se basa en fuerzas de homofilia estimadas.\
+- Las distribuciones de preferencias y umbrales se derivan de respuestas \
+  a encuestas.\
+Esto permite que los resultados de la difusi\'f3n sean interpretables como \
+din\'e1micas poblacionales plausibles.\
+\
+10.2 La prueba de eliminaci\'f3n de estructura como estrategia de identificaci\'f3n\
+La comparaci\'f3n con el modelo Erd\uc0\u337 s-R\'e9nyi (ER) constituye el n\'facleo conceptual:\
+- Representa una manipulaci\'f3n limpia que mantiene constantes la densidad y \
+  el tama\'f1o de la red.\
+- No obstante, genera diferencias sustanciales en los niveles de adopci\'f3n.\
+Esto constituye la evidencia de lo que denominamos "emergencia debida a la \
+estructura relacional".\
+\
+--------------------------------------------------------------------------------\
+11. NARRATIVA DE RESULTADOS SUGERIDA (L\'d3GICA ARGUMENTATIVA)\
+--------------------------------------------------------------------------------\
+Arco narrativo coherente para la secci\'f3n de Resultados:\
+\
+P\'e1rrafo 1: Diferencias en la predictibilidad de los mecanismos\
+La adopci\'f3n racional es casi determinista (con una alta varianza explicada) \
+debido a que se rige primordialmente por la comparaci\'f3n entre utilidad y umbral. \
+Por el contrario, la adopci\'f3n social es menos predecible, ya que depende de las \
+v\'edas de refuerzo y de la estructura local de la red (citar literatura de contagio complejo, como Thomas Valente o Centola).\
+\
+P\'e1rrafo 2: La estructura de red como determinante sistem\'e1tico\
+En todos los modelos analizados, las redes aleatorias (ER) deprimen la adopci\'f3n. \
+Este efecto es moderado en la adopci\'f3n racional, pero significativamente mayor \
+en la adopci\'f3n social y total. Esto indica que la huella estructural se \
+concentra espec\'edficamente en el canal de influencia social.\
+\
+P\'e1rrafo 3: El impacto de la media y la heterogeneidad de los umbrales\
+El incremento de la media de los umbrales (tau_mean) colapsa la difusi\'f3n; el \
+aumento de su desviaci\'f3n est\'e1ndar (tau_sd) expande el espacio donde ocurren las \
+cascadas. Esto implica que la difusi\'f3n es estructuralmente posible cuando \
+existe un n\'famero suficiente de actores con umbrales bajos y cuando la red los \
+organiza en trayectorias de refuerzo.\
+\
+P\'e1rrafo 4: Apalancamiento espec\'edfico seg\'fan estrategias de siembra (seeding)\
+El sembrado en nodos centrales beneficia la difusi\'f3n social y total, pero no la \
+adopci\'f3n racional; por su parte, el sembrado marginal mejora ligeramente la \
+adopci\'f3n racional. Estos hallazgos subrayan que la eficacia de las \
+intervenciones depende de qu\'e9 mecanismo sea el dominante.\
+\
+P\'e1rrafo 5: Reg\'edmenes no lineales y umbrales de transici\'f3n de fase\
+Las superficies de respuesta muestran interacciones no lineales robustas entre \
+IUL y MSP, lo que sugiere la existencia de reg\'edmenes de difusi\'f3n distintos \
+separados por fronteras definidas. Esto formaliza por qu\'e9 cambios modestos en \
+los par\'e1metros pueden generar cambios abruptos en los niveles de adopci\'f3n.}

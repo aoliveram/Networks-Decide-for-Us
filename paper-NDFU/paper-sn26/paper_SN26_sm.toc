@@ -1,0 +1,12 @@
+\contentsline {section}{\numberline {S1}Survey Items and Propensity Distributions}{1}{section.1}%
+\contentsline {subsection}{\numberline {S1.1}Openness to Innovation Score (ATP 2014)}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {S1.2}Collective Action Propensity Score (ATP 2016)}{2}{subsection.1.2}%
+\contentsline {section}{\numberline {S2}Agent-Based Model: ODD Protocol Summary}{2}{section.2}%
+\contentsline {paragraph}{Initialization (Seeding)}{2}{section*.3}%
+\contentsline {paragraph}{Updating (Stochastic Exposure)}{3}{section*.4}%
+\contentsline {paragraph}{Stopping Criteria}{3}{section*.5}%
+\contentsline {section}{\numberline {S3}Network Imputation and Topological Validation}{4}{section.3}%
+\contentsline {section}{\numberline {S4}Extended Criticality Analysis: Plausible vs. Randomized}{5}{section.4}%
+\contentsline {subsection}{\numberline {S4.1}Mean-Field Derivation}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {S4.2}Avalanche Size Spectra and Critical Scaling}{5}{subsection.4.2}%
+\contentsline {section}{\numberline {S5}BAM Regression Model Surfaces}{6}{section.5}%

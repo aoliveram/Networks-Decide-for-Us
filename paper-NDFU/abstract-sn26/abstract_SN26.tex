@@ -17,14 +17,14 @@
 \titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
 \onehalfspacing
 
-\title{\textbf{Networks Decide for Us: \\ Emergence of Adoption in Homophily-Imputed Social Topologies}}
+\title{Networks Decide for Us: \\ Emergence of Adoption in Homophily-Imputed Social Topologies}
 
 \author[1]{Aníbal Olivera-Morales\thanks{Corresponding author: \texttt{an.oliveram@udd.cl}}}
 \author[1]{Jorge Fábrega-Lacoa}
-\author[2]{Thomas W. Valente}
+%\author[2]{Thomas W. Valente}
 
 \affil[1]{Centro de Investigación en Complejidad Social, Universidad del Desarrollo, Santiago, Chile}
-\affil[2]{Department of Population and Public Health Sciences, Keck School of Medicine, University of Southern California, Los Angeles, USA}
+% \affil[2]{Department of Population and Public Health Sciences, Keck School of Medicine, University of Southern California, Los Angeles, USA}
 
 \date{\today}
 
@@ -36,56 +36,38 @@
     \textit{Extended Abstract submitted to the Social Networks Special Issue: \\ ``Agent-Based Modelling for Social Network Research''}
 \end{center}
 
-\vspace{1cm}
+\vspace{0.5cm}
 
-\section*{Research Question}
-The diffusion of innovations, social norms, and collective behaviors is frequently modeled as either a result of individual utility maximization or a contagion process. However, empirical reality suggests a hybrid mechanism where individuals weigh both their intrinsic preferences and the influence of their peers. Furthermore, the structure of these peer networks is rarely random; it is shaped by deeply ingrained homophilic forces.
+\section*{Background and Research Question}
+The diffusion of collective behaviors is frequently modeled as either individual utility maximization or a simple contagion process. Empirical reality, however, suggests a hybrid mechanism where individuals weigh both their intrinsic preferences and the influence of their peers \cite{granovetter1978, valente1996}. While recent models address this dual mechanism \cite{tur2024}, computational literature often assumes synthetic network topologies, occasionally treating agents as cognition-free relay stations \cite{goldberg2021}. We address the methodological gap of ignoring deeply ingrained homophilic forces in the study of collective dynamics.
 
-This research asks: \textit{To what extent does the structure of social networks, shaped by empirical homophily, independently govern the diffusion of collective behaviors, conditional on fixed individual-level propensities?} We propose that the level of adoption in a society is an emergent property of the relational structure, not just the aggregate of individual wills. We advance the claim that ``networks decide for us'': the topological arrangement itself acts as a non-neutral scaffold that actively enables or constrains social change.
+This research asks: Conditional on fixed individual propensities, how do empirically calibrated homophilic ties act as an autonomous causal force---effectively ``deciding for us''---by simultaneously generating a structural premium in overall diffusion and dictating the fundamental dynamics of the social phase transition? Specifically, we explore how empirical homophily systematically amplifies the macroscopic scale of diffusion compared to randomized baselines, and how the disruption of this homophily shifts the system from structured, rolling sociological cascades to sudden, volatile tipping points.
 
-\section*{Data}
-To build realistic network structures, we combine representative survey data with empirical homophily parameters. First, we use the homophily targets estimated by McPherson and Smith (2019) from the General Social Survey (GSS 2004) core discussion networks module, spanning dimensions of Blau space such as Age, Sex, Education, Race, and Religion. Second, we impute these relational structures onto $1000$ respondents from the American Trends Panel (ATP 2016). While the respondents providing the network parameters (GSS) are different from those providing the individual propensities for collective action (ATP), this imputation allows us to generate a large set of structural replicates. The resulting topologies respect the marginal demographic distributions while adhering to empirical homophily tendencies, producing realistic clustering and degree distributions that overcome the limitations of standard random network models.
+\section*{Data and Imputation Pipeline}
+To build realistic network structures, we combine representative survey data with empirical homophily parameters. First, we use homophily targets estimated from core discussion networks \cite{smith2014}, spanning dimensions of Blau space such as age, sex, education, race, and religion. Second, we imputed structure onto respondents from the American Trends Panel (ATP 2016) and a General Social Survey (GSS 2004) political module. These datasets provide individual propensities for `openness to innovation' and `collective action', respectively. The resulting topologies respect marginal demographic distributions while adhering to empirical homophily tendencies, producing realistic clustering that overcomes the limitations of standard theoretical network models \cite{snijders2010, mcpherson2019}.
 
 \section*{Methods: Hybrid Agent-Based Modeling}
-We analyze diffusion processes over these imputed topologies using a hybrid Agent-Based Model (ABM) that integrates \textit{Rational Choice} and \textit{Selective Social Influence}. The process, simulated using the \texttt{netdiffuseR} package (Vega Yon, Olivera Morales, \& Valente, 2025), initializes by distributing a behavioral innovation. In our model, agents adopt intrinsically if the innovation's utility exceeds their individual required threshold (Rational Adoption). Alternatively, agents adopt through peer contagion if exposed to a critical mass of adopters who are socially proximate (Social Adoption). Crucially, the influence of peers is weighted by social similarity (Gower's distance), constrained by a Maximum Social Proximity ($MSP$) parameter. 
+We analyze diffusion processes over these imputed topologies using a hybrid Agent-Based Model (ABM) simulated with the \texttt{netdiffuseR} package \cite{vegayon2025}. An agent $i$ adopts ($a_i = 1$) if their intrinsic aversion ($q_i$) is overcome by the innovation's inherent utility level ($\Gamma$), or if their network threshold ($\tau_i$) is overcome by the effective social exposure ($\tilde{E}_i$):
+$$ a_i = 1 \iff (q_i \le \Gamma) \lor (\tau_i \le \tilde{E}_i) $$
+Crucially, the exposure $\tilde{E}_i$ only counts \textit{influential} peers, weighted by social distance $d_{ij}$ in Blau space and the system's Maximum Social Proximity ($MSP$), which sets an upper bound on how demographically different two interacting individuals can be to still exert influence:
+$$ \tilde{E}_i = \frac{\sum_{j \neq i} \mathbf{X}_{ij} \tilde{a}_j}{\sum_{j \neq i} \mathbf{X}_{ij}} \quad \text{where} \quad \tilde{a}_j = a_j \cdot \mathbb{I}\Big[U_{ij} \le \sigma(MSP - d_{ij})\Big] $$
+and $\sigma$ is a standard logistic function. 
 
-Through extensive simulations ($\approx 4$ million runs), we explore the parameter space of intrinsic utility and social flexibility across both our Plausible networks and Erdős-Rényi (Random) baselines. Total Adoption represents the combined effectiveness of individual incentives and structural mobilization.
+Through approximately 4 million simulations, we explore the parameter space of intrinsic utility and social flexibility across both our plausible networks and degree-preserving randomization. To isolate the marginal effect of the randomized topology, we estimate the expected total adoption $\mathbb{E}(\Phi)$, where $\Phi$ represents the final proportion of adopters in the network, using Generalized Additive Models (GAM):
+$$ \text{logit}[\mathbb{E}(\Phi)] = \beta_0 + \mathbf{Z}\boldsymbol{\beta} + \beta_{\text{ER}} \mathbb{I}_{\text{Random}} + s(\Gamma, MSP) $$
+where $\mathbf{Z}$ is a matrix of controls (e.g., threshold parameters, seeding strategies), $\mathbb{I}_{\text{Random}}$ isolates the random structural penalty, and $s(\Gamma, MSP)$ is a thin-plate regression spline capturing the non-linear interaction between intrinsic utility and social flexibility.
 
-To isolate the marginal effect of network structure on emergent outcomes, we employ Big Additive Models (BAM), a scalable implementation of Generalized Additive Models (GAMs). These models allow us to estimate the isolated effects of Ratonal, Social, and Total Adoption. The BAMs include thin-plate regression splines $s(IUL, MSP)$ to capture the non-linear interacton between intrinsic utility and social flexibilty, while controlling for threshold distribution parameters and network structure.
+\section*{Preliminary Results}
+By comparing diffusion outcomes on plausible homophilic networks against random baselines, our regressions reveal how topology mathematically dictates both the volume and dynamics of collective behavior. 
 
-\section*{Preliminary Findings}
-By comparing the diffusion outcomes on Plausible networks against their Random baselines, we quantify the ``structural premium'' of realistic network topologies. Our Generalized Additive Models (BAM) regressions reveal several key dynamics:
+First, we identify a relevant structural premium. Randomizing the network structure depresses the odds of adoption by $57\%$ ($\beta_{\text{ER}} = -0.850$, $p < 0.001$; see Table 1). Homophily acts as a structural catalyst: even if individuals possess high intrinsic thresholds reflecting an aversion to innovation or collective action, empirical clustering creates local echo chambers. These clusters allow social reinforcement to build safely and overcome local resistance. 
 
-\begin{enumerate}
-    \item \textbf{The Structural Premium:} Randomizing the network structure significantly depresses overall adoption. The specific clustering and homophilic segregation inherent in realistic networks facilitate behavioral cascades that random networks cannot sustain. Under random conditions, the odds of total adoption are drastically reduced (BAM coefficient = -0.850, $p < 0.001$).
-    \item \textbf{Non-Linear Phase Transitions and Empirical Criticality:} We identify distinct interaction regimes between intrinsic utility ($\Gamma$) and social flexibility ($h$). When the population is highly rigid (low MSP), homophilic echo chambers freeze the network, stifling diffusion regardless of utility. As flexibility increases, a sharp ``tipping point'' emerges where social reinforcement overcomes localized resistance. We validate the continuous (second-order) nature of this transition using three independent methods inspired by statistical physics: (a) \textit{Critical Slowing Down (CSD)}: the standard deviation of simulation relaxation times diverges precisely along the critical boundary, and Pearson correlations between total adoption and relaxation time shift from near-zero ($r \approx 0.24$) in the rigid sub-critical phase to strongly negative ($r \approx -0.89$) in the fluid super-critical phase; (b) \textit{Avalanche Distributions}: exactly at the susceptibility peak ($MSP_c \approx 0.58$), cascade sizes follow a violent bimodal distribution---diffusion either collapses microscopically or triggers system-wide adoption in 900+ nodes---a hallmark of scale-free criticality absent in random-network baselines; (c) \textit{Critical Exponents}: using the Fluctuation-Dissipation Theorem to compute susceptibility as $\chi = \text{Var}(\Phi)$, we recover an empirical susceptibility exponent $\gamma \approx 0.977$ ($\pm 0.01$) along the Widom Line, an extraordinary match to the Mean-Field Ising prediction ($\gamma = 1.0$), placing collective social adoption in a mathematically rigorous universality class.
-    \item \textbf{The Role of Selective Influence:} The data shows that ``who we are'' is inextricably linked to ``who we know,'' but the structural pathway dictates the outcome. Our findings directly challenge models assuming uniform influence, emphasizing that homophily operates as a dynamic gate for diffusion.
-\end{enumerate}
-
-Our results demonstrate that applying ABM to empirically calibrated network topologies uncovers macro-social outcomes that statistical aggregations miss. Unlike traditional statistical frameworks such as Exponential Random Graph Models (ERGMs) or Stochastic Actor-Oriented Models (SAOMs)---which may face computational tractability issues or rely on assumptions of perfectly rational actors---our ABM approach directly captures the non-linear micro-macro feedback cycles. By operationalizing homophily not just as a structural feature but as a dynamic gate for influence, we identify causal mechanisms with greater precision, proving that network topology acts as an autonomous engine for coordination in social systems. The findings contribute to social network research by illustrating that network structure is a fundamental causal mechanism in the dynamic unfolding of collective behavior.
-
-\newpage
-
-\section*{Illustrative Evidence}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{figure1_5panels_GSS.pdf}
-    \caption{\textbf{Adoption Regimes and Phase Transition Signatures.} \textit{Top row:} Average Total, Rational, and Social Adoption heatmaps. \textit{Bottom row (left):} Susceptibility $\chi = \text{Var}(\Phi)$ via the Fluctuation-Dissipation Theorem, with the phase boundary visible as a ridge of high variance. \textit{Bottom row (right):} Standard Deviation of simulation relaxation time; its divergence along the critical boundary is the signature of Critical Slowing Down. Simulations based on a GSS plausible network, $\tau_{sd}=0.12$, and random seeding.}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=1\textwidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}
-    \caption{\textbf{Critical Exponents (Method 4).} Log-log plots of the order parameter $\Phi$ (left panels) and susceptibility $\chi$ (right panels) against $|MSP - MSP_c|$ for four IUL values along the Widom Line. Linear fits in log-log space confirm power-law scaling with exponent $\gamma \approx 0.977$, consistent with Mean-Field universality.}
-\end{figure}
-
-\begin{table}[H]
+\begin{table}[htbp]
 \centering
-\caption{\textbf{BAM Regression Results: Effect of Network Structure and Seeding.}}
+\caption{\textit{GAM Regression Results: Effect of Network Structure and Seeding.}}
 \begin{tabular}{lccc}
 \toprule
- & \textbf{Rational Adoption} & \textbf{Social Adoption} & \textbf{Total Adoption} \\
+ & Rational Adoption & Social Adoption & Total Adoption \\
 \midrule
 (Intercept) & $0.428^{***}$ & $-0.300^{***}$ & $6.534^{***}$ \\
 $\tau_{mean}$ & $-0.185^{***}$ & $-5.130^{***}$ & $-6.944^{***}$ \\
@@ -97,39 +79,78 @@ Closeness & $-0.052^{***}$ & $0.033^{***}$ & $0.119^{***}$ \\
 Marginal & $0.027^{***}$ & $-0.020^{***}$ & $-0.067^{***}$ \\
 \midrule
 \textit{Structure (Ref: Plausible)} & & & \\
-\textbf{Network: Random (ER)} & $\mathbf{-0.114^{***}}$ & $\mathbf{-0.426^{***}}$ & $\mathbf{-0.850^{***}}$ \\
+Random (ER) & $-0.114^{***}$ & $-0.426^{***}$ & $-0.850^{***}$ \\
 \midrule
 Deviance Explained & 96.9\% & 71.1\% & 82.2\% \\
 \bottomrule
-\multicolumn{4}{p{0.9\textwidth}}{\footnotesize $^{*}p<0.05, ^{**}p<0.01, ^{***}p<0.001$. Table includes all fixed effects from the reference model. Non-linear smooth terms $s(IUL, MSP)$ are highly significant ($p<0.001$).}
+\multicolumn{4}{p{0.9\textwidth}}{\footnotesize $^{*}p<0.05, ^{**}p<0.01, ^{***}p<0.001$. Table includes all fixed effects from the reference model. Non-linear smooth terms $s(\Gamma, MSP)$ are highly significant ($p<0.001$).}
 \end{tabular}
 \end{table}
 
-\begin{table}[H]
+Second, homophily governs criticality dynamics. In empirical networks, social change unfolds as a predictable, rolling avalanche (Figure 1). Susceptibility diverges near the critical boundary $MSP_c$ according to the universal scaling exponent $\gamma$ \cite{sethna2021}:
+$$ \chi = \text{Var}(\Phi) \propto |MSP - MSP_c|^{-\gamma} $$
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{figure1_5panels_GSS.pdf}
+    \caption{\textit{Adoption Regimes and Phase Transition Signatures.} Top row: Average Total, Rational, and Social Adoption heatmaps. Bottom row (left): Susceptibility $\chi = \text{Var}(\Phi)$ via the Fluctuation-Dissipation Theorem, with the phase boundary visible as a ridge of high variance. Bottom row (right): Standard Deviation of simulation relaxation time; its divergence is the signature of Critical Slowing Down. Simulations based on a GSS plausible network, $\tau_{sd}=0.12$, and random seeding.}
+\end{figure}
+
+We also observe Critical Slowing Down, where simulation relaxation times diverge as the system approaches the tipping point. Empirical data ($\gamma \approx 0.977 \approx 1$, see Table 2 and Figure 2) suggest that collective behavior obeys Mean-Field universal scaling laws. This implies that social adoption operates as a scale-free process---much like a forest fire---where identical structural conditions can produce both localized clusters and massive, system-wide avalanches of adoption.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}
+    \caption{\textit{Critical Exponents (Method 4).} Plots of the order parameter $\Phi$ against $MSP - MSP_c$ (left panels) and log-log plots of susceptibility $\chi$ against $|MSP - MSP_c|$ (right panels) for four IUL values along the Widom Line. Linear fits in log-log space confirm power-law scaling with exponent $\gamma \approx 0.977$, consistent with Mean-Field universality.}
+\end{figure}
+
+\begin{table}[htbp]
 \centering
-\caption{\textbf{Empirical Critical Exponents along the Widom Line.}}
-\begin{tabular}{cc}
+\caption{\textit{Estimated Susceptibility Exponents ($\gamma$) via Maximum Derivative Heuristic.}}
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Intrinsic Utility (IUL)} & \textbf{Susceptibility Exponent ($\gamma$)} \\
+\textbf{IUL} & \textbf{GSS $MSP_c$} & \textbf{GSS $\gamma$} & \textbf{GSS-ER $MSP_c$} & \textbf{GSS-ER $\gamma$} \\
 \midrule
-0.200 & 0.977 \\
-0.225 & 0.892 \\
-0.250 & 0.892 \\
-0.275 & 0.873 \\
+0.200 & 0.250 & 0.977 & 0.416 & 3.709 \\
+0.225 & 0.250 & 0.892 & 0.416 & 3.667 \\
+0.250 & 0.250 & 0.892 & 0.416 & 3.667 \\
+0.275 & 0.166 & 1.539 & 0.333 & 4.666 \\
 \bottomrule
-\multicolumn{2}{p{0.55\textwidth}}{\footnotesize Mean-Field Ising prediction: $\gamma = 1.0$. Exponents estimated via OLS in log-log space along the super-critical arm of each Widom Line cross-section.}
 \end{tabular}
 \end{table}
 
-\section*{Key References}
-{\small
-\noindent[1] Granovetter, M. (1978). Threshold models of collective behavior. \textit{American Journal of Sociology}, 83(6), 1420--1443.\\
-\noindent[2] McPherson, M., \& Smith, J. A. (2019). Network effects in Blau space: Imputing social context from survey data. \textit{Socius}, 5, 2378023119865457.\\
-\noindent[5] Sethna, J. P. (2021). \textit{Statistical Mechanics: Entropy, Order Parameters, and Complexity} (2nd ed.). Oxford University Press.\\
-\noindent[6] Snijders, T. A., van de Bunt, G. G., \& Steglich, C. E. (2010). Introduction to stochastic actor-based models for network dynamics. \textit{Social Networks}, 32(1), 44--60.\\
-\noindent[7] Tur, E. M., Zeppini, P., \& Frenken, K. (2024). Diffusion in small worlds with homophily and social reinforcement. \textit{Social Networks}, 76, 12--21.\\
-\noindent[8] Valente, T. W. (1996). Social network thresholds in the diffusion of innovations. \textit{Social Networks}, 18(1), 69--89.\\
-\noindent[9] Vega Yon, G., Olivera Morales, A., \& Valente, T. (2025). netdiffuseR: Analysis of Diffusion and Contagion Processes on Networks. \textit{zenodo}, doi:10.5281/zenodo.1039317.
-}
+Ultimately, our results validate the premise that networks decide for us in a two-fold manner. The topological arrangement acts as a fundamental causal mechanism that not only systematically amplifies the volume of collective behavior (the structural premium) but also governs the underlying dynamics of social tipping points. By reshaping the critical thresholds, empirical homophily determines whether a society undergoes behavioral shifts through structured sociological cascades or sudden, unpredictable regime shifts.
+
+\section*{References}
+\begin{thebibliography}{9}
+
+\bibitem{goldberg2021} 
+Goldberg, A. (2021). Associative diffusion and the pitfalls of structural reductionism. \textit{American Sociological Review}, 86(6), 1205--1210.
+
+\bibitem{granovetter1978} 
+Granovetter, M. (1978). Threshold models of collective behavior. \textit{American Journal of Sociology}, 83(6), 1420--1443.
+
+\bibitem{mcpherson2019} 
+McPherson, M., \& Smith, J. A. (2019). Network effects in Blau space: Imputing social context from survey data. \textit{Socius}, 5, 2378023119865457.
+
+\bibitem{sethna2021} 
+Sethna, J. P. (2021). \textit{Statistical Mechanics: Entropy, Order Parameters, and Complexity} (2nd ed.). Oxford University Press.
+
+\bibitem{smith2014} 
+Smith, J. A., McPherson, M., \& Smith-Lovin, L. (2014). Social Distance in the United States: Sex, Race, Religion, Age, and Education Homophily among Confidants, 1985 to 2004. \textit{American Sociological Review}, 79(3), 432--456.
+
+\bibitem{snijders2010} 
+Snijders, T. A., van de Bunt, G. G., \& Steglich, C. E. (2010). Introduction to stochastic actor-based models for network dynamics. \textit{Social Networks}, 32(1), 44--60.
+
+\bibitem{tur2024} 
+Tur, E. M., Zeppini, P., \& Frenken, K. (2024). Diffusion in small worlds with homophily and social reinforcement. \textit{Social Networks}, 76, 12--21.
+
+\bibitem{valente1996} 
+Valente, T. W. (1996). Social network thresholds in the diffusion of innovations. \textit{Social Networks}, 18(1), 69--89.
+
+\bibitem{vegayon2025} 
+Vega Yon, G., Olivera Morales, A., \& Valente, T. (2025). netdiffuseR: Analysis of Diffusion and Contagion Processes on Networks. \textit{zenodo}, doi:10.5281/zenodo.1039317.
+
+\end{thebibliography}
 
 \end{document}

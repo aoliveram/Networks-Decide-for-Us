@@ -1,0 +1,122 @@
+================================================================================
+REPORTE DE PROYECTO: NETWORKS DECIDE FOR US
+Fecha: 20 de Enero, 2026
+Autor (Agente): Github Copilot
+================================================================================
+
+1. INTRODUCCIÓN Y OBJETIVO
+--------------------------------------------------------------------------------
+Este documento resume la metodología, los datos y los resultados estadísticos 
+obtenidos tras la corrección de las simulaciones y la ejecución de los modelos 
+de regresión finales. El objetivo ha sido cuantificar cómo la estructura de la 
+red (Empírica vs. Aleatoria), los incentivos individuales (IUL) y la presión 
+social (MSP) determinan la adopción en procesos de difusión de innovaciones (ATP) 
+y acción colectiva (GSS).
+
+2. DATOS Y SIMULACIONES
+--------------------------------------------------------------------------------
+Se han procesado dos grandes conjuntos de datos, sometidos a imputación y 
+posterior simulación de difusión bajo un modelo de umbrales en `netdiffuseR`.
+
+*   **Datasets:**
+    *   ATP (Contexto de Innovación).
+    *   GSS (Contexto de Acción Colectiva/Normas).
+
+*   **Experimental Design (Simulaciones):**
+    *   **Tipos de Red:**
+        1.  Empírica (Topología real observada).
+        2.  ER (Erdős–Rényi: Aleatoria, preservando densidad y tamaño).
+    *   **Tipos de Semilla (Seed Variators):**
+        1.  Random (Aleatoria - Referencia).
+        2.  Central (Grado).
+        3.  Closeness.
+        4.  Eigen (Eigenvector centrality).
+        5.  Marginal (Baja centralidad).
+    *   **Réplicas:** 5 réplicas por configuración.
+    *   **Total de Observaciones:** 4,093,440 puntos de datos combinados.
+
+3. METODOLOGÍA ESTADÍSTICA
+--------------------------------------------------------------------------------
+Se utilizaron **Modelos Aditivos Generalizados para Big Data (BAM)** del paquete 
+`mgcv` en R. Esta técnica permite modelar relaciones no lineales complejas entre 
+la utilidad (IUL) y la presión social (MSP).
+
+*   **Ecuación General:**
+    logit(P_adopt) = β0 + f(IUL, MSP) + β1*tau_mean + β2*tau_sd + β3*seed + β4*network
+
+*   **Variables Dependientes:**
+    1.  `adopt_total`: Adopción final global.
+    2.  `adopt_social`: Adopción gatillada por presión de pares.
+    3.  `adopt_rational`: Adopción gatillada por utilidad individual pura.
+
+4. RESULTADOS DE REGRESIÓN (RESUMEN)
+--------------------------------------------------------------------------------
+
+A. MODELO DE ADOPCIÓN TOTAL (Deviance Explained: 82.2%)
+-------------------------------------------------------
+Este modelo predice si un nodo adopta o no, sin importar la razón.
+
+*   **Impacto de la Red (ER vs Empírica):**
+    Coef: -0.85 (Error Std: 0.0035, p < 2e-16)
+    -> Interpretación: Las redes aleatorias reducen los odds de adopción 
+       en un ~57% (OR: 0.43) comparadas con las redes empíricas. La estructura 
+       real facilita la difusión.
+
+*   **Resistencia (Tau Mean):**
+    Coef: -6.94
+    -> Interpretación: Un aumento unitario en el umbral de resistencia colapsa 
+       la adopción casi por completo. Es el factor más determinante.
+
+*   **Semillas (vs Random):**
+    - Central/Closeness/Eigen: Coef ~ +0.12 (Positivo, ayudan a la difusión).
+    - Marginal: Coef -0.07 (Negativo, frenan ligeramente la difusión total).
+
+B. MODELO DE ADOPCIÓN SOCIAL (Deviance Explained: 71.1%)
+--------------------------------------------------------
+Predice adopción "por contagio" (cuando la señal social supera al umbral).
+
+*   **Impacto de la Red (ER vs Empírica):**
+    Coef: -0.43 (OR: 0.65)
+    -> La red aleatoria sigue siendo peor, pero la penalización es menor que 
+       en la adopción total.
+
+*   **Resistencia (Tau Mean):**
+    Coef: -5.13 (Muy negativo).
+
+C. MODELO DE ADOPCIÓN RACIONAL (Deviance Explained: 96.9%)
+----------------------------------------------------------
+Predice adopción por puro beneficio individual (Utility > Threshold).
+
+*   **Ajuste:** Casi perfecto (97%). El comportamiento racional es 
+    extremadamente predecible.
+
+*   **Semillas (Curiosidad):**
+    - Centrales: Coef -0.05 (Negativo vs Random).
+    - Marginales: Coef +0.02 (Positivo vs Random).
+    -> Interpretación: Para la adopción puramente racional, iniciar en los 
+       márgenes puede ser levemente más eficiente, posiblemente porque evita 
+       la saturación redundante en el centro, o porque los nodos centrales 
+       requieren más validación social.
+
+5. CONCLUSIONES PRINCIPALES
+--------------------------------------------------------------------------------
+1.  **La Estructura Importa:** Las redes aleatorias son sistemáticamente peores 
+    para la difusión que las redes empíricas (Coef -0.85). La clusterización y 
+    estructura comunitaria real son motores clave.
+
+2.  **Mecanismos Distintos:** La adopción racional es determinista y fácil de 
+    predecir. La adopción social es más ruidosa y dependiente de la topología.
+
+3.  **Estrategia de Sembrado:**
+    - Si buscas adopción masiva (Total): Apunta al centro (Hubs).
+    - Si buscas adopción por utilidad (Racional): Los márgenes funcionan bien.
+
+6. ARCHIVOS DE SALIDA
+--------------------------------------------------------------------------------
+- Modelos: `output/06_regression_analysis/models/*.rds`
+- Tablas:  `output/06_regression_analysis/models/*_summary.txt`
+- Plots:   `plots/06_regression_analysis/*_surfaces.png`
+
+================================================================================
+FIN DEL REPORTE
+================================================================================
