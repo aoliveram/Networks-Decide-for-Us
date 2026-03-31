@@ -70,20 +70,22 @@ First, we identify a relevant structural premium. Randomizing the network struct
  & Rational Adoption & Social Adoption & Total Adoption \\
 \midrule
 (Intercept) & $0.428^{***}$ & $-0.300^{***}$ & $6.534^{***}$ \\
+\addlinespace
+\textit{Thresholds} \\
 $\tau_{mean}$ & $-0.185^{***}$ & $-5.130^{***}$ & $-6.944^{***}$ \\
 $\tau_{sd}$ & $0.032$ & $4.210^{***}$ & $5.942^{***}$ \\
-\midrule
-\textit{Seeding (Ref: Random)} & & & \\
+\addlinespace
+\textit{Seeding (Ref: Random)} \\
 Central & $-0.054^{***}$ & $0.032^{***}$ & $0.120^{***}$ \\
 Closeness & $-0.052^{***}$ & $0.033^{***}$ & $0.119^{***}$ \\
 Marginal & $0.027^{***}$ & $-0.020^{***}$ & $-0.067^{***}$ \\
-\midrule
-\textit{Structure (Ref: Plausible)} & & & \\
-Random (ER) & $-0.114^{***}$ & $-0.426^{***}$ & $-0.850^{***}$ \\
+\addlinespace
+\textit{Structure (Ref: Plausible)} \\
+Random structure & $-0.114^{***}$ & $-0.426^{***}$ & $\mathbf{-0.850}^{***}$ \\
 \midrule
 Deviance Explained & 96.9\% & 71.1\% & 82.2\% \\
 \bottomrule
-\multicolumn{4}{p{0.9\textwidth}}{\footnotesize $^{*}p<0.05, ^{**}p<0.01, ^{***}p<0.001$. Table includes all fixed effects from the reference model. Non-linear smooth terms $s(\Gamma, MSP)$ are highly significant ($p<0.001$).}
+\multicolumn{4}{p{0.9\textwidth}}{\footnotesize $^{*}p<0.05, ^{**}p<0.01, ^{***}p<0.001$. Non-linear smooth terms $s(\Gamma, MSP)$ are highly significant ($p<0.001$). Observations ($n$) $= 4,093,440$.}
 \end{tabular}
 \end{table}
 
