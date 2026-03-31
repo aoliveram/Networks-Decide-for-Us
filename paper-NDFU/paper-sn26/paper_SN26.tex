@@ -106,7 +106,7 @@ Table \ref{tab:smith2014} details these log-odds penalizations for socio-demogra
     \label{tab:smith2014}
     \begin{tabular}{lcc}
     \toprule
-    \textbf{Variable} & \textbf{Model 1 ($\beta$)} & \textbf{Model 2 ($\beta$)} \\
+    \textbf{Variable} & \textbf{Model 1} & \textbf{Model 2} \\
     \midrule
     Intercept & $-14.456^{***}$ & $-14.519^{***}$ \\
     Different race ($d^{\mathrm{cat}}_{ij}$) & $-1.819^{***}$ & $-1.959^{***}$ \\
@@ -115,11 +115,11 @@ Table \ref{tab:smith2014} details these log-odds penalizations for socio-demogra
     Education diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.049^{***}$ & $-0.047^{***}$ \\
     Age diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.173^{***}$ & $-0.157^{***}$ \\
     \addlinespace
-    \textit{Temporal Interactions ($2004 \times d_{ij}$)} \\
-    Different race $\times$ Year & -- & $0.264$ \\
-    Different religion $\times$ Year & -- & $-0.215^{*}$ \\
-    Different sex $\times$ Year & -- & $0.144^{**}$ \\
-    Education diff. $\times$ Year & -- & $-0.005$ \\
+    \textit{Temporal Interactions} \\
+    Diff. race $\times$ Year & -- & $0.264$ \\
+    Diff. religion $\times$ Year & -- & $-0.215^{*}$ \\
+    Diff. sex $\times$ Year & -- & $0.144^{**}$ \\
+    Educ. diff. $\times$ Year & -- & $-0.005$ \\
     Age diff. $\times$ Year & -- & $-0.044^{*}$ \\
     \addlinespace
     Year & $-0.179^{***}$ & $-0.052$ \\
@@ -203,7 +203,7 @@ Beyond volume, the network topology dictates \textit{how} adoption occurs. Figur
 
 In empirical (homophilic) networks, social change manifests as a predictable, continuous phase transition. Analogous to ferromagnetic phase transitions in physics (Landau phenomenology), the free energy density $f(\Phi)$ of the interacting social system can be analytically expanded around the adoption order parameter $\Phi$ as $f(\Phi) = f_0 + \frac{1}{2}a(T - T_c)\Phi^2 + \frac{1}{4}b\Phi^4 - H\Phi$. In this configuration, the macroscopic required thresholds (MSP) act as continuous thermal driving forces ($T$) displacing the system structurally toward its critical point $T_c$. By differentiating the equilibrium free energy $\frac{\partial f}{\partial \Phi} = 0$, Mean-Field theory predicts that susceptibility $\chi$ must diverge as $\chi \sim |MSP - MSP_c|^{-1}$ purely in second-order transitions where $\gamma \equiv 1$.
 
-We observe distinct ``Critical Slowing Down" (divergence in simulation relaxation times) along the critical boundary. Applying the Fluctuation-Dissipation Theorem ($\chi = \text{Var}(\Phi)$), we recover an empirical susceptibility exponent of $\gamma \approx 0.977$ (Table \ref{tab:gamma} and Figure \ref{fig:exponents}). This constitutes rigorous proof that the homophilic network perfectly obeys Mean-Field universal scaling laws, providing a ``sociological viscosity" that governs the cascade.
+We observe distinct ``Critical Slowing Down" (divergence in simulation relaxation times) along the critical boundary. Applying the Fluctuation-Dissipation Theorem ($\chi = \text{Var}(\Phi)$), we recover an empirical susceptibility exponent of $\gamma \approx 0.977$ (Table \ref{tab:gamma} and Figure \ref{fig:exponents}). This constitutes rigorous proof that the homophilic network perfectly obeys Mean-Field universal scaling laws \citep{sethna2021}, providing a ``sociological viscosity" that governs the cascade.
 
 \begin{figure*}[t]
     \centering
@@ -286,6 +286,9 @@ McPherson, M., Smith, J.~A., 2019. Network imputation: Using ego-network data to
 
 \bibitem[{Oliver(1993)}]{oliver1993formal}
 Oliver, P.~E., 1993. Formal models of collective action. Annual Review of Sociology 19, 271--300.
+
+\bibitem[{Sethna(2021)}]{sethna2021}
+Sethna, J.~P., 2021. Statistical Mechanics: Entropy, Order Parameters, and Complexity (2nd Ed.). Oxford University Press.
 
 \bibitem[{Smith et~al.(2014)Smith, McPherson, and Smith-Lovin}]{smith2014social}
 Smith, J.~A., McPherson, M., Smith-Lovin, L., 2014. Social Distance in the United States: Sex, Race, Religion, Age, and Education Homophily among Confidants, 1985 to 2004. American Sociological Review 79 (3), 432--456.
