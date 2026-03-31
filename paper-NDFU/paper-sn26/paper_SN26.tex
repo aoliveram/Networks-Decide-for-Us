@@ -53,15 +53,9 @@ Social Diffusion \sep Complex Contagion \sep Homophily \sep Agent-Based Modeling
 
 The sudden emergence of collective behaviors---from the rapid spread of technological innovations to large-scale social movements and unpredictable market anomalies \citep{gladwell2002tipping, farrell1998how}---remains a central puzzle in the social sciences. Historically, research into collective action has navigated two distinct pathways: individual decision models focusing on rational utility \citep{oliver1993formal}, and collectivity models emphasizing social interaction and threshold-based coordination \citep{granovetter1978threshold, valente1996social}.
 
-While recent literature has brilliantly bridged these paradigms through models of ``complex contagion" \citep{centola2007complex}, much of this computational work remains tethered to synthetic, theoretical network topologies (e.g., Small World or random graphs). As critics have noted, this ``structural reductionism" often treats agents as cognition-free relay stations \citep{goldberg2021associative}, ignoring the empirical reality that human networks are profoundly shaped by multidimensional homophily---the tendency of similar individuals to associate and cluster \citep{mcpherson2001birds, mcpherson2019network}. Furthermore, well-known generic models may not fit well to the social problem at hand, as real-world social networks jointly exhibit high clustering, assortativity, short path lengths, and right-skewed degree distributions \citep{talaga2020homophily}.
+While recent literature has brilliantly bridged these paradigms through models of ``complex contagion" \citep{centola2007complex}, much of this computational work remains tethered to synthetic, theoretical network topologies (e.g., Small World or random graphs). As critics have noted, this ``structural reductionism" often treats agents as cognition-free relay stations \citep{goldberg2021associative}, ignoring the empirical reality that human networks are profoundly shaped by multidimensional homophily---the tendency of similar individuals to associate and cluster \citep{mcpherson2001birds, mcpherson2019network}. Furthermore, well-known generic models may not fit well to the social problem at hand, as real-world social networks jointly exhibit high clustering, assortativity, short path lengths, and right-skewed degree distributions \citep{talaga2020homophily}. To bridge this gap, this paper asks: \textit{Conditional on fixed individual propensities, how do empirically calibrated homophilic topologies act as an autonomous causal force---effectively ``deciding for us''---by simultaneously generating a ``structural premium'' in overall diffusion and dictating the fundamental physics of the phase transition?} (see Section S2 in Supplementary Material for detailed ERGM imputation). By shifting the analytical focus from individual rational choices to the specific connective tissue of a population, we can interrogate how society's structural layout actively orchestrates large-scale behavioral cascades.
 
-To bridge this gap, this paper asks: \textit{Conditional on fixed individual propensities, how do empirically calibrated homophilic topologies act as an autonomous causal force---effectively ``deciding for us"---by simultaneously generating a ``structural premium" in overall diffusion and dictating the fundamental physics of the phase transition?} (see Section S2 in Supplementary Material for detailed ERGM imputation).
-
-We decompose this macro-sociological inquiry into two distinct structural mechanisms:
-\begin{enumerate}
-    \item \textbf{The Structural Premium (Volume):} How does empirical homophily systematically amplify the macroscopic scale of diffusion compared to randomized baselines?
-    \item \textbf{Empirical Criticality (Dynamics):} How does the disruption of empirical homophily alter the nature of social tipping points, shifting the system from a predictable, continuous phase transition to a discontinuous, unpredictable regime shift?
-\end{enumerate}
+We decompose this macro-sociological inquiry into two distinct structural mechanisms: First, we evaluate the Structural Premium (Volume) by asking how empirical homophily systematically amplifies the macroscopic scale of diffusion compared to randomized baselines. Second, we examine Empirical Criticality (Dynamics) to determine how the disruption of empirical homophily alters the nature of social tipping points, shifting the system from a predictable, continuous phase transition to a discontinuous, unpredictable regime shift.
 
 % ==========================================
 % 2. THEORETICAL BACKGROUND
@@ -223,15 +217,23 @@ Conversely, in the GSS-ER random network, this predictability completely collaps
 \end{table}
 
 % ==========================================
-% 5. DISCUSSION & CONCLUSION
+% 5. DISCUSSION
 % ==========================================
-\section{Discussion and Conclusion}
+\section{Discussion}
 
-Our results provide robust computational and mathematical evidence that ``networks decide for us." Conditional on fixed individual-level propensities, the topological arrangement itself acts as an autonomous causal mechanism. 
+Our results provide robust computational and mathematical evidence that ``networks decide for us." Conditional on fixed individual-level propensities, the topological arrangement itself acts as an autonomous causal mechanism. First, empirical homophily yields a systematic \textit{structural premium}. We demonstrated that even when a society is highly conservative or exhibits rigid social flexibility ($MSP \sim 0.25 - 0.50$), collective action can still achieve massive, bimodal distributions of total mass adoption. This is driven entirely by the effect of Selective Social Influence multiplying inside local echo chambers, allowing adoption to explode even when the targeted behavior or innovation is extremely unattractive to the population ($IUL < 0.25$). 
 
-First, empirical homophily yields a systematic \textit{structural premium}, proving that relational clustering facilitates behavioral cascades that randomized networks cannot sustain. Second, this topology actively reshapes the \textit{physics} of the diffusion process. Homophily ensures that social tipping points occur as predictable, structured avalanches (continuous phase transitions). Stripping a society of its homophilic structure does not just make adoption harder; it makes it volatile, transforming gradual cascades into unpredictable, sudden explosions.
+Second, this topological clustering actively reshapes the \textit{physics} of the diffusion process. Empirical homophily ensures that social tipping points occur as structured, continuous avalanches displaying mean-field universality. This signifies that the rules governing massive social shifts are mathematically isomorphic to small localized changes. Similar to a forest fire nearing a critical structural density---which might suddenly engulf the entire system or instantly die out---macroscopic collective phenomena are dictated by systemic critical boundaries rather than merely aggregate psychological thresholds. Stripping a society of its homophilic structure does not just make adoption harder; it makes it volatile, transforming gradual cascades into unpredictable, violent explosions without statistical warning. Understanding society as complex matter provides a rigorously analytical lens through which to anticipate collective action.
 
-Ultimately, macroscopic collective outcomes cannot be reduced to the aggregate of individual preferences; they are profoundly, and mathematically, dictated by the structure of our social ties.
+\subsection{Limitations}
+While our findings definitively establish the causal autonomy of structural topologies, we acknowledge several methodological constraints. Foremost, we simulated the contagion over $N=1000$ nodes. In rigorous statistical physics, continuous phase transitions and strict universality classes are technically only valid under the thermodynamic limit ($N \to \infty$). While our network size is sufficient to observe meso-scale dynamic phase transitions and scale-free cascade bimodality, future efforts could employ \textit{Finite-Size Scaling} tests to formally extrapolate these exponents. Additionally, our topological models remain static; the complex contagion does not currently allow agents to dynamically rewire or unfriend neighbors as adoption spreads. Finally, the behavioral propensities mapped from the American Trends Panel fundamentally rely on self-reported survey proxies, inherently carrying potential reporting biases that could influence the absolute values of the evaluated innovation utility thresholds.
+
+% ==========================================
+% 6. CONCLUSION
+% ==========================================
+\section{Conclusion}
+
+Ultimately, macroscopic collective outcomes cannot be reduced to the linear aggregate of individual preferences. They are profoundly, and mathematically, dictated by the multi-dimensional structure of our social ties. By embedding sociologically accurate homophily into diffusion models, we recover the fundamental continuous transitions that characterize empirical society, proving that structural boundaries decide the ultimate trajectory of social change.
 
 % ==========================================
 % REFERENCES
