@@ -1,8 +1,8 @@
 # Fdb version 4
-["pdflatex"] 1774915879.07284 "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/paper-sn26/paper_SN26.tex" "paper_SN26.pdf" "paper_SN26" 1774915879.57236 0
+["pdflatex"] 1774969372.56037 "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/paper-sn26/paper_SN26.tex" "paper_SN26.pdf" "paper_SN26" 1774969373.02326 0
   "../../plots/07_phase_transition/GSS/method4_exponents.pdf" 1774616258.29711 13341 a2a67e741c02f781a6bf066246015fec ""
   "../abstract-sn26/figure1_5panels_GSS.pdf" 1774624215.44072 19675 8c0b3e235e713ad1e46b392c3159e26d ""
-  "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/paper-sn26/paper_SN26.tex" 1774915878.89337 24055 6a5a6ce1cdf70b9633954ba52ed73bd4 ""
+  "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/paper-sn26/paper_SN26.tex" 1774969372.33192 26604 13bc711cbdd65c5b97d4f98ccf85a713 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/ecbx1000.tfm" 1136768653 3584 2d666ecf6d466d8b007246bc2f94d9da ""
@@ -130,10 +130,10 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1763993878 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1741450574 3345740 46b66fdb0378f7bf5921b5eabf1762b8 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "paper_SN26.aux" 1774915879.487 6846 d96d15a187ddf761d1bf1a55639c858c "pdflatex"
-  "paper_SN26.out" 1774915879.48761 2740 3c375e5b9caa27178eeb92a30c6049c4 "pdflatex"
-  "paper_SN26.spl" 1774915879.21534 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "paper_SN26.tex" 1774915878.89337 24055 6a5a6ce1cdf70b9633954ba52ed73bd4 ""
+  "paper_SN26.aux" 1774969372.93735 7036 151839fe94f6430f410e31c5742494f4 "pdflatex"
+  "paper_SN26.out" 1774969372.93812 2754 b050a5775998db7a42628db908c4d2c0 "pdflatex"
+  "paper_SN26.spl" 1774969372.68927 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "paper_SN26.tex" 1774969372.33192 26604 13bc711cbdd65c5b97d4f98ccf85a713 ""
   (generated)
   "paper_SN26.aux"
   "paper_SN26.log"

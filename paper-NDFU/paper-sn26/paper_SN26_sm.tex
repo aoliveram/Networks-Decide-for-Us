@@ -171,37 +171,35 @@ Minimizing free energy requires $\frac{\partial f}{\partial \Phi} = 0$. By diffe
 As $H \to 0$, $\Phi \to 0$ for $T > T_c$. Thus, susceptibility diverges strictly as $\chi \sim |T - T_c|^{-1}$. Extracting an empirical $\gamma \approx 1$ confirms the system obeys continuous macroscopic scaling.
 
 \subsection{Avalanche Size Spectra and Critical Scaling}
-As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The Erdős-Rényi random graphs exhibit collapsed binary spectra, representing a first-order discontinuity. 
+As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The Degree-Preserved Random graphs exhibit collapsed binary spectra, representing a first-order discontinuity. 
 To rigorously trace these transitions, we sweep the simulation domain while fixing the Intrinsic Utility Level (IUL) constant. As the systemic threshold ($MSP$) crosses the empirical boundary $MSP_c$, cascading ``avalanches" (adoption sizes) transition structurally.
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS/method3_avalanches.pdf}
-        \caption{GSS: Scale-free power-law bimodality.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS_ER/method3_avalanches.pdf}
-        \caption{Erdős-Rényi: Collapsed binary cascade spectra.}
-    \end{subfigure}
-    \caption{Avalanche Size Spectra comparison evaluated around the critical variance boundaries $\max(\text{Var}(\Phi))$.}
-    \label{fig:spectra}
+    \includegraphics[width=0.8\textwidth]{../../plots/07_phase_transition/GSS/method3_avalanches.pdf}
+    \caption{GSS Avalanche Size Spectra: Scale-free power-law bimodality evaluated around the critical variance boundaries $\max(\text{Var}(\Phi))$.}
+    \label{fig:spectra_gss}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS/method2_critical_slowing_down.pdf}
-        \caption{GSS: Divergence indicates continuous domains.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{../../plots/07_phase_transition/GSS_ER/method2_critical_slowing_down.pdf}
-        \caption{Erdős-Rényi: Suppressed transition boundaries.}
-    \end{subfigure}
-    \caption{Critical Slowing Down: Variance of required execution ticks before the structural plateau.}
-    \label{fig:csd_plots}
+    \includegraphics[width=0.8\textwidth]{../../plots/07_phase_transition/GSS_ER/method3_avalanches.pdf}
+    \caption{Degree-Preserved Randomization Avalanche Size Spectra: Collapsed binary cascade spectra evaluated around the critical variance boundaries $\max(\text{Var}(\Phi))$.}
+    \label{fig:spectra_er}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../../plots/07_phase_transition/GSS/method2_critical_slowing_down.pdf}
+    \caption{GSS Critical Slowing Down: Variance of required execution ticks before the structural plateau.}
+    \label{fig:csd_gss}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../../plots/07_phase_transition/GSS_ER/method2_critical_slowing_down.pdf}
+    \caption{Degree-Preserved Randomization Critical Slowing Down: Suppressed transition boundaries.}
+    \label{fig:csd_er}
 \end{figure}
 
 % ==========================================

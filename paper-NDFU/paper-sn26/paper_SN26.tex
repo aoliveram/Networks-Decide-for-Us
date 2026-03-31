@@ -73,7 +73,7 @@ More recently, percolation-based models \citep{tur2018diffusion, tur2024diffusio
 
 We model diffusion as a hybrid process integrating Rational Choice and Selective Social Influence, simulated via the \texttt{netdiffuseR} package \citep{vega2025netdiffuser}.
 
-\subsection{Rational Choice (Intrinsic Utility)}
+\subsection{Rational Choice}
 An innovation possesses an Intrinsic Utility Level (IUL) defined as $\Gamma \in[0, 1]$. Individuals are characterized by a Minimum Utility Requirement (MUR), $q_i \in[0,1]$, representing their innate aversion to the innovation. An agent adopts independently if the utility exceeds their aversion:
 \begin{equation}
     q_i \le \Gamma \implies a_i = 1
@@ -84,9 +84,9 @@ If intrinsic adoption fails, agents may still adopt via peer contagion. We adapt
 \begin{equation}
     \tilde{E}_i \equiv \frac{\sum_{j \neq i} \mathbf{X}_{ij} \tilde{a}_j}{\sum_{j \neq i} \mathbf{X}_{ij}}
 \end{equation}
-where adoption via influence occurs if $\tau_i \le \tilde{E}_i$ ($\tau_i$ is the individual network threshold). Crucially, $\tilde{a}_j$ accounts only for infected contacts who are \textit{influential}. Influence is constrained by a Maximum Social Proximity (MSP) parameter, $h$, compared against the empirical social distance in Blau space, $d_{ij}$:
+where adoption via influence occurs if $\tau_i \le \tilde{E}_i$ ($\tau_i$ is the individual network threshold). Crucially, $\tilde{a}_j$ accounts only for infected contacts who are \textit{influential}. Influence is constrained by a Maximum Social Proximity (MSP) parameter, $MSP$, compared against the empirical social distance in Blau space, $d_{ij}$:
 \begin{equation}
-    \tilde{a}_j = 1 \iff a_j = 1 \land U_{ij} \le \sigma(h - d_{ij})
+    \tilde{a}_j = 1 \iff a_j = 1 \land U_{ij} \le \sigma(MSP - d_{ij})
 \end{equation}
 where $U_{ij} \sim \text{Unif}(0, 1)$ and $\sigma(z) = 1 / (1 + \exp(-z/T))$.
 
@@ -120,7 +120,7 @@ To formally capture the interaction probability, we construct a distance vector 
 \subsection{Complex Contagion and Parametric Sweep Design}
 Adoption spreads through an asynchronous, stochastic mechanism. At each simulation tick, individual exposure dynamically drives adoption. To translate bounded social boundaries into systemic threshold regimes, we apply a fractional transformation such that individual effective resistance is weighted by the social distance function. For the simulation dynamics (Equation 3), agents update their states smoothly guided by the stochastic decay parameter set to $T = 0.02$.
 
-To explore structural causalities, we conducted massive exhaustive parameter sweeps traversing millions of interactions. We swept the Intrinsic Utility Level (IUL) from 0.0 to 1.0 ($\Delta = 0.025$) and the system-wide threshold limit (MSP) continuously from 0 to 1 ($\Delta = 1/12$). Individual threshold parameters $\tau_i$ were seeded across normal distributions $\sim \mathcal{N}(\mu, \sigma)$ sweeping $\mu \in [0.3, 0.6]$ and $\sigma \in [0.08, 0.20]$. Each configuration was re-evaluated through over 24 runs varying algorithmic seeding rules (Random, Central, Marginal, Closeness, Eigenvector).
+To explore structural causalities, we conducted massive exhaustive parameter sweeps traversing millions of interactions. We swept the Intrinsic Utility Level (IUL) from 0.0 to 1.0 ($\Delta = 0.025$) and the system-wide threshold limit (MSP) continuously from 0 to 1 ($\Delta = 1/12$). Individual threshold parameters $\tau_i$ were seeded across normal distributions $\sim \mathcal{N}(\mu, \sigma)$ sweeping $\mu \in [0.3, 0.6]$ ($\Delta = 0.1$) and $\sigma \in [0.08, 0.20]$ ($\Delta = 0.04$). Each configuration was re-evaluated through over 24 runs varying algorithmic seeding rules (Random, Central, Marginal, Closeness, Eigenvector).
 
 % ==========================================
 % 4. RESULTS
@@ -130,7 +130,11 @@ To explore structural causalities, we conducted massive exhaustive parameter swe
 We explored the parameter space utilizing 41 levels of IUL ($\Gamma$) and 13 levels of MSP ($h$), running $\approx 4 \times 10^6$ simulations across Plausible (GSS) and Degree-Preserving Randomized topologies. The simulations follow a hybrid complex contagion logic using stochastic, asynchronous exposure updates to circumvent artifactual lock-ins (detailed ODD protocol available in Section S1 of the Supplementary Material).
 
 \subsection{Statistical Analysis: Big Additive Models (BAM)}
-To isolate the marginal effect of the empirical structure across all simulations, we specify Big Additive Models (BAMs). We estimate three dependent variables: \textit{Rational}, \textit{Social}, and \textit{Total Adoption}. The models use a binomial family with a logit link function, incorporating thin-plate regression splines $s(\text{IUL}, \text{MSP})$ to capture non-linear interactions across contagion types. We control for the network's threshold distribution ($\mu_\tau, \sigma_\tau$), initial seeding strategy, and network type.
+To isolate the marginal effect of the empirical structure across all simulations, we specify Big Additive Models (BAMs). We estimate the expected adoption $\mathbb{E}(\Phi)$, where $\Phi$ represents the final proportion of adopters in the network, using the following generalized specification:
+\begin{equation}
+    \text{logit}[\mathbb{E}(\Phi)] = \beta_0 + \mathbf{Z}\boldsymbol{\beta} + \beta_{\text{ER}} \mathbb{I}_{\text{Random}} + s(\text{IUL}, \text{MSP})
+\end{equation}
+where $\mathbf{Z}$ is a matrix of controls (e.g., threshold parameters $\mu_\tau, \sigma_\tau$, initial seeding strategy), $\mathbb{I}_{\text{Random}}$ isolates the random structural penalty, and $s(\text{IUL}, \text{MSP})$ is a thin-plate regression spline capturing the non-linear interaction across contagion types. We estimate three dependent variables: \textit{Rational}, \textit{Social}, and \textit{Total Adoption}. The models use a binomial family with a logit link function.
 
 \subsection{The Structural Premium: Volume of Adoption}
 To isolate the marginal effect of the empirical structure, we utilized Big Additive Models (BAMs) with non-linear smooth terms $s(\text{IUL}, \text{MSP})$.
@@ -196,7 +200,7 @@ We observe distinct ``Critical Slowing Down" (divergence in simulation relaxatio
     \label{fig:exponents}
 \end{figure*}
 
-Conversely, in the GSS-ER random network, this predictability completely collapses. The $\gamma$ exponent diverges to unphysical levels ($\approx 3.7 - 4.6$), and critical slowing down is suppressed. The system behaves like a discontinuous, first-order regime shift: it either completely fails or violently explodes into mass adoption with zero statistical warning.
+Conversely, in the degree-preserved random network, this predictability completely collapses. The $\gamma$ exponent diverges to unphysical levels ($\approx 3.7 - 4.6$), and critical slowing down is suppressed. The system behaves like a discontinuous, first-order regime shift: it either completely fails or violently explodes into mass adoption with zero statistical warning.
 
 % --- PLACEHOLDER FOR GAMMA TABLE ---
 \begin{table}[H]
@@ -221,7 +225,7 @@ Conversely, in the GSS-ER random network, this predictability completely collaps
 % ==========================================
 \section{Discussion}
 
-Our results provide robust computational and mathematical evidence that ``networks decide for us." Conditional on fixed individual-level propensities, the topological arrangement itself acts as an autonomous causal mechanism. First, empirical homophily yields a systematic \textit{structural premium}. We demonstrated that even when a society is highly conservative or exhibits rigid social flexibility ($MSP \sim 0.25 - 0.50$), collective action can still achieve massive, bimodal distributions of total mass adoption. This is driven entirely by the effect of Selective Social Influence multiplying inside local echo chambers, allowing adoption to explode even when the targeted behavior or innovation is extremely unattractive to the population ($IUL < 0.25$). 
+Our results provide robust computational and mathematical evidence that ``networks decide for us." Conditional on fixed individual-level propensities, the topological arrangement itself acts as an autonomous causal mechanism. First, empirical homophily yields a systematic \textit{structural premium}. We demonstrated that even when a society is highly conservative or exhibits rigid social flexibility ($MSP \sim 0.25 - 0.50$), collective action can still achieve massive, bimodal distributions of total mass adoption (see Section S3.2). This is driven entirely by the effect of Selective Social Influence, and not by Rational Choice, multiplying inside local echo chambers allowing adoption to explode even when the targeted behavior or innovation is extremely unattractive to the population ($IUL < 0.25$). 
 
 Second, this topological clustering actively reshapes the \textit{physics} of the diffusion process. Empirical homophily ensures that social tipping points occur as structured, continuous avalanches displaying mean-field universality. This signifies that the rules governing massive social shifts are mathematically isomorphic to small localized changes. Similar to a forest fire nearing a critical structural density---which might suddenly engulf the entire system or instantly die out---macroscopic collective phenomena are dictated by systemic critical boundaries rather than merely aggregate psychological thresholds. Stripping a society of its homophilic structure does not just make adoption harder; it makes it volatile, transforming gradual cascades into unpredictable, violent explosions without statistical warning. Understanding society as complex matter provides a rigorously analytical lens through which to anticipate collective action.
 

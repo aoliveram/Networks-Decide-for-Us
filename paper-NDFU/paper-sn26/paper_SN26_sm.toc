@@ -12,4 +12,4 @@
 \contentsline {section}{\numberline {S4}Extended Criticality Analysis: Plausible vs. Randomized}{6}{section.4}%
 \contentsline {subsection}{\numberline {S4.1}Mean-Field Derivation}{6}{subsection.4.1}%
 \contentsline {subsection}{\numberline {S4.2}Avalanche Size Spectra and Critical Scaling}{6}{subsection.4.2}%
-\contentsline {section}{\numberline {S5}BAM Regression Model Surfaces}{7}{section.5}%
+\contentsline {section}{\numberline {S5}BAM Regression Model Surfaces}{8}{section.5}%
