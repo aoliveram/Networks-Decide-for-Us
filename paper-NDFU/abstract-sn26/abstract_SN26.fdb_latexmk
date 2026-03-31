@@ -1,7 +1,7 @@
 # Fdb version 4
-["pdflatex"] 1774653661.35745 "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/abstract-sn26/abstract_SN26.tex" "abstract_SN26.pdf" "abstract_SN26" 1774653661.77735 0
+["pdflatex"] 1774991401.3371 "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/abstract-sn26/abstract_SN26.tex" "abstract_SN26.pdf" "abstract_SN26" 1774991401.83839 0
   "../../plots/07_phase_transition/GSS/method4_exponents.pdf" 1774616258.29711 13341 a2a67e741c02f781a6bf066246015fec ""
-  "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/abstract-sn26/abstract_SN26.tex" 1774653660.72357 11777 8ff5ba7a58cd566e26a4e24d7e01ef77 ""
+  "/Users/anibaloliveramorales/Desktop/Doctorado/-Projects-/A - Networks-Decide-for-Us/paper-NDFU/abstract-sn26/abstract_SN26.tex" 1774991401.16835 11798 5890b45dbbe491990e3715bd865dad1c ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc" 1202520719 3486 c7eadf5dcc57b3b2d11736679f6636ba ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc" 1202520719 2405 5dcf2c1b967ee25cc46c58cd52244aed ""
@@ -145,9 +145,9 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1763993878 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1741450574 3345740 46b66fdb0378f7bf5921b5eabf1762b8 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "abstract_SN26.aux" 1774653661.71553 2077 c5ea0923e3e36c77d0f7bb6ee6487b36 "pdflatex"
-  "abstract_SN26.out" 1774653661.58852 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "abstract_SN26.tex" 1774653660.72357 11777 8ff5ba7a58cd566e26a4e24d7e01ef77 ""
+  "abstract_SN26.aux" 1774991401.768 2077 5a8d7cde405aa0cbc137c067585a10c3 "pdflatex"
+  "abstract_SN26.out" 1774991401.63192 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "abstract_SN26.tex" 1774991401.16835 11798 5890b45dbbe491990e3715bd865dad1c ""
   "figure1_5panels_GSS.pdf" 1774624215.44072 19675 8c0b3e235e713ad1e46b392c3159e26d ""
   (generated)
   "abstract_SN26.aux"

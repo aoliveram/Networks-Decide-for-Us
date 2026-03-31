@@ -19,8 +19,7 @@
 \renewcommand{\thesection}{S\arabic{section}}
 
 \title{\Large \textbf{Supplementary Material for:\\Networks Decide for Us: Emergence of Adoption in Homophily-Imputed Social Topologies}}
-\author{Aníbal Olivera Morales, Jorge Fábrega Lacoa}
-% \author{Aníbal Olivera Morales, Jorge Fábrega Lacoa, Thomas W. Valente}
+\author{Aníbal Olivera Morales, Jorge Fábrega Lacoa, Thomas W. Valente}
 \date{March 27, 2026}
 
 \begin{document}
@@ -82,13 +81,13 @@ The following distribution histograms (Figure \ref{fig:mur_dist}) reflect the no
     \label{fig:mur_dist}
 \end{figure}
 
-\subsection{Criticality Heatmaps in Randomized (Erdős-Rényi) Networks}
-For direct comparison with the main structural signatures found across Plausible domains in the main text, Figure \ref{fig:criticality_er} documents the equivalent heatmaps corresponding to an Erdős-Rényi graph. This baseline identically preserves total node degree and density, but destroys local multidimensional homophily and structural clustering. 
+\subsection{Criticality Heatmaps in Degree-Preserving Randomized Networks}
+For direct comparison with the main structural signatures found across Plausible domains in the main text, Figure \ref{fig:criticality_er} documents the equivalent heatmaps corresponding to Degree-Preserving Randomized networks. This baseline identically preserves total node degree and density, but destroys local multidimensional homophily and structural clustering. 
 
 \begin{figure*}[h]
     \centering
     \includegraphics[width=1\textwidth]{../abstract-sn26/figure1_5panels_GSS_ER.pdf}
-    \caption{Phase Transition Signatures under generic Erdős-Rényi baseline. Note the complete collapse of variance boundaries and the instantaneous system-wide discontinuity, severing the stable transition regimes found in empirically clustered homophilic topologies.}
+    \caption{Phase Transition Signatures under generic Degree-Preserving Randomized baselines. Note the complete collapse of variance boundaries and the instantaneous system-wide discontinuity, severing the stable transition regimes found in empirically clustered homophilic topologies.}
     \label{fig:criticality_er}
 \end{figure*}
 
@@ -97,7 +96,7 @@ For direct comparison with the main structural signatures found across Plausible
 % ==========================================
 \section{Agent-Based Model: ODD Protocol Summary}
 
-To ensure reproducibility, we outline the primary rules of our complex contagion model following the Overview, Design concepts, and Details (ODD) protocol logic.
+To ensure reproducibility, we outline the primary rules of our social contagion model following the Overview, Design concepts, and Details (ODD) protocol logic.
 
 \paragraph{Initialization (Seeding)} 
 Depending on the experimental block, the simulation initializes with either a random node or a strategically pivotal node (e.g., highest Degree, Closeness, Eigenvector). If the selected node requires social reinforcement (threshold count $>1$) to adopt, the algorithm forces adoption on the initiator and iteratively seeds up to the required threshold boundary of the initiator's neighborhood.
@@ -122,7 +121,7 @@ Following McPherson and Smith (2019), we mapped ego-centric data from the Genera
 
 The reliance on empirical topologies instead of synthetic baselines arises from a fundamental theoretical flaw in typical behavioral modeling. In classic individual-level regression, an implicit assumption is made: \textit{observations are independent conditionally on the covariates} (i.i.d). This assumption is strictly false in sociological contexts because the behavioral outcome $y_i$ of individual $i$ depends on the outcome $y_j$ of individual $j$. Ignoring this relational dependency forces standard estimators to confuse a contextual, topological process with a purely individual effect. McPherson and Smith (2019) addressed this statistical violation by generating an imputed spatial lag $(Wy)$---a matrix of weighted similarities across Blau space---estimating the ``attitudinal climate'' around an individual.
 
-While McPherson's foundational Spatial Autoregressive (SAR) model successfully corrects for homophilic clustering in linear estimators, studying the temporal emergence of collective action via \textit{Complex Contagions} demands more than an imputed lag. Agent-Based Models require an explicit, discrete topology---a rigorous definition of exactly ``who is tied to whom.'' 
+While McPherson's foundational Spatial Autoregressive (SAR) model successfully corrects for homophilic clustering in linear estimators, studying the temporal emergence of collective action via \textit{Social Contagions} demands more than an imputed lag. Agent-Based Models require an explicit, discrete topology---a rigorous definition of exactly ``who is tied to whom.'' 
 
 \subsection{ERGM Generative Simulation and Coefficient Inversion}
 To generate these explicit topologies, we utilize Exponential Random Graph Models (ERGMs). The ERGM simulates networks where the probability of a tie dynamically depends on the homophilic distances estimated from the ego-centric data. The coefficients ($\boldsymbol{\beta}_{\text{tot}}$) determining the strength of homophily were derived precisely from the base parameters ($\boldsymbol{\beta}$) and the 2004 temporal shift ($\boldsymbol{\gamma}$) estimated via case-control logistic regression (Smith et al., 2014).
