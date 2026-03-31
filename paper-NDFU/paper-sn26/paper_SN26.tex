@@ -91,19 +91,22 @@ where adoption via influence occurs if $\tau_i \le \tilde{E}_i$ ($\tau_i$ is the
 where $U_{ij} \sim \text{Unif}(0, 1)$ and $\sigma(z) = 1 / (1 + \exp(-z/T))$.
 
 \subsection{Network Imputation Pipeline}
-To overcome synthetic limitations, we employ the imputation pipeline established by \citet{mcpherson2019network}. Using Exponential Random Graph Models (ERGMs), we extract homophily strength parameters across demographic dimensions (Age, Sex, Education, Race, Religion) from the representative ego-centric General Social Survey \citep{smith2014social}. As detailed in Section S2 of the Supplementary Material, the regression parameters indicate that distance strictly constrains interaction probability---particularly regarding race and religion differences. 
+To overcome synthetic limitations, we employ the imputation pipeline established by \citet{mcpherson2019network}. Using Exponential Random Graph Models (ERGMs), we extract homophily strength parameters across demographic dimensions (Age, Sex, Education, Race, Religion) from the representative ego-centric General Social Survey. While original implementations of network imputation utilize matrices as spatial lag predictors to address i.i.d. violations in independent regression, we advance this methodology by utilizing the coefficients to generatively simulate complete, discrete topologies necessary for complex contagions. 
 
-We impute these structures onto $N=1000$ respondents from the American Trends Panel (ATP). This generates ``plausible" topologies that respect empirical clustering while assigning realistic behavioral propensities (e.g., ``Openness to Innovation" and ``Collective Action" scores) derived directly from ATP items.
+We impute these structures onto $N=1000$ respondents from the American Trends Panel (ATP). To formally capture the interaction probability underlying the structure, we compute a distance vector $\mathbf{d}_{ij}$ for each dyad. As adapted from \citet{smith2014social}, categorical differences operate as mismatch indicators $d^{\mathrm{cat}}_{ij} = \mathbb{I}(x^{\mathrm{cat}}_i \neq x^{\mathrm{cat}}_j)$, while continuous variables measure absolute distance $d^{\mathrm{cont}}_{ij} = |x^{\mathrm{cont}}_i - x^{\mathrm{cont}}_j|$. These components serve as predictors in a case-control logistic regression evaluating the probability of a tie $\Pr(Y_{ij}=1)$:
+\begin{equation}
+    \text{logit}\big(\Pr(Y_{ij}=1)\big) = \alpha + \boldsymbol{\beta}^\top \mathbf{d}_{ij} + \boldsymbol{\gamma}^\top (\mathbf{d}_{ij} \cdot \mathbb{I}_{2004})
+\end{equation}
 
-To formally capture the interaction probability, we construct a distance vector $\mathbf{d}_{ij}$ for each dyad. As adapted from \citet{smith2014social}, categorical differences operate as simple mismatch indicators $d^{\mathrm{cat}}_{ij} = \mathbb{I}(x^{\mathrm{cat}}_i \neq x^{\mathrm{cat}}_j)$, while continuous variables measure absolute distance $d^{\mathrm{cont}}_{ij} = |x^{\mathrm{cont}}_i - x^{\mathrm{cont}}_j|$. These components serve as predictors in a case-control logistic regression, establishing log-odds penalizations for socio-demographic disparities (Table \ref{tab:smith2014}).
+Table \ref{tab:smith2014} details these log-odds penalizations for socio-demographic disparities. Model 1 provides the base parameters representing baseline homophilic strength ($\boldsymbol{\beta}$), and Model 2 introduces the 2004 temporal shift interaction ($\boldsymbol{\gamma}$). We extract the total interaction weights $\hat{\boldsymbol{\beta}}_{\text{tot}} = \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\gamma}}$. As detailed in Section S2 of the Supplementary Material, feeding this empirically-grounded $\hat{\boldsymbol{\beta}}_{\text{tot}}$ directly into our MCMC calibration yields highly clustered, plausible network substrates that reliably overcome the structural deficits of purely synthetic randomization.
 
 \begin{table}[H]
     \centering
-    \caption{Logistic Regression predicting confiding relationship probability based on social distance (Smith et al., 2014).}
+    \caption{Logistic Regression predicting confiding relationship probability based on social distance (Smith et al., 2014). Model 1 (Base), Model 2 (Temporal Interactors).}
     \label{tab:smith2014}
     \begin{tabular}{lcc}
     \toprule
-    \textbf{Variable} & \textbf{Model 1} & \textbf{Model 2} \\
+    \textbf{Variable} & \textbf{Model 1 ($\beta$)} & \textbf{Model 2 ($\gamma,\dots$)} \\
     \midrule
     Intercept & $-14.456^{***}$ & $-14.519^{***}$ \\
     Different race ($d^{\mathrm{cat}}_{ij}$) & $-1.819^{***}$ & $-1.959^{***}$ \\
@@ -113,7 +116,7 @@ To formally capture the interaction probability, we construct a distance vector 
     Age diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.173^{***}$ & $-0.157^{***}$ \\
     Year & $-0.179^{***}$ & $-0.052$ \\
     \bottomrule
-    \multicolumn{3}{l}{\footnotesize $^{***} p < .001$. Standard errors and year-interactions omitted.}
+    \multicolumn{3}{p{0.9\linewidth}}{\footnotesize $^{***} p < .001$. Extracted homophilic strength used for topological imputation is $\hat{\boldsymbol{\beta}}_{\text{tot}} = \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\gamma}}$. Standard errors omitted.}
     \end{tabular}
 \end{table}
 

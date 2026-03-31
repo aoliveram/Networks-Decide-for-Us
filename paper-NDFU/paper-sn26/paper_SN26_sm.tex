@@ -112,15 +112,27 @@ The simulation halts under two conditions: (1) an absorbing state is reached whe
 % SECTION S2
 % ==========================================
 \newpage
+% ==========================================
+% SECTION S2
+% ==========================================
+\newpage
 \section{Network Imputation and Topological Validation}
 
-Following McPherson and Smith (2019), we mapped ego-centric data from the General Social Survey (GSS 2004) onto the ATP sample to construct whole networks ($N=1000$) using Exponential Random Graph Models (ERGMs). 
+Following McPherson and Smith (2019), we mapped ego-centric data from the General Social Survey (GSS 2004) onto the ATP and GSS macro-samples to construct whole networks ($N=1000$) using Exponential Random Graph Models (ERGMs). 
 
-The reliance on empirical topologies instead of synthetic baselines is theoretically motivated: as Talaga and Nowak (2020) note, ``real-world social networks often exhibit a set of characteristic structural properties that do not occur jointly as often in different kinds of complex networks \dots well-known generic models such as Erdős-Rényi random graphs or preferential attachment networks may not fit well to the social problem at hand.''
+The reliance on empirical topologies instead of synthetic baselines arises from a fundamental theoretical flaw in typical behavioral modeling. In classic individual-level regression, an implicit assumption is made: \textit{observations are independent conditionally on the covariates} (i.i.d). This assumption is strictly false in sociological contexts because the behavioral outcome $y_i$ of individual $i$ depends on the outcome $y_j$ of individual $j$. Ignoring this relational dependency forces standard estimators to confuse a contextual, topological process with a purely individual effect. McPherson and Smith (2019) addressed this statistical violation by generating an imputed spatial lag $(Wy)$---a matrix of weighted similarities across Blau space---estimating the ``attitudinal climate'' around an individual.
 
-To reflect this reality, our ERGM directly incorporated fixed homophily coefficients mapping multiple dimensions in Blau space: categorical homophily for race (\texttt{nodematch("race")}), sex, and religion, alongside continuous absolute difference effects for age (\texttt{absdiff("age")}) and years of education. The base likelihood for forming an edge (\texttt{edges}) was calibrated iteratively via MCMC simulations (burn-in $= 1000 \times N$, interval $= 100 \times N$) until reaching a stable expected empirical target density of $\approx 0.029$. We generated 100 independent topological realizations to act as our Plausible simulation substrates.
+While McPherson's foundational Spatial Autoregressive (SAR) model successfully corrects for homophilic clustering in linear estimators, studying the temporal emergence of collective action via \textit{Complex Contagions} demands more than an imputed lag. Agent-Based Models require an explicit, discrete topology---a rigorous definition of exactly ``who is tied to whom.'' 
 
-Figure \ref{fig:degree_dist} demonstrates that the generated pseudo-empirical networks successfully maintain realistic, right-skewed topological features that traditional models fail to capture jointly. Furthermore, Figure \ref{fig:clustering_curves} validates that empirical structures sustain high localized clustering across degree scales compared to theoretical controls.
+\subsection{ERGM Generative Simulation and Coefficient Inversion}
+To generate these explicit topologies, we utilize Exponential Random Graph Models (ERGMs). The ERGM simulates networks where the probability of a tie dynamically depends on the homophilic distances estimated from the ego-centric data. The coefficients ($\boldsymbol{\beta}_{\text{tot}}$) determining the strength of homophily were derived precisely from the base parameters ($\boldsymbol{\beta}$) and the 2004 temporal shift ($\boldsymbol{\gamma}$) estimated via case-control logistic regression (Smith et al., 2014).
+
+A critical technical adaptation was required to transition between the regression parameterization and the ERGM terms. The original logistic parameters quantified \textit{distance}: a lower (negative) $\beta$ meant that larger socio-demographic disparities reduced tie probability. Conversely, the ERGM algorithm functionally rewards \textit{similarity} for categorical variables through the \texttt{nodematch()} term. Therefore, for categorical variables (Race, Sex, Religion), we formally inverted the sign of the original difference coefficients (e.g., transforming a distance penalty of $-1.352$ into a positive \texttt{nodematch} propensity of $+1.352$). For continuous dimensions (Age, Education), the negative magnitudes were directly preserved via the \texttt{absdiff()} term, penalizing absolute numerical variance.
+
+\subsection{Density Calibration}
+To enforce macro-structural realism, the baseline probability of edge formation (the ERGM intercept parameter, \texttt{edges}) underwent iterative computational calibration. The estimation loop iteratively simulated network domains and adjusted the baseline \texttt{edges} penalty until the simulated graph converged on a sparse global target density of exactly $\text{target} = 0.029$. The iterations proceeded until strictly satisfying an absolute density tolerance interval of $\Delta = 0.001$. We generated 100 independent, stable topological realizations to act as our Plausible simulation substrates.
+
+Figures \ref{fig:degree_dist} and \ref{fig:clustering_curves} validate that our generative process yields functional, highly clustered social topologies that preserve right-skewed empirical degree structures—features that synthetic random models systematically fail to emulate jointly.
 
 \begin{figure}[H]
     \centering
