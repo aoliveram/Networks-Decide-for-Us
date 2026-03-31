@@ -51,7 +51,7 @@ Social Diffusion \sep Complex Contagion \sep Homophily \sep Agent-Based Modeling
 % ==========================================
 \section{Introduction}
 
-The sudden emergence of collective behaviors---from the rapid spread of technological innovations to large-scale social movements and unpredictable market anomalies \citep{gladwell2002tipping, farrell1998how}---remains a central puzzle in the social sciences. Historically, research into collective action has navigated two distinct pathways: individual decision models focusing on rational utility \citep{oliver1993formal}, and collectivity models emphasizing social interaction and threshold-based coordination \citep{granovetter1978threshold, valente1996social}.
+The sudden emergence of collective behaviors---from the rapid spread of technological innovations to large-scale social movements and unpredictable market anomalies \citep{gladwell2002tipping, farrell1998how}---remains a central puzzle in the social sciences. While classical paradigms often highlighted external macro-economic forces or mass media as the primary engines of adoption \citep{bass1969, guidolin2010}, modern scholarship demonstrates that internal, person-to-person complex contagion ultimately governs the macroscopic dynamics of proliferation. Historically, research into collective action has navigated two distinct pathways: individual decision models focusing on rational utility \citep{oliver1993formal}, and collectivity models emphasizing social interaction and threshold-based coordination \citep{granovetter1978threshold, valente1996social}.
 
 While recent literature has brilliantly bridged these paradigms through models of ``complex contagion" \citep{centola2007complex}, much of this computational work remains tethered to synthetic, theoretical network topologies (e.g., Small World or random graphs). As critics have noted, this ``structural reductionism" often treats agents as cognition-free relay stations \citep{goldberg2021associative}, ignoring the empirical reality that human networks are profoundly shaped by multidimensional homophily---the tendency of similar individuals to associate and cluster \citep{mcpherson2001birds, mcpherson2019network}. Furthermore, well-known generic models may not fit well to the social problem at hand, as real-world social networks jointly exhibit high clustering, assortativity, short path lengths, and right-skewed degree distributions \citep{talaga2020homophily}. To bridge this gap, this paper asks: \textit{Conditional on fixed individual propensities, how do empirically calibrated homophilic topologies act as an autonomous causal force---effectively ``deciding for us''---by simultaneously generating a ``structural premium'' in overall diffusion and dictating the fundamental physics of the phase transition?} (see Section S2 in Supplementary Material for detailed ERGM imputation). By shifting the analytical focus from individual rational choices to the specific connective tissue of a population, we can interrogate how society's structural layout actively orchestrates large-scale behavioral cascades.
 
@@ -62,9 +62,9 @@ We decompose this macro-sociological inquiry into two distinct structural mechan
 % ==========================================
 \section{Theoretical Background}
 
-Classic threshold models \citep{granovetter1978threshold} demonstrated that nearly identical groups could produce opposite collective outcomes based entirely on slight variations in threshold distributions. \citet{valente1996social} contextualized this by anchoring thresholds within personal social networks. Building on this, \citet{centola2007complex} showed that behaviors requiring social reinforcement (complex contagions) fail in networks optimized for simple information spread, introducing the concept of structural phase transitions in collective behavior.
+Classic threshold models \citep{granovetter1978threshold} demonstrated that nearly identical groups could produce opposite collective outcomes based entirely on slight variations in macro-level aggregate threshold distributions. The evolution of network science subsequently anchored these theoretical thresholds within explicit, individual-level contact topologies \citep{valente1995, valente1996social, valente2024}. Building on this, \citet{centola2007complex} showed that behaviors requiring social reinforcement (complex contagions) fail in networks optimized for simple information spread, introducing the concept of structural phase transitions in collective behavior.
 
-More recently, percolation-based models \citep{tur2018diffusion, tur2024diffusion} have incorporated intrinsic utility alongside global influence parameters. However, influence in reality is rarely uniform. When it comes to peer influence, dyads that are socially proximate tend to exert far greater influence over one another \citep{centola2011experimental}. Addressing this demands models equipped with plausible network topologies, empirically derived utility distributions, and tie-specific, homophily-weighted influence parameters.
+More recently, percolation-based models \citep{tur2018diffusion, tur2024diffusion} have incorporated intrinsic utility alongside global influence parameters. However, the fundamental mechanism of homophily operates on a dual nature that is rarely fully modeled. On one hand, structural homophily acts as the generative engine that weaves the physical topology of the network \citep{talaga2020homophily}. On the other hand, homophily functions as a sociocognitive confirmation bias: dyads that are socially proximate exert far greater persuasive influence over one another during exposure \citep{centola2011experimental, state2015}. Addressing this demands models equipped with plausible network topologies, empirically derived utility distributions, and tie-specific, homophily-weighted influence parameters.
 
 % ==========================================
 % 3. METHODS & EMPIRICAL SETUP
@@ -84,7 +84,7 @@ If intrinsic adoption fails, agents may still adopt via peer contagion. We adapt
 \begin{equation}
     \tilde{E}_i \equiv \frac{\sum_{j \neq i} \mathbf{X}_{ij} \tilde{a}_j}{\sum_{j \neq i} \mathbf{X}_{ij}}
 \end{equation}
-where adoption via influence occurs if $\tau_i \le \tilde{E}_i$ ($\tau_i$ is the individual network threshold). Crucially, $\tilde{a}_j$ accounts only for infected contacts who are \textit{influential}. Influence is constrained by a Maximum Social Proximity (MSP) parameter, $MSP$, compared against the empirical social distance in Blau space, $d_{ij}$:
+where adoption via influence occurs if $\tau_i \le \tilde{E}_i$ ($\tau_i$ is the individual network threshold). Crucially, $\tilde{a}_j$ accounts only for infected contacts who are \textit{influential}. Rather than relying on discrete, binary classifications of similarity which arbitrarily segregate populations into rigid blocks \citep{carrington2016}, influence is dimensionally constrained across a continuous multidimensional Blau space \citep{blau1977, mcpherson2004}. This continuous sociological viscosity permits cultural differentiation without imposing artificial structural barriers \citep{dellaposta2015, goldberg2018}. A sociocognitive Maximum Social Proximity (MSP) parameter is dynamically compared against the continuous empirical social distance $d_{ij}$:
 \begin{equation}
     \tilde{a}_j = 1 \iff a_j = 1 \land U_{ij} \le \sigma(MSP - d_{ij})
 \end{equation}
@@ -237,7 +237,7 @@ Conversely, in the degree-preserved random network, this predictability complete
 % ==========================================
 \section{Discussion}
 
-Our results provide robust computational and mathematical evidence that ``networks decide for us." Conditional on fixed individual-level propensities, the topological arrangement itself acts as an autonomous causal mechanism. First, empirical homophily yields a systematic \textit{structural premium}. We demonstrated that even when a society is highly conservative or exhibits rigid social flexibility ($MSP \sim 0.25 - 0.50$), collective action can still achieve massive, bimodal distributions of total mass adoption (see Section S3.2). This is driven entirely by the effect of Selective Social Influence, and not by Rational Choice, multiplying inside local echo chambers allowing adoption to explode even when the targeted behavior or innovation is extremely unattractive to the population ($IUL < 0.25$). 
+Our results provide robust computational and mathematical evidence that ``networks decide for us." Conditional on fixed individual-level propensities, the topological arrangement itself acts as an autonomous causal mechanism. First, empirical homophily yields a systematic \textit{structural premium}. We demonstrated that even when a society is highly conservative or exhibits rigid social flexibility ($MSP \sim 0.25 - 0.50$), collective action can still achieve massive, bimodal distributions of total mass adoption (see Section S3.2). This macroscopic bimodal stochasticity---where innovations either achieve overwhelming success or completely fail \citep{arthur1993, farrell1998how}---finds an explicit mechanistic justification in these structured phase transitions. This is driven entirely by the effect of Selective Social Influence, and not by Rational Choice, multiplying inside local echo chambers allowing adoption to explode even when the targeted behavior or innovation is extremely unattractive to the population ($IUL < 0.25$).
 
 Second, this topological clustering actively reshapes the \textit{physics} of the diffusion process. Empirical homophily ensures that social tipping points occur as structured, continuous avalanches displaying mean-field universality. This signifies that the rules governing massive social shifts are mathematically isomorphic to small localized changes. Similar to a forest fire nearing a critical structural density---which might suddenly engulf the entire system or instantly die out---macroscopic collective phenomena are dictated by systemic critical boundaries rather than merely aggregate psychological thresholds. Stripping a society of its homophilic structure does not just make adoption harder; it makes it volatile, transforming gradual cascades into unpredictable, violent explosions without statistical warning. Understanding society as complex matter provides a rigorously analytical lens through which to anticipate collective action.
 
@@ -262,11 +262,26 @@ Ultimately, macroscopic collective outcomes cannot be reduced to the linear aggr
   \def\url#1{\texttt{#1}}\fi
 \expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
 
+\bibitem[{Arthur and Lane(1993)}]{arthur1993}
+Arthur, W.~B., Lane, D.~A., 1993. Information contagion. Structural Change and Economic Dynamics 4 (1), 81--104.
+
+\bibitem[{Bass(1969)}]{bass1969}
+Bass, F.~M., 1969. A new product growth for model consumer durables. Management Science 15 (5), 215--227.
+
+\bibitem[{Blau(1977)}]{blau1977}
+Blau, P.~M., 1977. Inequality and heterogeneity: A primitive theory of social structure. Free Press.
+
+\bibitem[{Carrington(2016)}]{carrington2016}
+Carrington, P.~J., 2016. Log-linear distance models of homophily in small groups. Social Networks 44, 283--291.
+
 \bibitem[{Centola(2011)}]{centola2011experimental}
 Centola, D., 2011. An experimental study of homophily in the adoption of health behavior. Science 334 (6060), 1269--1272.
 
 \bibitem[{Centola and Macy(2007)}]{centola2007complex}
 Centola, D., Macy, M., 2007. Complex contagions and the weakness of long ties. American Journal of Sociology 113 (3), 702--734.
+
+\bibitem[{DellaPosta et~al.(2015)DellaPosta, Shi, and Macy}]{dellaposta2015}
+DellaPosta, D., Shi, Y., Macy, M., 2015. Why do liberals drink lattes? American Journal of Sociology 120 (5), 1473--1511.
 
 \bibitem[{Farrell(1998)}]{farrell1998how}
 Farrell, W., 1998. How hits happen: Forecasting predictability in a chaotic marketplace. HarperBusiness, New York.
@@ -277,8 +292,17 @@ Gladwell, M., 2002. The tipping point: How little things can make a big differen
 \bibitem[{Goldberg(2021)}]{goldberg2021associative}
 Goldberg, A., 2021. Associative diffusion and the pitfalls of structural reductionism. American Sociological Review 86 (6), 1205--1210.
 
+\bibitem[{Goldberg and Stein(2018)}]{goldberg2018}
+Goldberg, A., Stein, S.~K., 2018. Beyond social contagion: Associative diffusion and the emergence of cultural variation. American Sociological Review 83 (5), 897--932.
+
 \bibitem[{Granovetter(1978)}]{granovetter1978threshold}
 Granovetter, M., 1978. Threshold models of collective behavior. American Journal of Sociology 83 (6), 1420--1443.
+
+\bibitem[{Guidolin and Mortarino(2010)}]{guidolin2010}
+Guidolin, M., Mortarino, C., 2010. Cross-country diffusion of photovoltaic systems: Modelling choices and forecasts for national adoption patterns. Technological Forecasting and Social Change 77 (2), 279--296.
+
+\bibitem[{McPherson(2004)}]{mcpherson2004}
+McPherson, M., 2004. A Blau space primer: Prolegomenon to an ecology of affiliation. Industrial and Corporate Change 13 (2), 263--280.
 
 \bibitem[{McPherson et~al.(2001)McPherson, Smith-Lovin, and Cook}]{mcpherson2001birds}
 McPherson, M., Smith-Lovin, L., Cook, J.~M., 2001. Birds of a Feather: Homophily in Social Networks. Annual Review of Sociology 27, 415--444.
@@ -292,11 +316,14 @@ Oliver, P.~E., 1993. Formal models of collective action. Annual Review of Sociol
 \bibitem[{Sethna(2021)}]{sethna2021}
 Sethna, J.~P., 2021. Statistical Mechanics: Entropy, Order Parameters, and Complexity (2nd Ed.). Oxford University Press.
 
+\bibitem[{Smith et~al.(2014)Smith, McPherson, and Smith-Lovin}]{smith2014social}
+Smith, J.~A., McPherson, M., Smith-Lovin, L., 2014. Social Distance in the United States: Sex, Race, Religion, Age, and Education Homophily among Confidants, 1985 to 2004. American Sociological Review 79 (3), 432--456.
+
 \bibitem[{Snijders et~al.(2010)Snijders, van de Bunt, and Steglich}]{snijders2010}
 Snijders, T.~A., van de Bunt, G.~G., Steglich, C.~E., 2010. Introduction to stochastic actor-based models for network dynamics. Social Networks 32 (1), 44--60.
 
-\bibitem[{Smith et~al.(2014)Smith, McPherson, and Smith-Lovin}]{smith2014social}
-Smith, J.~A., McPherson, M., Smith-Lovin, L., 2014. Social Distance in the United States: Sex, Race, Religion, Age, and Education Homophily among Confidants, 1985 to 2004. American Sociological Review 79 (3), 432--456.
+\bibitem[{State and Adamic(2015)}]{state2015}
+State, B., Adamic, L., 2015. The diffusion of support in an online social movement: Evidence from the adoption of equal-sign profile pictures. CSCW, 1741--1750.
 
 \bibitem[{Talaga and Nowak(2020)}]{talaga2020homophily}
 Talaga, S., Nowak, A., 2020. Homophily as a Process Generating Social Networks: Insights from Social Distance Attachment Model. Journal of Artificial Societies and Social Simulation 23 (2), 6.
@@ -307,8 +334,14 @@ Tur, E.~M., Zeppini, P., Frenken, K., 2018. Diffusion with social reinforcement:
 \bibitem[{Tur et~al.(2024)Tur, Zeppini, and Frenken}]{tur2024diffusion}
 Tur, E.~M., Zeppini, P., Frenken, K., 2024. Diffusion in small worlds with homophily and social reinforcement. Social Networks 76, 12--21.
 
+\bibitem[{Valente(1995)}]{valente1995}
+Valente, T.~W., 1995. Network models of the diffusion of innovations. Hampton Press.
+
 \bibitem[{Valente(1996)}]{valente1996social}
 Valente, T.~W., 1996. Social network thresholds in the diffusion of innovations. Social Networks 18 (1), 69--89.
+
+\bibitem[{Valente(2024)}]{valente2024}
+Valente, T.~W., 2024. Contagion and interpersonal influence: The diffusion of innovations in social networks. Oxford University Press.
 
 \bibitem[{Vega~Yon et~al.(2025)Vega~Yon, Olivera-Morales, and Valente}]{vega2025netdiffuser}
 Vega~Yon, G., Olivera-Morales, A., Valente, T.~W., 2025. netdiffuseR: Analysis of Diffusion and Contagion Processes on Networks. Zenodo.
