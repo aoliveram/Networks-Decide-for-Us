@@ -102,21 +102,30 @@ Table \ref{tab:smith2014} details these log-odds penalizations for socio-demogra
 
 \begin{table}[H]
     \centering
-    \caption{Logistic Regression predicting confiding relationship probability based on social distance (Smith et al., 2014). Model 1 (Base), Model 2 (Temporal Interactors).}
+    \caption{Case-Control Logistic Regression predicting confiding relationship probability based on social distance (Smith et al., 2014; McPherson \& Smith, 2019).}
     \label{tab:smith2014}
     \begin{tabular}{lcc}
     \toprule
-    \textbf{Variable} & \textbf{Model 1 ($\beta$)} & \textbf{Model 2 ($\gamma,\dots$)} \\
+    \textbf{Variable} & \textbf{Model 1 ($\beta$)} & \textbf{Model 2 ($\beta$)} \\
     \midrule
     Intercept & $-14.456^{***}$ & $-14.519^{***}$ \\
     Different race ($d^{\mathrm{cat}}_{ij}$) & $-1.819^{***}$ & $-1.959^{***}$ \\
-    Different religion ($d^{\mathrm{cat}}_{ij}$) & $-1.362^{***}$ & $-1.27^{***}$ \\
+    Different religion ($d^{\mathrm{cat}}_{ij}$) & $-1.362^{***}$ & $-1.270^{***}$ \\
     Different sex ($d^{\mathrm{cat}}_{ij}$) & $-0.317^{***}$ & $-0.373^{***}$ \\
     Education diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.049^{***}$ & $-0.047^{***}$ \\
     Age diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.173^{***}$ & $-0.157^{***}$ \\
+    \addlinespace
+    \textit{Temporal Interactions ($2004 \times d_{ij}$)} \\
+    Different race $\times$ Year & -- & $0.264$ \\
+    Different religion $\times$ Year & -- & $-0.215^{*}$ \\
+    Different sex $\times$ Year & -- & $0.144^{**}$ \\
+    Education diff. $\times$ Year & -- & $-0.005$ \\
+    Age diff. $\times$ Year & -- & $-0.044^{*}$ \\
+    \addlinespace
     Year & $-0.179^{***}$ & $-0.052$ \\
     \bottomrule
-    \multicolumn{3}{p{0.9\linewidth}}{\footnotesize $^{***} p < .001$. Extracted homophilic strength used for topological imputation is $\hat{\boldsymbol{\beta}}_{\text{tot}} = \hat{\boldsymbol{\beta}} + \hat{\boldsymbol{\gamma}}$. Standard errors omitted.}
+    \multicolumn{3}{l}{\footnotesize $^{***} p < .001, ^{**} p < .01, ^{*} p < .05$. Standard errors omitted.} \\
+    \multicolumn{3}{l}{\footnotesize $N_{\text{respondents}} = 3,001$; $N_{\text{dyads}} = 1,139,161$.}
     \end{tabular}
 \end{table}
 
