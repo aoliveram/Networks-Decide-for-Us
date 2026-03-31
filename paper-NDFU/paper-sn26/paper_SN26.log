@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  30 MAR 2026 20:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.8)  30 MAR 2026 21:09
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -557,95 +557,109 @@ Underfull \hbox (badness 1776) in paragraph at lines 100--101
 
 
 
-Overfull \hbox (1.0139pt too wide) in paragraph at lines 122--152
+LaTeX Warning: Reference `tab:smith2014' on page 2 undefined on input line 104.
+
+
+
+
+[2]
+Overfull \hbox (1.0139pt too wide) in paragraph at lines 149--179
  [][] 
  []
 
 
-Underfull \hbox (badness 1147) in paragraph at lines 156--156
+Underfull \hbox (badness 1147) in paragraph at lines 183--183
 []\T1/cmr/m/it/10 Empirical Crit-i-cal-ity: The Dy-nam-ics of Tip-ping
  []
 
-<../abstract-sn26/figure1_5panels_GSS.pdf, id=125, 578.16pt x 325.215pt>
+<../abstract-sn26/figure1_5panels_GSS.pdf, id=148, 578.16pt x 325.215pt>
 File: ../abstract-sn26/figure1_5panels_GSS.pdf Graphic file (type pdf)
 <use ../abstract-sn26/figure1_5panels_GSS.pdf>
 Package pdftex.def Info: ../abstract-sn26/figure1_5panels_GSS.pdf  used on inpu
-t line 162.
+t line 189.
 (pdftex.def)             Requested size: 522.0pt x 293.63861pt.
 
 
-[2]
-<../../plots/07_phase_transition/GSS/method4_exponents.pdf, id=146, 722.7pt x 7
+<../../plots/07_phase_transition/GSS/method4_exponents.pdf, id=151, 722.7pt x 7
 22.7pt>
 File: ../../plots/07_phase_transition/GSS/method4_exponents.pdf Graphic file (t
 ype pdf)
 <use ../../plots/07_phase_transition/GSS/method4_exponents.pdf>
 Package pdftex.def Info: ../../plots/07_phase_transition/GSS/method4_exponents.
-pdf  used on input line 173.
-(pdftex.def)             Requested size: 201.60077pt x 201.59372pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
+pdf  used on input line 200.
+(pdftex.def)             Requested size: 417.6016pt x 417.60039pt.
 
 
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
+[3]
 
 
 
-[3 <../../plots/07_phase_transition/GSS/method4_exponents.pdf>]
-
-
-
-[4 <../abstract-sn26/figure1_5panels_GSS.pdf>]
-
-
-
-[5
-
-] (./paper_SN26.aux)
+[4] [5 <../abstract-sn26/figure1_5panels_GSS.pdf>] [6 <../../plots/07_phase_tra
+nsition/GSS/method4_exponents.pdf>] (./paper_SN26.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
-Package rerunfilecheck Info: File `paper_SN26.out' has not changed.
-(rerunfilecheck)             Checksum: C0438539860BD080515BC24BB6FE9434;2442.
+
+
+LaTeX Warning: There were undefined references.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+
+Package rerunfilecheck Warning: File `paper_SN26.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `paper_SN26.out':
+(rerunfilecheck)             Before: C0438539860BD080515BC24BB6FE9434;2442
+(rerunfilecheck)             After:  3C375E5B9CAA27178EEB92A30C6049C4;2740.
  ) 
 Here is how much of TeX's memory you used:
- 13340 strings out of 473190
- 208136 string characters out of 5715801
+ 13343 strings out of 473190
+ 208151 string characters out of 5715801
  637319 words of memory out of 5000000
- 36375 multiletter control sequences out of 15000+600000
+ 36373 multiletter control sequences out of 15000+600000
  573240 words of font info for 73 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,13n,79p,1230b,556s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
-></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
-/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></u
-sr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr
-/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/l
-ocal/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/loc
-al/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/
-texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/tex
-live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
-ive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texliv
-e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
-2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/20
-25/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb></usr/local/texlive/2025
-/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texlive/2025/t
-exmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/local/texlive/2025/tex
-mf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/2025/texmf
--dist/fonts/type1/public/cm-super/sfrm1440.pfb></usr/local/texlive/2025/texmf-d
-ist/fonts/type1/public/cm-super/sfti0600.pfb></usr/local/texlive/2025/texmf-dis
-t/fonts/type1/public/cm-super/sfti0800.pfb></usr/local/texlive/2025/texmf-dist/
-fonts/type1/public/cm-super/sfti1000.pfb></usr/local/texlive/2025/texmf-dist/fo
-nts/type1/public/cm-super/sftt0800.pfb></usr/local/texlive/2025/texmf-dist/font
-s/type1/public/cm-super/sftt1000.pfb>
-Output written on paper_SN26.pdf (5 pages, 408623 bytes).
+ 75i,13n,79p,1230b,544s stack positions out of 10000i,1000n,20000p,200000b,200000s
+
+pdfTeX warning (dest): name{table.caption.4} has been referenced but does not e
+xist, replaced by a fixed one
+
+
+pdfTeX warning (dest): name{figure.caption.2} has been referenced but does not 
+exist, replaced by a fixed one
+
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
+/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
+usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
+sr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr
+/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/l
+ocal/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/loc
+al/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local
+/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/te
+xlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texli
+ve/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
+e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/
+2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/20
+25/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2025
+/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/
+2025/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb></usr/local/texlive/20
+25/texmf-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texlive/2025
+/texmf-dist/fonts/type1/public/cm-super/sfrm0800.pfb></usr/local/texlive/2025/t
+exmf-dist/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/2025/tex
+mf-dist/fonts/type1/public/cm-super/sfrm1440.pfb></usr/local/texlive/2025/texmf
+-dist/fonts/type1/public/cm-super/sfti0600.pfb></usr/local/texlive/2025/texmf-d
+ist/fonts/type1/public/cm-super/sfti0800.pfb></usr/local/texlive/2025/texmf-dis
+t/fonts/type1/public/cm-super/sfti1000.pfb></usr/local/texlive/2025/texmf-dist/
+fonts/type1/public/cm-super/sftt0800.pfb></usr/local/texlive/2025/texmf-dist/fo
+nts/type1/public/cm-super/sftt1000.pfb>
+Output written on paper_SN26.pdf (6 pages, 417560 bytes).
 PDF statistics:
- 291 PDF objects out of 1000 (max. 8388607)
- 228 compressed objects within 3 object streams
- 44 named destinations out of 1000 (max. 500000)
+ 307 PDF objects out of 1000 (max. 8388607)
+ 241 compressed objects within 3 object streams
+ 49 named destinations out of 1000 (max. 500000)
  99 words of extra memory for PDF output out of 10000 (max. 10000000)
 

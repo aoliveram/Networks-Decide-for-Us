@@ -101,6 +101,33 @@ To overcome synthetic limitations, we employ the imputation pipeline established
 
 We impute these structures onto $N=1000$ respondents from the American Trends Panel (ATP). This generates ``plausible" topologies that respect empirical clustering while assigning realistic behavioral propensities (e.g., ``Openness to Innovation" and ``Collective Action" scores) derived directly from ATP items.
 
+To formally capture the interaction probability, we construct a distance vector $\mathbf{d}_{ij}$ for each dyad. As adapted from \citet{smith2014social}, categorical differences operate as simple mismatch indicators $d^{\mathrm{cat}}_{ij} = \mathbb{I}(x^{\mathrm{cat}}_i \neq x^{\mathrm{cat}}_j)$, while continuous variables measure absolute distance $d^{\mathrm{cont}}_{ij} = |x^{\mathrm{cont}}_i - x^{\mathrm{cont}}_j|$. These components serve as predictors in a case-control logistic regression, establishing log-odds penalizations for socio-demographic disparities (Table \ref{tab:smith2014}).
+
+\begin{table}[H]
+    \centering
+    \caption{Logistic Regression predicting confiding relationship probability based on social distance (Smith et al., 2014).}
+    \label{tab:smith2014}
+    \begin{tabular}{lcc}
+    \toprule
+    \textbf{Variable} & \textbf{Model 1} & \textbf{Model 2} \\
+    \midrule
+    Intercept & $-14.456^{***}$ & $-14.519^{***}$ \\
+    Different race ($d^{\mathrm{cat}}_{ij}$) & $-1.819^{***}$ & $-1.959^{***}$ \\
+    Different religion ($d^{\mathrm{cat}}_{ij}$) & $-1.362^{***}$ & $-1.27^{***}$ \\
+    Different sex ($d^{\mathrm{cat}}_{ij}$) & $-0.317^{***}$ & $-0.373^{***}$ \\
+    Education diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.049^{***}$ & $-0.047^{***}$ \\
+    Age diff. ($d^{\mathrm{cont}}_{ij}$) & $-0.173^{***}$ & $-0.157^{***}$ \\
+    Year & $-0.179^{***}$ & $-0.052$ \\
+    \bottomrule
+    \multicolumn{3}{l}{\footnotesize $^{***} p < .001$. Standard errors and year-interactions omitted.}
+    \end{tabular}
+\end{table}
+
+\subsection{Complex Contagion and Parametric Sweep Design}
+Adoption spreads through an asynchronous, stochastic mechanism. At each simulation tick, individual exposure dynamically drives adoption. To translate bounded social boundaries into systemic threshold regimes, we apply a fractional transformation such that individual effective resistance is weighted by the social distance function. For the simulation dynamics (Equation 3), agents update their states smoothly guided by the stochastic decay parameter set to $T = 0.02$.
+
+To explore structural causalities, we conducted massive exhaustive parameter sweeps traversing millions of interactions. We swept the Intrinsic Utility Level (IUL) from 0.0 to 1.0 ($\Delta = 0.025$) and the system-wide threshold limit (MSP) continuously from 0 to 1 ($\Delta = 1/12$). Individual threshold parameters $\tau_i$ were seeded across normal distributions $\sim \mathcal{N}(\mu, \sigma)$ sweeping $\mu \in [0.3, 0.6]$ and $\sigma \in [0.08, 0.20]$. Each configuration was re-evaluated through over 24 runs varying algorithmic seeding rules (Random, Central, Marginal, Closeness, Eigenvector).
+
 % ==========================================
 % 4. RESULTS
 % ==========================================
@@ -168,12 +195,12 @@ In empirical (homophilic) networks, social change manifests as a predictable, co
 
 We observe distinct ``Critical Slowing Down" (divergence in simulation relaxation times) along the critical boundary. Applying the Fluctuation-Dissipation Theorem ($\chi = \text{Var}(\Phi)$), we recover an empirical susceptibility exponent of $\gamma \approx 0.977$ (Table \ref{tab:gamma} and Figure \ref{fig:exponents}). This constitutes rigorous proof that the homophilic network perfectly obeys Mean-Field universal scaling laws, providing a ``sociological viscosity" that governs the cascade.
 
-\begin{figure}[H]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=0.8\linewidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}
+    \includegraphics[width=0.8\textwidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}
     \caption{Super-critical susceptibility scaling across the GSS network. The $\gamma$ exponent extracted from the plausible networks logically converges to $\approx 1$, formally confirming that empirical clustering anchors the complex contagion to a continuous Universality Class. Randomizing the topology invariably disrupts this scaling into unphysical logarithmic cliffs.}
     \label{fig:exponents}
-\end{figure}
+\end{figure*}
 
 Conversely, in the GSS-ER random network, this predictability completely collapses. The $\gamma$ exponent diverges to unphysical levels ($\approx 3.7 - 4.6$), and critical slowing down is suppressed. The system behaves like a discontinuous, first-order regime shift: it either completely fails or violently explodes into mass adoption with zero statistical warning.
 

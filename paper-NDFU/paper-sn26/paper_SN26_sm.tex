@@ -152,39 +152,6 @@ Figure \ref{fig:degree_dist} demonstrates that the generated pseudo-empirical ne
     \label{fig:clustering_curves}
 \end{figure}
 
-\subsection{Empirical Homophily Strengths}
-The underlying parameters driving the ERGM calibration are derived directly from the regression results provided by Smith, McPherson, and Smith-Lovin (2014). Table \ref{tab:smith2014} replicates their main findings regarding the likelihood of confiding relationships forming based on social distance (Blau space).
-
-\begin{table}[H]
-    \centering
-    \caption{Case-Control Logistic Regression Predicting a Confiding Relationship based on General Social Survey Ego Network Data (Smith et al., 2014).}
-    \label{tab:smith2014}
-    \begin{tabular}{lcc}
-    \toprule
-    \textbf{Variable} & \textbf{Model 1} & \textbf{Model 2} \\
-    \midrule
-    Intercept & $-14.456^{***}$ (0.048) & $-14.519^{***}$ (0.057) \\
-    Different race & $-1.819^{***}$ (0.077) & $-1.959^{***}$ (0.117) \\
-    Different religion & $-1.362^{***}$ (0.044) & $-1.27^{***}$ (0.060) \\
-    Different sex & $-0.317^{***}$ (0.025) & $-0.373^{***}$ (0.033) \\
-    Education difference & $-0.049^{***}$ (0.002) & $-0.047^{***}$ (0.002) \\
-    Age difference & $-0.173^{***}$ (0.009) & $-0.157^{***}$ (0.012) \\
-    Different race $\times$ Year & & $0.264$ (0.155) \\
-    Different religion $\times$ Year & & $-0.215^{*}$ (0.092) \\
-    Different sex $\times$ Year & & $0.144^{**}$ (0.05) \\
-    Education difference $\times$ Year & & $-0.005$ (0.003) \\
-    Age difference $\times$ Year & & $-0.044^{*}$ (0.020) \\
-    Year & $-0.179^{***}$ (0.047) & $-0.052$ (0.089) \\
-    \midrule
-    $N$ (respondents) & $3,001$ & $3,001$ \\
-    $N$ (dyads) & $1,139,161$ & $1,139,161$ \\
-    \bottomrule
-    \multicolumn{3}{p{0.8\linewidth}}{\footnotesize \textit{Note:} Standard errors in parentheses are calculated using bootstrap estimates across 1,000 iterations. $^{*} p < .05$, $^{**} p < .01$, $^{***} p < .001$.}
-    \end{tabular}
-\end{table}
-
-This table fundamentally validates the ``Homophily Principle": all coefficients for socio-demographic distances are strictly negative and highly significant. Consequently, increased distance deeply diminishes interaction probability. Race and religion exert the most dramatic constraints. The magnitude of these negative coefficients guarantees that embedding these parameters inside spatial ERGMs will forcefully cluster similar individuals, ultimately forging the \textit{structural premium} analyzed inside the main text.
-
 % ==========================================
 % SECTION S3
 % ==========================================
