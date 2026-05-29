@@ -1,346 +1,430 @@
-\documentclass[11pt,aspectratio=169]{beamer}
+% ============================================================================
+% Networks Decide for Us — CPIN 2026 (Critical Phenomena in Networks)
+% Style replicates the "JORNADA REDES" deck: white background, centered frame
+% titles with a red rule, dark-red accents, green reference markers, LaTeX math.
+% Compile: pdflatex presentation-cpin2.tex  (run twice)
+% ============================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
 
-% ============================================================================
-% PACKAGES
-% ============================================================================
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
 \usepackage{amsmath, amssymb}
 \usepackage{graphicx}
-\usepackage{xcolor}
 \usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
 \usepackage{tikz}
-\usepackage{hyperref}
+\usetikzlibrary{arrows.meta, positioning}
 
-% ============================================================================
-% THEME & COLOR
-% ============================================================================
-\usetheme{Madrid}
-\usecolortheme{default}
+% ---------- Fonts: clean humanist sans, professional math ----------
+\usefonttheme{professionalfonts}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
 
-% Custom colors for a professional look
-\definecolor{dark_blue}{RGB}{31, 78, 120}
-\definecolor{accent_orange}{RGB}{230, 126, 34}
-\definecolor{light_gray}{RGB}{240, 240, 240}
+% ---------- Colors (matched to the JORNADA deck) ----------
+\definecolor{ndred}{RGB}{222,32,38}       % bright red rule
+\definecolor{ndreddark}{RGB}{176,22,28}   % darker brick red (subtitles)
+\definecolor{ndgreen}{RGB}{0,164,80}      % green reference markers
+\definecolor{ndgray}{RGB}{90,90,90}
 
-\setbeamercolor{palette primary}{bg=dark_blue, fg=white}
-\setbeamercolor{palette secondary}{bg=light_gray, fg=dark_blue}
-\setbeamercolor{palette tertiary}{bg=accent_orange, fg=white}
-\setbeamercolor{alerted text}{fg=accent_orange}
-
-% Remove navigation symbols
+% ---------- Strip all Beamer chrome ----------
 \setbeamertemplate{navigation symbols}{}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=ndreddark}
+\setbeamertemplate{itemize item}{\color{ndreddark}\textbullet}
+\setbeamertemplate{itemize subitem}{\color{ndgray}\textendash}
 
-% Custom title page
-\setbeamertemplate{title page}{
-  \begin{centering}
-    \vspace{2cm}
-    {\Large \textbf{\inserttitle}}
-    \vspace{0.5cm}
-
-    {\normalsize \insertsubtitle}
-    \vspace{1.5cm}
-
-    {\small \insertauthor}
-    \vspace{0.5cm}
-
-    {\tiny \insertinstitute}
-    \vspace{0.5cm}
-
-    {\tiny \insertdate}
-  \end{centering}
+% ---------- Frame title: centered black title + full-width red rule ----------
+\setbeamercolor{frametitle}{fg=black,bg=white}
+\setbeamerfont{frametitle}{size=\Large, series=\mdseries}
+\setbeamertemplate{frametitle}{%
+  \vspace{0.35cm}%
+  \begin{center}\insertframetitle\end{center}%
+  \vspace{-0.18cm}%
+  {\color{ndred}\hrule height 1.1pt}%
 }
 
-% ============================================================================
-% DOCUMENT INFO
+% ---------- Minimal footline: page number only ----------
+\setbeamertemplate{footline}{%
+  \hfill{\color{ndgray}\scriptsize\insertframenumber}\hspace{0.5cm}\vspace{0.2cm}}
+
+% ---------- Helper macros ----------
+\newcommand{\refn}[1]{{\color{ndgreen}[#1]}}
+\newcommand{\emphr}[1]{{\color{ndreddark}\textbf{#1}}}
+
+% Section-divider slide: centered title with a short red underline
+\newcommand{\sectionslide}[1]{%
+  \begin{frame}[plain]
+    \vfill
+    \begin{center}
+      {\Large #1}\\[2pt]
+      {\color{ndred}\rule{0.30\textwidth}{1.1pt}}
+    \end{center}
+    \vfill
+  \end{frame}}
+
 % ============================================================================
 \title{Networks Decide for Us}
-\subtitle{Phase Transitions and Universal Scaling in Homophily-Imputed Adoption Cascades}
+\subtitle{When homophily governs the criticality of social adoption}
+\author{Aníbal Olivera M.}
+\date{}
 
-\author{Aníbal Olivera Morales}
-\institute{%
-  Centro de Investigación en Complejidad Social (CICS)\\
-  Universidad del Desarrollo, Santiago, Chile\\
-  \vspace{0.3cm}
-  with Jorge Fábrega Lacoa \& Thomas W. Valente
-}
-
-\date{Critical Phenomena in Networks (CPIN) \\ May 26, 2026}
-
-% ============================================================================
-% BEGIN DOCUMENT
-% ============================================================================
 \begin{document}
 
-% ============================================================================
-% SLIDE 1: TITLE
-% ============================================================================
+% ---------------------------------------------------------------- TITLE
 \begin{frame}[plain]
-  \titlepage
-\end{frame}
-
-% ============================================================================
-% SLIDE 2: MOTIVATION
-% ============================================================================
-\begin{frame}{Why Networks Matter for Adoption}
-
-\begin{itemize}
-  \item Collective behaviors (innovations, social movements, beliefs) spread through networks.
-
-  \vspace{0.5cm}
-  \item Classical models: homogeneous populations, synthetic topologies.
-
-  \vspace{0.5cm}
-  \item Reality: people cluster by similarity (\textcolor{accent_orange}{homophily}).
-
-  \vspace{0.5cm}
-  \item \textbf{Question:} Does empirical network structure act as an autonomous causal force?
-
-  \vspace{0.5cm}
-  \item \textbf{Hypothesis:} Homophilic clustering governs both the \textit{volume} and \textit{dynamics} of collective change.
-\end{itemize}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 3: PHYSICS ANALOGY
-% ============================================================================
-\begin{frame}{From Physics to Society: The Mapping}
-
-\begin{columns}
-  \column{0.5\textwidth}
-  \textbf{Ferromagnetic System (Ising)}
-  \begin{itemize}
-    \item Spins: align or anti-align
-    \item Temperature $T$: disorder
-    \item Field $H$: external bias
-    \item Order parameter: Magnetization $M$
-  \end{itemize}
-
-  \column{0.5\textwidth}
-  \textbf{Social Adoption}
-  \begin{itemize}
-    \item Agents: adopt or abstain
-    \item \textcolor{accent_orange}{MSP} (Max Social Proximity): social flexibility
-    \item \textcolor{accent_orange}{IUL} (Intrinsic Utility): innovation attractiveness
-    \item Order parameter: Adoption $\Phi$
-  \end{itemize}
-\end{columns}
-
-\vspace{1cm}
-
-\centering
-\boxed{\text{Low MSP} = \text{rigid clusters (frozen)} \quad | \quad \text{High MSP} = \text{flexible (melted)}}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 4: METHODOLOGY
-% ============================================================================
-\begin{frame}{Methods: From Data to Simulation}
-
-\begin{enumerate}
-  \item \textbf{Network Imputation}
-  \begin{itemize}
-    \item Homophily parameters from GSS core discussion networks (Smith et al., 2014)
-    \item ERGM simulation onto ATP 2014 respondents ($N=1000$)
-  \end{itemize}
-
-  \vspace{0.4cm}
-  \item \textbf{Agent-Based Model (netdiffuseR)}
-  \begin{itemize}
-    \item Hybrid: Rational adoption (q_i ≤ Γ) + Social influence (selective by similarity)
-    \item ~4 million simulations sweeping IUL × MSP × threshold parameters
-  \end{itemize}
-
-  \vspace{0.4cm}
-  \item \textbf{Analysis}
-  \begin{itemize}
-    \item Generalized Additive Models (GAM): measure structural premium
-    \item Phase transition analysis: extract critical exponents (γ)
-  \end{itemize}
-\end{enumerate}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 5: RESULT 1 - STRUCTURAL PREMIUM
-% ============================================================================
-\begin{frame}{Result 1: The Structural Premium}
-
-\vspace{-0.3cm}
-\begin{itemize}
-  \item \textbf{Finding:} Randomizing network structure $\Rightarrow$ 57\% drop in adoption.
-
-  \vspace{0.3cm}
-  \item \textbf{Interpretation:} Homophilic clustering acts as a structural \textit{catalyst}, not just a passive conduit.
-
-  \vspace{0.3cm}
-  \item Local echo chambers allow social reinforcement, even when population is averse to innovation.
-
+  \vspace{0.6cm}
   \begin{center}
-    \vspace{0.3cm}
-    \boxed{\text{β}_{\text{structure}} = -0.850 \quad (p < 0.001)}
+    {\footnotesize\color{ndgray} Centro de Investigación en Complejidad Social (CICS) $\cdot$ Universidad del Desarrollo}
   \end{center}
-
-\end{itemize}
-
-\vspace{0.5cm}
-
-\centering
-\textit{Volume: Networks amplify diffusion. But do they also shape \textbf{how} it happens?}
-
+  \vspace{1.1cm}
+  \begin{center}
+    {\LARGE \textbf{Networks Decide for Us}}\\[0.5cm]
+    {\large \color{ndreddark} When homophily governs the criticality of social adoption}
+  \end{center}
+  \vspace{1.4cm}
+  \begin{center}
+    {\normalsize Aníbal Olivera M.}\\[2pt]
+    {\footnotesize PhD(c) in Social Complexity Sciences, CICS}\\[2pt]
+    {\footnotesize with Jorge Fábrega \& Thomas W. Valente}
+  \end{center}
+  \vfill
+  \begin{center}
+    {\scriptsize\color{ndgray} Critical Phenomena in Networks (CPIN) — 2026}
+  \end{center}
 \end{frame}
 
-% ============================================================================
-% SLIDE 6: RESULT 2 - CRITICAL EXPONENTS
-% ============================================================================
-\begin{frame}{Result 2: Empirical Criticality}
-
-\vspace{-0.3cm}
-
-In empirical networks:
+% ---------------------------------------------------------------- OVERVIEW
+\begin{frame}{The question}
 \begin{itemize}
-  \item \textbf{Mean-Field universality}: $\gamma \approx 0.977 \approx 1$
-  \item Susceptibility diverges as power law: $\chi \sim |MSP - MSP_c|^{-\gamma}$
-  \item Critical Slowing Down observed
-  \item \textcolor{accent_orange}{Continuous phase transition (2nd order)}
-\end{itemize}
-
-\vspace{0.3cm}
-
-In randomized networks:
-\begin{itemize}
-  \item \textbf{No universality}: $\gamma \approx 4.0$ (unphysical)
-  \item Power-law breaks down
-  \item Abrupt regime shifts
-  \item \textcolor{accent_orange}{Discontinuous transition (1st order)}
-\end{itemize}
-
-\vspace{0.4cm}
-
-\centering
-\boxed{\text{Separation ratio} = \frac{\gamma_{\text{random}}}{\gamma_{\text{empirical}}} \approx 4.3\times}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 7: THE MEAN-FIELD PARADOX
-% ============================================================================
-\begin{frame}{The Paradox: Why Mean-Field in Clustered Networks?}
-
-\vspace{-0.3cm}
-
-\begin{block}{The Puzzle}
-Mean-Field universality ($\gamma = 1$) typically requires well-mixed systems.\\
-But we observe it in highly clustered, homophilic networks.
-\end{block}
-
-\vspace{0.3cm}
-
-\begin{block}{The Resolution}
-Homophilic clusters act as quasi-isolated \textit{subsystems}.\\
-At criticality (MSP $\approx$ MSP$_c$), weak inter-cluster bridges suddenly activate.\\
-This global synchronization is indistinguishable from mean-field behavior.
-\end{block}
-
-\vspace{0.3cm}
-
-\centering
-\textit{Homophily stabilizes local order \& enables global coherence simultaneously.}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 8: IMPLICATIONS
-% ============================================================================
-\begin{frame}{What This Means}
-
-\textbf{Networks don't just affect volume—they govern continuity.}
-
-\vspace{0.5cm}
-
-\begin{description}
-  \item[\textcolor{accent_orange}{Predictability}] Homophilic topologies produce legible cascades (scaling laws).
-
+  \item Collective behaviors (innovations, mobilizations) spread as \emphr{adoption cascades} on social networks.
   \vspace{0.3cm}
-  \item[\textcolor{accent_orange}{Volatility}] Random topologies produce sudden regime shifts (no warning).
-
+  \item Most models use \emph{synthetic} topologies and treat agents as cognition-free relays \refn{1}.
   \vspace{0.3cm}
-  \item[\textcolor{accent_orange}{Scale-Free}] At the critical boundary, adoption sizes follow power laws—fractals of social change.
-
-  \vspace{0.3cm}
-  \item[\textcolor{accent_orange}{Sociological Viscosity}] Empirical homophily acts as a \textit{stabilizing} force that prevents chaos.
-\end{description}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 9: LIMITATIONS & FUTURE
-% ============================================================================
-\begin{frame}{Limitations \& Next Steps}
-
-\textbf{Current Constraints:}
-\begin{itemize}
-  \item MSP as global constant (should be heterogeneous by group/individual)
-  \item Static topology (no co-evolution)
-  \item $N = 1000$ (finite-size scaling analysis pending)
+  \item Real networks are shaped by \emphr{multidimensional homophily} — similar people cluster \refn{2}.
 \end{itemize}
-
 \vspace{0.5cm}
-
-\textbf{Natural Extensions:}
-\begin{itemize}
-  \item Heterogeneous MSP distributions by demographic groups
-  \item Adaptive networks (rewiring as behavior spreads)
-  \item Multi-layer topology (overlap across social dimensions)
-\end{itemize}
-
-\end{frame}
-
-% ============================================================================
-% SLIDE 10: CONCLUSION
-% ============================================================================
-\begin{frame}{Conclusion}
-
 \begin{center}
-  \Large \textbf{Networks Decide for Us}
+\fcolorbox{ndred}{white}{\parbox{0.86\textwidth}{\centering
+Conditional on \emph{fixed} individual propensities, does empirical homophilic
+structure act as an \emphr{autonomous causal force} — shaping not just \emph{how much}
+adoption occurs, but the \emphr{physics of its tipping points}?}}
 \end{center}
-
-\vspace{0.5cm}
-
-Society's structural layout acts as an active mechanism that:
-
-\begin{enumerate}
-  \item Amplifies collective outcomes (structural premium)
-  \item Determines whether change is continuous or catastrophic (criticality)
-  \item Obeys the same universal laws as physical phase transitions
-\end{enumerate}
-
-\vspace{0.5cm}
-
-\textit{The hidden assumption of homogeneous populations was masking a deeper truth: our networks are not neutral stages for social action—they are the fundamental choreographers of collective behavior.}
-
 \end{frame}
 
-% ============================================================================
-% SLIDE 11: THANK YOU
-% ============================================================================
+% ================================================================ THE MODEL
+\sectionslide{The model}
+
+% ---- Rational choice
+\begin{frame}{The model — 1) Rational Choice}
+An innovation has an \emph{Intrinsic Utility Level} (IUL) $\Gamma\in[0,1]$.
+Each agent has a \emph{Minimum Utility Requirement} (MUR) $q_i\in[0,1]$ (its aversion).
+\vspace{0.3cm}
+\begin{center}
+An agent adopts on its own iff
+\qquad \fcolorbox{ndred}{white}{$\;q_i \le \Gamma \;\implies\; a_i = 1\;$}
+\end{center}
+\vspace{0.4cm}
+\begin{center}
+\begin{tikzpicture}[every node/.style={circle,draw,minimum size=6mm,inner sep=0pt},
+                    adopt/.style={fill=black,text=white}, scale=1.0]
+  \node[adopt] (1) at (0,1.2) {}; \node (3) at (2.2,1.2) {};
+  \node (2) at (-1.1,0) {}; \node (4) at (1.1,0) {}; \node (6) at (2.6,-0.2) {};
+  \node (5) at (0.2,-1.2) {};
+  \draw (1)--(4) (2)--(4) (4)--(6) (4)--(5) (1)--(2);
+  \node[ndgray,draw=none] at (-1.9,0) {\scriptsize $q_2<\Gamma$};
+  \node[ndgray,draw=none] at (1.95,0.35) {\scriptsize $q_4<\Gamma$};
+  \node[ndgray,draw=none] at (-0.6,-1.5) {\scriptsize $q_5>\Gamma$};
+\end{tikzpicture}
+\end{center}
+\begin{center}\footnotesize Adoption by intrinsic utility is \emphr{deterministic} and \emphr{topology-blind}.\end{center}
+\end{frame}
+
+% ---- Selective social influence
+\begin{frame}{The model — 2) Selective Social Influence}
+If intrinsic adoption fails, agents may adopt by peer contagion. Effective exposure:
+\begin{equation*}
+  \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
+  \qquad a_i=\begin{cases}1 & \text{if } \tau_i \le \tilde{E}_i\\[2pt]0 & \text{otherwise}\end{cases}
+\end{equation*}
+Only \emph{influential} infected peers count — those socially \emph{close} in Blau space:
+\begin{equation*}
+  \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right),
+  \qquad U_{ij}\sim\mathrm{Unif}(0,1)
+\end{equation*}
+\vspace{-0.1cm}
+\begin{itemize}
+  \item $d_{ij}$: social distance between $i$ and $j$; \quad $\sigma(z)=1/(1+e^{-z/T})$.
+  \item \emphr{MSP} (Maximum Social Proximity): how far across demographic lines influence can reach.
+\end{itemize}
+\begin{center}\footnotesize Social adoption is \emphr{stochastic} (via $U_{ij}$) and \emphr{topology-sensitive}.\end{center}
+\end{frame}
+
+% ================================================================ SETTING UP
+\sectionslide{Imputing structure \& running the model}
+
+\begin{frame}{Imputing a network onto a survey \refn{2,3}}
+\begin{columns}[T]
+\column{0.55\textwidth}
+\textbf{General Social Survey (GSS 2004)}
+\begin{itemize}\footnotesize
+  \item Representative; demographics (age, sex, educ, race, religion); \emph{ego} network module.
+\end{itemize}
+\textbf{American Trends Panel (ATP 2014)}
+\begin{itemize}\footnotesize
+  \item Representative; same demographics; \emph{no} network — but rich propensity items ($q_i$).
+\end{itemize}
+\vspace{0.2cm}
+Homophily strengths $\hat{\boldsymbol\beta}$ from GSS confidant data \refn{4} feed an \emphr{ERGM}:
+\begin{equation*}\footnotesize
+  \mathrm{logit}\,\Pr(Y_{ij}=1)=\alpha+\boldsymbol\beta^\top \mathbf{d}_{ij}
+\end{equation*}
+$\Rightarrow$ plausible discrete topologies ($N=1000$) on ATP respondents.
+\column{0.45\textwidth}
+\centering
+\includegraphics[width=\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
+{\scriptsize Right-skewed degree structure that ER / BA models fail to match jointly.}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Comprehensive simulation design}
+Hybrid social contagion via \texttt{netdiffuseR}, over plausible (GSS) vs.\
+\emphr{degree-preserving randomized} (GSS-DP) topologies.
+\vspace{0.2cm}
+\begin{itemize}
+  \item \textbf{IUL} ($\Gamma$): 41 levels $[0,1]$. \quad \textbf{MSP} ($h$): 13 levels $[0,1]$.
+  \item \textbf{Thresholds} $\tau_i\sim\mathcal{N}(\mu,\sigma)$: $\mu\in\{.3,.4,.5,.6\}$, $\sigma\in\{.08,.12,.16,.20\}$.
+  \item \textbf{Seeding}: random, central, marginal, closeness, eigenvector.
+\end{itemize}
+\vspace{0.2cm}
+\begin{center}
+Total: $\;41\times13\times4\times4\times5\times \text{(runs)} \;\approx\; \emphr{$4\times10^{6}$ simulations}$
+\end{center}
+\vspace{0.2cm}
+We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
+\begin{equation*}\footnotesize
+  \mathrm{logit}\big[\mathbb{E}(\Phi)\big]=\beta_0+\mathbf{Z}\boldsymbol\beta
+  +\beta_{\text{DP}}\,\mathbb{I}_{\text{DP}}+s(\mathrm{IUL},\mathrm{MSP})
+\end{equation*}
+\end{frame}
+
+% ================================================================ PHYSICS MAP
+\sectionslide{A statistical-physics reading}
+
+\begin{frame}{Mapping social adoption to a ferromagnet}
+\begin{columns}[c]
+\column{0.56\textwidth}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}l@{\;\;}c@{\;\;}l@{}}
+\toprule
+\textbf{Ising system} & & \textbf{NDFU} \\
+\midrule
+Spin $s_i\in\{0,1\}$        & $\leftrightarrow$ & Adoption state $a_i$ \\
+Magnetization $M$           & $\leftrightarrow$ & Adoption $\Phi=N_{\text{ad}}/N$ \\
+External field $H$          & $\leftrightarrow$ & \emphr{IUL} $\Gamma$ (rational bias) \\
+Temperature $T$             & $\leftrightarrow$ & \emphr{MSP} $h$ (social agitation) \\
+Exchange $J_{ij}$           & $\leftrightarrow$ & Homophily / clustering \\
+Susceptibility $\chi$       & $\leftrightarrow$ & $\mathrm{Var}(\Phi)$ (FDT) \\
+\bottomrule
+\end{tabular}
+\column{0.44\textwidth}
+\footnotesize
+Pseudo-Hamiltonian:
+\begin{equation*}
+\mathcal{H}\approx -\!\!\sum_{\langle i,j\rangle}\! w_{ij}(h)\,s_i s_j \;-\; \Gamma\sum_i s_i
+\end{equation*}
+\vspace{0.1cm}
+\emphr{Low MSP} $\to$ rigid echo chambers (frozen domains).\\[3pt]
+\emphr{High MSP} $\to$ boundaries ``melt'', global cascades possible.
+\end{columns}
+\vspace{0.3cm}
+\begin{center}\footnotesize
+Susceptibility diverges near criticality: $\;\chi=\mathrm{Var}(\Phi)\propto |MSP-MSP_c|^{-\gamma}$
+\end{center}
+\end{frame}
+
+\begin{frame}{Two paths through the critical point}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.95]
+  % axes
+  \draw[-{Latex}] (0,0)--(3.4,0) node[right]{\small $T$ (MSP)};
+  \draw[-{Latex}] (0,0)--(0,2.6) node[above]{\small $M$ ($\Phi$)};
+  \draw[-{Latex}] (0,0)--(-1.5,-1.1) node[left]{\small $H$ (IUL)};
+  % spontaneous magnetization curve (ordered side)
+  \draw[ndgray,thick] (0,2.2) .. controls (1.2,1.9) and (1.8,1.2) .. (2.2,0);
+  % critical point
+  \filldraw[ndred] (2.2,0) circle (1.6pt);
+  \node[ndreddark,font=\scriptsize] at (2.65,0.28) {$T_c$};
+  % path T (green dashed, along T at H=0)
+  \draw[ndgreen,dashed,thick,-{Latex}] (0.2,2.05)--(2.0,0.15);
+  \node[ndgreen,font=\scriptsize] at (0.7,1.5) {2};
+  % path H (along field at T<Tc)
+  \draw[blue,thick,-{Latex}] (-1.0,-0.75)--(1.0,0.75);
+  \node[blue,font=\scriptsize] at (0.55,-0.05) {1};
+\end{tikzpicture}
+\column{0.5\textwidth}
+\footnotesize
+\textbf{\color{ndgreen}Path 2 — vary MSP at fixed IUL (``Camino-T'')}
+\begin{itemize}\footnotesize
+  \item continuous, \emphr{2nd-order} transition
+  \item probes the \emphr{social channel} $\Rightarrow$ topology-sensitive
+  \item yields susceptibility exponent $\gamma$
+\end{itemize}
+\vspace{0.2cm}
+\textbf{\color{blue}Path 1 — vary IUL at fixed MSP (``Camino-H'')}
+\begin{itemize}\footnotesize
+  \item probes the \emphr{rational channel} $\Rightarrow$ topology-blind
+  \item yields critical-isotherm exponent $\delta$
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ================================================================ RESULTS
+\sectionslide{Results}
+
+\begin{frame}{Result 1 — A structural premium (volume)}
+\begin{columns}[c]
+\column{0.54\textwidth}
+BAM isolates the marginal effect of destroying empirical structure:
+\vspace{0.3cm}
+\begin{center}
+\fcolorbox{ndred}{white}{$\;\beta_{\text{DP}}=-0.850^{***}\;$}\\[4pt]
+{\footnotesize $\Rightarrow$ randomization cuts adoption odds by $\sim$\emphr{57\%}}
+\end{center}
+\vspace{0.3cm}
+\footnotesize Under \emph{identical} individual propensities, homophilic clustering lets social
+reinforcement build inside \emphr{local echo chambers} and overcome resistance — even
+for unattractive innovations ($\Gamma<0.25$).
+\column{0.46\textwidth}
+\centering
+\renewcommand{\arraystretch}{1.2}
+{\footnotesize
+\begin{tabular}{@{}lc@{}}
+\toprule
+ & Total adoption \\
+\midrule
+$\tau_{\text{mean}}$ & $-6.944^{***}$ \\
+$\tau_{\text{sd}}$ & $5.942^{***}$ \\
+DP topology & $\mathbf{-0.850}^{***}$ \\
+\midrule
+Dev. explained & 82.2\% \\
+\bottomrule
+\end{tabular}}
+\\[4pt]{\scriptsize $N=4{,}093{,}440$ simulations.}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Result 2 — Criticality signatures (dynamics)}
+\centering
+\includegraphics[width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[2pt]
+{\footnotesize Top: adoption heatmaps. Bottom-left: susceptibility $\chi=\mathrm{Var}(\Phi)$ ridge.
+Bottom-right: divergence of relaxation-time SD — \emphr{Critical Slowing Down}.}
+\end{frame}
+
+\begin{frame}{Result 3 — Universality: the discriminator}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\centering
+\includegraphics[width=\linewidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}\\
+{\scriptsize Log-log: $\chi\sim|MSP-MSP_c|^{-\gamma}$ along the Widom line.}
+\column{0.5\textwidth}
+\renewcommand{\arraystretch}{1.25}
+{\footnotesize
+\begin{tabular}{@{}lcc@{}}
+\toprule
+IUL & GSS $\gamma$ & GSS-DP $\gamma$ \\
+\midrule
+0.200 & 0.98 & 3.71 \\
+0.225 & 0.89 & 3.67 \\
+0.250 & 0.89 & 3.67 \\
+0.275 & 1.54 & 4.67 \\
+\midrule
+mean & \emphr{0.91} & \emphr{3.93} \\
+\bottomrule
+\end{tabular}}
+\vspace{0.3cm}
+\begin{itemize}\footnotesize
+  \item GSS: $\gamma\approx1$ — \emphr{Mean-Field universality} (continuous).
+  \item GSS-DP: $\gamma\approx4$ — no power law; \emphr{discontinuous} regime shift.
+  \item Separation $\approx \mathbf{4.3\times}$.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Why only the MSP axis discriminates}
+\begin{columns}[c]
+\column{0.52\textwidth}
+\textbf{Two control parameters, two channels:}
+\begin{itemize}\footnotesize
+  \item \emphr{Path 2 (MSP, $\gamma$)}: drives the \emph{social} channel.
+        $\gamma_{\text{GSS}}\!\approx\!1$ vs.\ $\gamma_{\text{DP}}\!\approx\!4$ — \emphr{topology-sensitive}.
+  \item \emphr{Path 1 (IUL, $\delta$)}: drives the \emph{rational} channel ($q_i\le\Gamma$ is node-local).
+        $\delta_{\text{GSS}}\!\approx\!2.85$, $\delta_{\text{DP}}\!\approx\!2.91$ — \emphr{topology-blind} (both $\approx$ MF $\delta=3$).
+\end{itemize}
+\vspace{0.2cm}
+\footnotesize The field response reflects the \emph{MUR distribution}, shared by both topologies.
+The universality \emphr{discriminator} must therefore be the MSP (temperature) axis.
+\column{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{../../playground/checks-claude/plots/camino_H_critical_isotherm.pdf}\\
+{\scriptsize Critical isotherms $\Phi(\mathrm{IUL})$: same $\delta\!\approx\!3$ for both. \emph{(exploratory)}}
+\end{columns}
+\end{frame}
+
+% ================================================================ DISCUSSION
+\begin{frame}{The mean-field paradox — and its resolution}
+\begin{block}{\footnotesize Puzzle}
+\footnotesize Mean-field $\gamma=1$ usually needs a \emph{well-mixed} system.
+We recover it in a \emph{strongly clustered, homophilic} network.
+\end{block}
+\vspace{0.1cm}
+\begin{block}{\footnotesize Resolution}
+\footnotesize Homophilic clusters behave as quasi-isolated subsystems coupled by
+\emph{weak, similarity-selective bridges}. As MSP $\to MSP_c$ these bridges activate
+together, synchronizing clusters into one coherent order parameter — \emph{indistinguishable}
+from mean-field behavior. Randomization (DP) destroys this and yields discontinuity instead.
+\end{block}
+\vspace{0.1cm}
+\begin{center}\footnotesize
+Homophily provides a \emphr{``sociological viscosity''} that converts chaotic jumps into legible cascades.
+\end{center}
+\end{frame}
+
+% ================================================================ CONCLUSION
+\sectionslide{Conclusions}
+
+\begin{frame}{Conclusions}
+\begin{center}{\large \emphr{Networks decide for us} — twice over.}\end{center}
+\vspace{0.4cm}
+\begin{enumerate}
+  \item \textbf{Volume:} empirical homophily yields a \emphr{structural premium} (+57\% odds).
+  \vspace{0.2cm}
+  \item \textbf{Dynamics:} homophily makes tipping points \emphr{continuous \& predictable}
+        (mean-field, $\gamma\approx1$); randomization makes them \emphr{abrupt \& volatile}
+        ($\gamma\approx4$).
+  \vspace{0.2cm}
+  \item \textbf{Mechanism:} the social (MSP) axis carries universality; the rational (IUL)
+        axis is topology-blind ($\delta\approx3$).
+\end{enumerate}
+\vspace{0.4cm}
+\begin{center}\footnotesize
+Macroscopic social change is not the linear sum of individual preferences —
+it is governed by the structure of our ties.
+\end{center}
+\end{frame}
+
+% ---------------------------------------------------------------- THANKS
 \begin{frame}[plain]
-  \begin{centering}
-    \Large \textbf{Thank You}
-
-    \vspace{1cm}
-
-    \normalsize Questions?
-
-    \vspace{1cm}
-
-    \small
-    \href{mailto:an.oliveram@udd.cl}{an.oliveram@udd.cl}\\
-    \href{https://github.com/aoliveram/Networks-Decide-for-Us}{github.com/aoliveram/Networks-Decide-for-Us}
-  \end{centering}
+  \vfill
+  \begin{center}
+    {\Large Thanks!}\\[2pt]
+    {\color{ndred}\rule{0.30\textwidth}{1.1pt}}\\[0.8cm]
+    {\footnotesize \texttt{an.oliveram@udd.cl}}\\[2pt]
+    {\footnotesize\color{ndgray} github.com/aoliveram/Networks-Decide-for-Us}
+  \end{center}
+  \vfill
 \end{frame}
 
 \end{document}

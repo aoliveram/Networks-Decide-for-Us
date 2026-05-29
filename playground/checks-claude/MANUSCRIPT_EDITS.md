@@ -62,13 +62,22 @@ Based on comprehensive analysis of the project, the following text edits are rec
 **Current text:**
 > "[PLACEHOLDER: Add Cronbach's alpha reliability test to verify multi-item unidimensionality for the collective-action propensity construct]."
 
-**Recommended replacement (after running scripts 03_GSS_MUR_calculation.R and 03_ATP_MUR_calculation.R):**
+**COMPUTED VALUES** (via `playground/checks-claude/02_cronbach_alpha.R`, $N=1000$ imputed nodes; confirmed on raw cleaned ATP respondents, $N=1761$):
 
-> "To verify the internal consistency of the collective action propensity construct (MUR_GSS), we computed Cronbach's α across the 8 items used to construct the propensity score: SIGNDPET (sign petition), AVOIDBUY (avoid/buy products), JOINDEM (join demonstration), ATTRALLY (attend rally), CNTCTGOV (contact government), POLFUNDS (political funds), USEMEDIA (use media), INTERPOL (internet political forum), and ACTLAW (willingness to break law). The Cronbach's α coefficient equals [INSERT VALUE FROM 03_GSS_MUR_calculation.R OUTPUT]. This value exceeds the standard threshold of α = 0.70, confirming adequate internal consistency and unidimensionality of the collective action propensity construct.
-> 
-> Similarly, for the innovation propensity construct (MUR_ATP), we computed Cronbach's α across the 6 binary items from the METECH scale: metech_a through metech_f. The resulting α = [INSERT VALUE FROM 03_ATP_MUR_calculation.R OUTPUT] [exceeds / is close to] the standard threshold, confirming that both propensity constructs satisfy psychometric standards for unidimensional scales."
+| Construct | Items | Cronbach's α | Verdict |
+|---|---|---|---|
+| GSS Collective Action | 9 (signdpet, avoidbuy, joindem, attrally, cntctgov, polfunds, usemedia, interpol, actlaw) | **0.82** | Good (≥ 0.70) |
+| ATP Innovation | 6 binary (metech_a–f) | **0.57** (raw nodes) / 0.59 (clean respondents) | Low / marginal |
 
-**Rationale:** Converts placeholder into evidence-based statement. Adds specific values once scripts are executed.
+**Recommended replacement text:**
+
+> "To verify the internal consistency of the **collective action** propensity construct (MUR$_{GSS}$), we computed Cronbach's α across the nine items used to build the propensity score (SIGNDPET, AVOIDBUY, JOINDEM, ATTRALLY, CNTCTGOV, POLFUNDS, USEMEDIA, INTERPOL, ACTLAW). We obtain **α = 0.82**, exceeding the conventional 0.70 threshold and confirming adequate internal consistency for the construct underlying the main-text Figure 1 criticality analysis.
+>
+> For the **innovation** propensity construct (MUR$_{ATP}$), built from six binary METECH items, Cronbach's α = 0.57. We report this value transparently. Three considerations contextualize it: (i) Cronbach's α is mechanically attenuated for *dichotomous* items and *short* scales (six items), so it understates reliability relative to a Likert-type equivalent; (ii) openness-to-innovation is arguably a *formative* index — a sum of distinct behavioral tendencies (early adoption, brand variety-seeking, word-of-mouth sharing) — rather than a *reflective* scale measuring a single latent trait, and internal consistency is not the appropriate yardstick for formative indices; (iii) crucially, our headline criticality result (the $\gamma\approx1$ vs. $\gamma\approx4$ contrast) is estimated on the **GSS collective-action network (α = 0.82)**; the ATP innovation application is a secondary, qualitatively-consistent robustness check. We therefore retain the innovation construct as a behavioral index while basing our central claims on the psychometrically stronger collective-action measure."
+
+**Rationale:** Reports both values honestly. Pre-empts the obvious reviewer objection to α = 0.57 with three standard, defensible arguments, and re-anchors the main claim on the GSS construct (α = 0.82). This is more credible than hiding or inflating the ATP number.
+
+**Caveat discovered during computation:** the raw `ATP_W3_W4.rds` survey file contains uncleaned missing-data sentinels (value `99`) and ~50% NA on METECH items. The imputation pipeline cleans these before assigning node attributes, so α must be computed on the cleaned data (node-level or `all-items-in-{0,1}` filtered respondents), NOT naively on the raw file (which yields nonsensical negative α). Worth a one-line note in the data-cleaning section of the SM.
 
 ---
 
