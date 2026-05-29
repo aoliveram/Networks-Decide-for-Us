@@ -20,6 +20,7 @@ library(network)
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
+library(psych)
 
 # --- Configuración ---
 networks_dir <- "data/02_ATP_network_ergm/"
@@ -109,6 +110,35 @@ p_mur <- ggplot(df_attr, aes(x = mur_factor)) +
   theme_minimal()
 
 ggsave(file.path(plots_dir, "mur_score_distribution_ATP.pdf"), plot = p_mur, width = 8, height = 6)
+
+# ==============================================================================
+# Cronbach α: Internal Consistency of MUR Construct (ATP Innovation Propensity)
+# ==============================================================================
+
+# Extract original binary items (before recoding)
+binary_items <- df_attr %>%
+  select(all_of(metech_vars))
+
+# Remove any rows with missing values for alpha calculation
+binary_items_complete <- binary_items[complete.cases(binary_items), ]
+
+# Calculate Cronbach's alpha
+# Note: For binary items, alpha is still valid and useful
+cronbach_result_atp <- cronbach(binary_items_complete)
+cat("\n========== CRONBACH'S ALPHA INTERNAL CONSISTENCY ==========\n")
+cat("Construct: ATP Innovation Propensity (MUR)\n")
+cat("Items: metech_a, metech_b, metech_c, metech_d, metech_e, metech_f (6 binary items)\n")
+cat("Cronbach's α =", sprintf("%.4f\n", cronbach_result_atp))
+cat("Sample size (complete cases) = ", nrow(binary_items_complete), "\n")
+cat("Interpretation: ")
+if (cronbach_result_atp >= 0.70) {
+  cat("PASS - Sufficient internal consistency (α ≥ 0.70)\n")
+} else if (cronbach_result_atp >= 0.60) {
+  cat("ACCEPTABLE - Marginal internal consistency (0.60 ≤ α < 0.70)\n")
+} else {
+  cat("WARNING - Low internal consistency (α < 0.60)\n")
+}
+cat("===========================================================\n\n")
 
 # ==============================================================================
 # 2. Procesamiento Masivo: Actualizar Redes

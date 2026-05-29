@@ -20,6 +20,7 @@ library(network)
 library(dplyr)
 library(ggplot2)
 library(gridExtra)
+library(psych)
 
 # --- Configuración ---
 networks_dir <- "data/02_GSS_network_ergm/"
@@ -110,6 +111,33 @@ hist_score <- ggplot(df_attr, aes(x = mur_score)) +
   theme_minimal()
 
 ggsave(file.path(plots_dir, "mur_score_distribution_GSS.pdf"), plot = hist_score, width = 8, height = 6)
+
+# ==============================================================================
+# Cronbach α: Internal Consistency of MUR Construct
+# ==============================================================================
+
+# Extract recoded values for all 9 items
+recoded_items <- df_attr %>%
+  select(starts_with("recod_")) %>%
+  rename_with(~ gsub("recod_", "", .))
+
+# Remove any rows with missing values for alpha calculation
+recoded_items_complete <- recoded_items[complete.cases(recoded_items), ]
+
+# Calculate Cronbach's alpha
+cronbach_result <- cronbach(recoded_items_complete)
+cat("\n========== CRONBACH'S ALPHA INTERNAL CONSISTENCY ==========\n")
+cat("Construct: GSS Collective Action Propensity (MUR)\n")
+cat("Items: signdpet, avoidbuy, joindem, attrally, cntctgov, polfunds, usemedia, interpol, actlaw (9 items)\n")
+cat("Cronbach's α =", sprintf("%.4f\n", cronbach_result))
+cat("Sample size (complete cases) = ", nrow(recoded_items_complete), "\n")
+cat("Interpretation: ")
+if (cronbach_result >= 0.70) {
+  cat("PASS - Sufficient internal consistency (α ≥ 0.70)\n")
+} else {
+  cat("WARNING - Low internal consistency (α < 0.70)\n")
+}
+cat("===========================================================\n\n")
 
 # ==============================================================================
 # 2. Procesamiento Masivo: Actualizar Redes

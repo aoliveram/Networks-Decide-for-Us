@@ -166,9 +166,9 @@ Figures \ref{fig:degree_dist} and \ref{fig:clustering_curves} validate that our 
 % ==========================================
 % SECTION S3
 % ==========================================
-\section{Extended Criticality Analysis: Plausible vs. Randomized}
+\section{Extended Criticality Analysis: Plausible (GSS) vs. Degree-Preserving Randomized (GSS-DP)}
 
-The mathematical relevance of recovering the critical exponent $\gamma = 1$ in the main text is rooted in Landau's phenomenological theory of phase transitions. 
+The mathematical relevance of recovering the critical exponent $\gamma = 1$ in plausible networks in the main text is rooted in Landau's phenomenological theory of phase transitions, contrasted against the unphysical scaling ($\gamma > 3$) observed in degree-preserving randomized topologies. 
 
 \subsection{Mean-Field Derivation}
 The free energy density $f(\Phi)$ of the interacting system expanded around the order parameter $\Phi$ is:
@@ -182,7 +182,7 @@ Minimizing free energy requires $\frac{\partial f}{\partial \Phi} = 0$. By diffe
 As $H \to 0$, $\Phi \to 0$ for $T > T_c$. Thus, susceptibility diverges strictly as $\chi \sim |T - T_c|^{-1}$. Extracting an empirical $\gamma \approx 1$ confirms the system obeys continuous macroscopic scaling.
 
 \subsection{Avalanche Size Spectra and Critical Scaling}
-As shown below, empirical GSS topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The Degree-Preserved Random graphs exhibit collapsed binary spectra, representing a first-order discontinuity. 
+As shown below, empirical GSS (plausible) topologies exhibit scale-free power-law bimodality at criticality, indicative of a second-order transition. The GSS-DP (degree-preserving randomized) graphs exhibit collapsed binary spectra, representing a first-order discontinuity. 
 To rigorously trace these transitions, we sweep the simulation domain while fixing the Intrinsic Utility Level (IUL) constant. As the systemic threshold ($MSP$) crosses the empirical boundary $MSP_c$, cascading ``avalanches" (adoption sizes) transition structurally.
 
 \begin{figure}[H]
