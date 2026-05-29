@@ -142,7 +142,7 @@ An agent adopts on its own iff
 
 % ---- Selective social influence
 \begin{frame}{The model — 2) Selective Social Influence}
-If intrinsic adoption fails, agents may adopt by peer contagion. Effective exposure:
+If intrinsic adoption fails, agents may adopt by peer contagion \refn{5,6}. Effective exposure:
 \begin{equation*}
   \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
   \qquad a_i=\begin{cases}1 & \text{if } \tau_i \le \tilde{E}_i\\[2pt]0 & \text{otherwise}\end{cases}
@@ -155,7 +155,7 @@ Only \emph{influential} infected peers count — those socially \emph{close} in 
 \vspace{-0.1cm}
 \begin{itemize}
   \item $d_{ij}$: social distance between $i$ and $j$; \quad $\sigma(z)=1/(1+e^{-z/T})$.
-  \item \emphr{MSP} (Maximum Social Proximity): how far across demographic lines influence can reach.
+  \item \emphr{MSP} (Maximum Social Proximity): how far across demographic lines influence can reach. Socially similar peers persuade more \refn{7}.
 \end{itemize}
 \begin{center}\footnotesize Social adoption is \emphr{stochastic} (via $U_{ij}$) and \emphr{topology-sensitive}.\end{center}
 \end{frame}
@@ -163,7 +163,7 @@ Only \emph{influential} infected peers count — those socially \emph{close} in 
 % ================================================================ SETTING UP
 \sectionslide{Imputing structure \& running the model}
 
-\begin{frame}{Imputing a network onto a survey \refn{2,3}}
+\begin{frame}{Imputing a network onto a survey \refn{3}}
 \begin{columns}[T]
 \column{0.55\textwidth}
 \textbf{General Social Survey (GSS 2004)}
@@ -175,7 +175,7 @@ Only \emph{influential} infected peers count — those socially \emph{close} in 
   \item Representative; same demographics; \emph{no} network — but rich propensity items ($q_i$).
 \end{itemize}
 \vspace{0.2cm}
-Homophily strengths $\hat{\boldsymbol\beta}$ from GSS confidant data \refn{4} feed an \emphr{ERGM}:
+Homophily strengths $\hat{\boldsymbol\beta}$ from GSS confidant data \refn{3,4} feed an \emphr{ERGM}:
 \begin{equation*}\footnotesize
   \mathrm{logit}\,\Pr(Y_{ij}=1)=\alpha+\boldsymbol\beta^\top \mathbf{d}_{ij}
 \end{equation*}
@@ -188,7 +188,7 @@ $\Rightarrow$ plausible discrete topologies ($N=1000$) on ATP respondents.
 \end{frame}
 
 \begin{frame}{Comprehensive simulation design}
-Hybrid social contagion via \texttt{netdiffuseR}, over plausible (GSS) vs.\
+Hybrid social contagion via \texttt{netdiffuseR} \refn{9}, over plausible (GSS) vs.\
 \emphr{degree-preserving randomized} (GSS-DP) topologies.
 \vspace{0.2cm}
 \begin{itemize}
@@ -239,7 +239,7 @@ Pseudo-Hamiltonian:
 \end{columns}
 \vspace{0.3cm}
 \begin{center}\footnotesize
-Susceptibility diverges near criticality: $\;\chi=\mathrm{Var}(\Phi)\propto |MSP-MSP_c|^{-\gamma}$
+Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\propto |MSP-MSP_c|^{-\gamma}$
 \end{center}
 \end{frame}
 
@@ -413,6 +413,22 @@ Homophily provides a \emphr{``sociological viscosity''} that converts chaotic ju
 Macroscopic social change is not the linear sum of individual preferences —
 it is governed by the structure of our ties.
 \end{center}
+\end{frame}
+
+% ---------------------------------------------------------------- REFERENCES
+\begin{frame}{References}
+\footnotesize
+\begin{enumerate}\itemsep1.5pt
+  \item Goldberg, A. (2021). Associative Diffusion and the Pitfalls of Structural Reductionism. \emph{Am. Sociol. Rev.} 86(6).
+  \item McPherson, M., Smith-Lovin, L., \& Cook, J. (2001). Birds of a Feather: Homophily in Social Networks. \emph{Annu. Rev. Sociol.} 27.
+  \item McPherson, M., \& Smith, J. A. (2019). Network Effects in Blau Space: Imputing Social Context from Survey Data. \emph{Socius} 5.
+  \item Smith, J. A., McPherson, M., \& Smith-Lovin, L. (2014). Social Distance in the United States, 1985--2004. \emph{Am. Sociol. Rev.} 79(3).
+  \item Granovetter, M. (1978). Threshold Models of Collective Behavior. \emph{Am. J. Sociol.} 83(6).
+  \item Valente, T. W. (1996). Social Network Thresholds in the Diffusion of Innovations. \emph{Soc. Networks} 18(1).
+  \item Centola, D. (2011). An Experimental Study of Homophily in the Adoption of Health Behavior. \emph{Science} 334.
+  \item Sethna, J. P. (2021). \emph{Statistical Mechanics: Entropy, Order Parameters, and Complexity} (2nd ed.). Oxford UP.
+  \item Vega Yon, G., Olivera M., A., \& Valente, T. (2025). \texttt{netdiffuseR}: Analysis of Diffusion and Contagion Processes on Networks. \emph{Zenodo}.
+\end{enumerate}
 \end{frame}
 
 % ---------------------------------------------------------------- THANKS

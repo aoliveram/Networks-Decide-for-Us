@@ -62,22 +62,36 @@ Based on comprehensive analysis of the project, the following text edits are rec
 **Current text:**
 > "[PLACEHOLDER: Add Cronbach's alpha reliability test to verify multi-item unidimensionality for the collective-action propensity construct]."
 
-**COMPUTED VALUES** (via `playground/checks-claude/02_cronbach_alpha.R`, $N=1000$ imputed nodes; confirmed on raw cleaned ATP respondents, $N=1761$):
+**COMPUTED VALUES** (via `playground/checks-claude/02_cronbach_alpha.R`, computed on the **ORIGINAL survey respondents in `data/`**, not the imputed networks):
 
-| Construct | Items | Cronbach's α | Verdict |
-|---|---|---|---|
-| GSS Collective Action | 9 (signdpet, avoidbuy, joindem, attrally, cntctgov, polfunds, usemedia, interpol, actlaw) | **0.82** | Good (≥ 0.70) |
-| ATP Innovation | 6 binary (metech_a–f) | **0.57** (raw nodes) / 0.59 (clean respondents) | Low / marginal |
+| Construct | Source | Items | Respondents | Cronbach's α | Verdict |
+|---|---|---|---|---|---|
+| GSS Collective Action | `GSS_2004_NORC.dta` | 9 (signdpet, avoidbuy, joindem, attrally, cntctgov, polfunds, usemedia, interpol, actlaw) | 1435 | **0.82** | Good (≥ 0.70) |
+| ATP Innovation | `ATP_W3_W4.rds` (2014) | 6 binary (METECH_A–F) | 1761 | **0.59** | Low / marginal |
+
+**Response directions WERE handled** (answer to the methodological question): GSS items all run the *same* direction (1 = "did in past year" → high propensity), recoded uniformly as `4 − x`; since no items oppose, α is invariant to this recoding. ATP items run in *two* directions — A/C/D pro-innovation, B/E/F anti-innovation — so B/E/F are **reverse-scored** (`1 − x`) before α. This is implemented explicitly in `02_cronbach_alpha.R`.
 
 **Recommended replacement text:**
 
 > "To verify the internal consistency of the **collective action** propensity construct (MUR$_{GSS}$), we computed Cronbach's α across the nine items used to build the propensity score (SIGNDPET, AVOIDBUY, JOINDEM, ATTRALLY, CNTCTGOV, POLFUNDS, USEMEDIA, INTERPOL, ACTLAW). We obtain **α = 0.82**, exceeding the conventional 0.70 threshold and confirming adequate internal consistency for the construct underlying the main-text Figure 1 criticality analysis.
 >
-> For the **innovation** propensity construct (MUR$_{ATP}$), built from six binary METECH items, Cronbach's α = 0.57. We report this value transparently. Three considerations contextualize it: (i) Cronbach's α is mechanically attenuated for *dichotomous* items and *short* scales (six items), so it understates reliability relative to a Likert-type equivalent; (ii) openness-to-innovation is arguably a *formative* index — a sum of distinct behavioral tendencies (early adoption, brand variety-seeking, word-of-mouth sharing) — rather than a *reflective* scale measuring a single latent trait, and internal consistency is not the appropriate yardstick for formative indices; (iii) crucially, our headline criticality result (the $\gamma\approx1$ vs. $\gamma\approx4$ contrast) is estimated on the **GSS collective-action network (α = 0.82)**; the ATP innovation application is a secondary, qualitatively-consistent robustness check. We therefore retain the innovation construct as a behavioral index while basing our central claims on the psychometrically stronger collective-action measure."
+> For the **innovation** propensity construct (MUR$_{ATP}$), built from six binary METECH items (ATP 2014), Cronbach's α = 0.59. We report this value transparently. Three considerations contextualize it: (i) Cronbach's α is mechanically attenuated for *dichotomous* items and *short* scales (six items), so it understates reliability relative to a Likert-type equivalent; (ii) openness-to-innovation is arguably a *formative* index — a sum of distinct behavioral tendencies (early adoption, brand variety-seeking, word-of-mouth sharing) — rather than a *reflective* scale measuring a single latent trait, and internal consistency is not the appropriate yardstick for formative indices; (iii) crucially, our headline criticality result (the $\gamma\approx1$ vs. $\gamma\approx4$ contrast) is estimated on the **GSS collective-action network (α = 0.82)**; the innovation application demonstrates that the same structural mechanism is *homomorphic* across behavioral-contagion types (see §12). We therefore retain the innovation construct as a behavioral index while basing our central claims on the psychometrically stronger collective-action measure."
 
-**Rationale:** Reports both values honestly. Pre-empts the obvious reviewer objection to α = 0.57 with three standard, defensible arguments, and re-anchors the main claim on the GSS construct (α = 0.82). This is more credible than hiding or inflating the ATP number.
+**Rationale:** Reports both values honestly, computed on the **original survey respondents** (GSS 2004 .dta, ATP 2014 .rds), not the imputed networks. Pre-empts the obvious reviewer objection to α = 0.59 with three standard, defensible arguments, and re-anchors the main claim on the GSS construct (α = 0.82).
 
-**Caveat discovered during computation:** the raw `ATP_W3_W4.rds` survey file contains uncleaned missing-data sentinels (value `99`) and ~50% NA on METECH items. The imputation pipeline cleans these before assigning node attributes, so α must be computed on the cleaned data (node-level or `all-items-in-{0,1}` filtered respondents), NOT naively on the raw file (which yields nonsensical negative α). Worth a one-line note in the data-cleaning section of the SM.
+**Caveat for the data-cleaning note in SM:** the raw `ATP_W3_W4.rds` carries missing-data sentinels (value `99`) and ~50% NA on METECH items; α must be computed after filtering to clean `{0,1}` responses (1761 respondents). A naive computation on the raw file yields nonsensical negative α.
+
+### 4b. SM Section S1 — documentation gaps to fix (discovered while computing α)
+
+The implementation and the SM text **disagree**; these must be reconciled before resubmission:
+
+1. **Wrong source attribution.** SM S1 intro says propensities use "batteries of items from the American Trends Panel (ATP)", and S1.2 is titled **"Collective Action Propensity Score (ATP 2016)"**. But the collective-action $q_i$ is actually built from **GSS 2004** (`GSS_2004_NORC.dta`), consistent with S1.4 ("we leverage the GSS structure for Figure 1") and with the GSS networks. **Fix:** retitle S1.2 to "Collective Action Propensity Score (GSS 2004)" and correct the intro to say propensities come from ATP 2014 (innovation) *and* GSS 2004 (collective action).
+2. **Missing 9th item.** SM S1.2 lists **8** collective-action items; the code uses **9** — the missing one is `ACTLAW` ("taken / would take action against a law considered unjust"). **Fix:** add the 9th item to the SM list.
+3. **Undocumented scoring/recoding rule.** The SM never states how raw responses become $q_i$:
+   - GSS: 4-point scale (1 = did in past year … 4 = would never) recoded `4 − x` → 0–3, summed over 9 items, normalized by 27.
+   - ATP: binary items; anti-innovation items (B/E/F: "prefer trusted brands", "comfortable with familiar", "wait for others") **reverse-scored** `1 − x`; summed over 6, normalized by 6.
+   - **Fix:** add a short "Scoring" paragraph stating both rules and the reverse-scoring of the anti-innovation items explicitly (directions are currently only implied by the *(Pro/Anti-innovation)* tags in S1.1).
+4. **Direction tags present only for ATP.** S1.1 tags each innovation item Pro/Anti (good); S1.2 gives the response scale but no per-item direction (acceptable since all collective-action items share one direction — worth one sentence saying so).
 
 ---
 
@@ -194,6 +208,26 @@ GSS-DP    → Degree-Preserving Randomized baseline network
 
 ---
 
+## 12. Reframe the paper around COLLECTIVE ACTION (primary), with INNOVATION as a homomorphism check
+
+**Motivation:** the reliability analysis (§4) gives a clean split — collective action (GSS 2004) has α = 0.82, innovation (ATP 2014) has α = 0.59. This argues for promoting collective action to the primary case and demoting innovation to a robustness/generalization demonstration.
+
+**Strategic recommendation (affects framing throughout):**
+- **Lead with collective action.** Make the GSS collective-action network the primary empirical system for *all* headline results: the structural premium (β_DP) and especially the criticality / universality result (γ ≈ 1 vs. γ ≈ 4). The SM already notes Figure 1 uses the GSS structure — so this is mostly a *narrative* re-centering, not a re-computation.
+- **Recast innovation as a homomorphism test.** Present the ATP innovation results as evidence that *the same structural mechanism governs a qualitatively different behavioral contagion*. The argument: if homophilic topology produces the same structural premium and the same continuous-vs-discontinuous criticality contrast for two unrelated behaviors — high-cost, identity-laden **collective action** and low-cost, consumer **innovation adoption** — then the mechanism is a property of *network structure*, not of the specific behavior. That is a *strength*, and it conveniently sidesteps the weaker ATP reliability.
+
+**Suggested sentence for the Results or Discussion:**
+> "We treat the GSS-based collective-action system as our primary case (internal-consistency α = 0.82) and the ATP-based innovation system as a *generalization test*. That both behaviors — despite differing in cost, visibility, and identity-salience — exhibit the same structural premium and the same shift from continuous (homophilic) to discontinuous (randomized) criticality indicates that the governing mechanism is *homomorphic across contagion types*: it is a property of the social topology rather than of the particular behavior diffusing over it."
+
+**Where this propagates:**
+- Abstract: lead with collective action; mention innovation as "a second, structurally-homomorphic behavioral domain."
+- Methods: present GSS collective-action construct first; ATP innovation second, flagged as the generalization case.
+- Keep both Figure 1 (GSS) prominent; the ATP equivalent can move to SM as the homomorphism evidence.
+
+**Rationale:** Turns the α = 0.59 weakness into a framing advantage and tightens the central claim ("structure decides, not the behavior").
+
+---
+
 ## Summary of Edits by Priority
 
 | Priority | Section | Edit Type | Complexity |
@@ -203,7 +237,9 @@ GSS-DP    → Degree-Preserving Randomized baseline network
 | **Critical** | Discussion | Agenc/structure paragraph | Medium |
 | **High** | Discussion | Mean-Field paradox explanation | Medium |
 | **High** | Limitations | MSP heterogeneity expansion | Medium |
-| **High** | S1.3 | Cronbach α values | Low |
+| **High** | S1.3 | Cronbach α values (GSS 0.82 / ATP 0.59, original data) | Low |
+| **Critical** | S1 / framing | Fix ATP-2016→GSS-2004 source error, add 9th item, document scoring/directions (§4b) | Low |
+| **High** | Whole paper | Re-center on collective action; innovation as homomorphism check (§12) | Medium |
 | **Medium** | Discussion | Narrative restructuring (Amplitude + Continuity) | Medium |
 | **Medium** | S3 | Widom line (define or remove) | Low |
 | **Medium** | Terminology | GSS-ER → GSS-DP throughout | Low (mechanical) |
@@ -211,6 +247,6 @@ GSS-DP    → Degree-Preserving Randomized baseline network
 
 ---
 
-**Document prepared:** May 25, 2026  
+**Document prepared:** May 25, 2026 (updated May 28, 2026)  
 **For:** Aníbal Olivera (NDFU Manuscript)  
 **By:** Claude AI Assistant

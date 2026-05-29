@@ -1,3 +1,3 @@
-"construct","n_items","n_cases","raw_alpha","std_alpha"
-"GSS Collective-Action Propensity",9,1000,0.819070190520839,0.820451838679238
-"ATP Innovation Propensity",6,1000,0.569779787748403,0.584033636054599
+"construct","source","n_items","n_respondents","raw_alpha","std_alpha"
+"GSS Collective-Action Propensity","original survey data (data/)",9,1435,0.821444369695892,0.822543492677431
+"ATP Innovation Propensity","original survey data (data/)",6,1761,0.58827411567328,0.602370123914724

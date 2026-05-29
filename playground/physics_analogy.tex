@@ -96,7 +96,7 @@ It is physically correct and mathematically expected to observe a sharp peak (a 
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\textwidth]{../plots/07_phase_transition/method2_critical_slowing_down.pdf}
+    \includegraphics[width=\textwidth]{../plots/07_phase_transition/GSS/method2_critical_slowing_down.pdf}
     \caption{Critical Slowing Down. \textbf{Left:} Average simulation steps. Ordered phases (low MSP, bottom) drag towards the maximum execution horizon due to rigid homophily. \textbf{Right:} The Standard Deviation of simulation steps diverges perfectly along the continuous critical boundary.}
     \label{fig:csd}
 \end{figure}
@@ -132,13 +132,62 @@ To isolate the fractal nature of the transition, we must extract the stationary 
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\textwidth]{../plots/07_phase_transition/method3_avalanches.pdf}
+    \includegraphics[width=\textwidth]{../plots/07_phase_transition/GSS/method3_avalanches.pdf}
     \caption{Avalanche Size Distributions (Method 3). \textbf{Left:} Exactly at $MSP_{c}=0.58$ (Critical), the system exhibits a harsh bimodal distribution governed purely by Social Influence cascades. \textbf{Middle:} In the Super-Critical disordered phase ($MSP \approx 0.83$), the macroscopic risk breaks down. \textbf{Right:} In the strict Sub-Critical homophilic phase ($MSP \approx 0.17$), failures are definitively localized.}
     \label{fig:avalanches}
 \end{figure}
 
 As presented in Figure \ref{fig:avalanches}, we evaluated the system exactly over the absolute susceptibility peak ($IUL=0.075, MSP \approx 0.58$). Here, the transition exposes a violent bimodal probability distribution: the adoption either fails microscopically or triggers a catastrophic cascade affecting $900+$ nodes. Moving away from criticality (towards strict ordered homophily or total high-MSP disorder) abruptly destroys this scale-free risk, transforming the social dynamic back into a trivial predictable failure. Crucially, segregating the adoptions by mechanism proves that "Rational Adopters" play an almost zero role in the macro-cascades; the fat-tailed bimodal uncertainty is manufactured implicitly and robustly by the Social homophily network.
 
+
+\section{Critical Exponents and the Two Paths to Criticality}
+
+A phase transition is characterized by a small set of \textbf{critical exponents} that govern how macroscopic quantities behave as the system approaches its critical point. We work with the reduced distances to criticality along each control axis,
+\begin{equation}
+    t \equiv MSP - MSP_c \qquad \text{(temperature-like)}, \qquad
+    g \equiv IUL - IUL_c \qquad \text{(field-like)} ,
+\end{equation}
+and the order parameter $\Phi$ (mean adoption). Three exponents matter here.
+
+\subsection{The three exponents}
+\paragraph{$\beta$ — order parameter.} Approaching the transition along the temperature axis at zero field ($g=0$), the order parameter grows as a power law,
+\begin{equation}
+    \Phi \;\sim\; |t|^{\beta} \;=\; |MSP - MSP_c|^{\beta} .
+\end{equation}
+
+\paragraph{$\gamma$ — susceptibility.} Along the same temperature axis, the susceptibility (here recovered as the variance of $\Phi$ via the Fluctuation--Dissipation Theorem) \emph{diverges}:
+\begin{equation}
+    \chi \;=\; \mathrm{Var}(\Phi) \;\sim\; |t|^{-\gamma} \;=\; |MSP - MSP_c|^{-\gamma} .
+\end{equation}
+
+\paragraph{$\delta$ — critical isotherm.} Sitting exactly at the critical temperature ($t=0$, i.e.\ $MSP=MSP_c$) and varying the \emph{field}, the order parameter responds as
+\begin{equation}
+    \Phi \;\sim\; |g|^{1/\delta} \;=\; |IUL - IUL_c|^{1/\delta} .
+\end{equation}
+
+\subsection{Scaling relations and mean-field values}
+These exponents are not independent. The static scaling hypothesis enforces the \textbf{Widom} and \textbf{Rushbrooke} relations,
+\begin{equation}
+    \gamma = \beta\,(\delta - 1), \qquad\qquad \alpha + 2\beta + \gamma = 2 ,
+\end{equation}
+where $\alpha$ is the specific-heat exponent. For the mean-field (Landau) universality class the values are
+\begin{equation}
+    \alpha = 0, \qquad \beta = \tfrac{1}{2}, \qquad \gamma = 1, \qquad \delta = 3 ,
+\end{equation}
+which indeed satisfy $\gamma = \beta(\delta-1) = \tfrac12(3-1) = 1$. Recovering a \emph{mutually consistent} set $(\beta,\gamma,\delta)$ is far stronger evidence of genuine criticality than matching any single exponent.
+
+\subsection{Two complementary paths through the critical point}
+Because the social model has two control parameters, the critical point $(IUL_c, MSP_c)$ can be approached along two distinct directions, exactly mirroring the ferromagnetic $M$--$H$--$T$ phase surface:
+
+\begin{itemize}
+    \item \textbf{Path-T (``Camino-T'').} Fix the field at its zero-equivalent ($IUL \approx IUL_c$) and sweep the temperature $MSP$ across $MSP_c$. This is the standard second-order route; it yields $\beta$ and $\gamma$. \emph{Crucially, $MSP$ drives the social-influence channel, which is topology-dependent} — so this path discriminates between empirical (GSS) and randomized (GSS-DP) structure: $\gamma_{GSS}\approx 1$ versus $\gamma_{DP}\approx 4$.
+    \item \textbf{Path-H (``Camino-H'').} Fix the temperature at $MSP = MSP_c$ (the critical isotherm, taken from the Path-T estimate) and sweep the field $IUL$. This yields $\delta$. \emph{The field acts through the rational channel ($q_i \le \Gamma$), which is node-local and topology-blind} — so this path does \emph{not} discriminate between topologies, and indeed both give $\delta \approx 3$.
+\end{itemize}
+
+Thus the two paths probe two different mechanisms: $MSP/\gamma$ is the topology-sensitive social channel (the universality \emph{discriminator}), while $IUL/\delta$ is the topology-blind rational channel (reflecting the empirical MUR distribution shared by both topologies). The choice of $MSP$ as the criticality axis in the main analysis is therefore principled, not arbitrary.
+
+\subsection{Empirical status (exploratory)}
+On the GSS critical isotherm we estimate $\delta \approx 2.85$ ($R^2\approx 0.97$), and $\delta \approx 2.91$ for GSS-DP, both close to the mean-field $\delta=3$. Combined with the Path-T result $\gamma_{GSS}\approx 0.98$, this would close the Widom relation only if $\beta_{GSS}\approx 0.5$. Our current estimate of $\beta$ is poorly constrained ($\beta \approx 0.1$, low $R^2$) because the $MSP$ grid (13 levels) is too coarse near $MSP_c$; a denser near-critical sweep is required before the scaling relations can be tested rigorously. We therefore report $\delta$ and the Path-H/Path-T decomposition as a promising but \emph{exploratory} result.
 
 \section{Computational Susceptibility and Critical Exponents}
 
@@ -168,7 +217,7 @@ A defining signature of a phase transition is its \textbf{Universality Class}, p
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\textwidth]{../plots/07_phase_transition/method4_exponents.pdf}
+    \includegraphics[width=\textwidth]{../plots/07_phase_transition/GSS/method4_exponents.pdf}
     \caption{Empirical Social Model. \textbf{Left:} The order parameter $\Phi \sim (MSP - MSP_c)^\beta$. \textbf{Right:} The social susceptibility $\chi_{soc} \sim |MSP - MSP_c|^{-\gamma}$. Scale-invariance is verified linearly in Log-Log space for continuous external field sweeps along the Widom Line.}
     \label{fig:method4}
 \end{figure}

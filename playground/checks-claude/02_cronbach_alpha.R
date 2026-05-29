@@ -1,92 +1,93 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Cronbach's alpha for MUR constructs (non-destructive standalone)
+# Cronbach's alpha for MUR constructs — from ORIGINAL survey data
 # 02_cronbach_alpha.R
 #
-# Reads node attributes from one representative imputed network for GSS and ATP
-# and computes internal-consistency (Cronbach's alpha) of the MUR item batteries.
-# Does NOT overwrite any network file (unlike scripts/03_*_MUR_calculation.R).
+# IMPORTANT: alpha is computed on the ORIGINAL respondents in data/, NOT on the
+# imputed N=1000 networks (which resample respondents to fill nodes and would
+# distort the reliability estimate). Sources:
+#   - GSS collective action: data/02_GSS_network_ergm/GSS_2004_NORC.dta  (2812 resp.)
+#   - ATP innovation:        data/01_ATP_GSS_imputation/ATP_W3_W4.rds     (3620 resp.)
+#
+# RESPONSE DIRECTIONS are handled explicitly (see below). Reverse-coding only
+# affects alpha when items run in OPPOSITE directions (the ATP pro/anti case);
+# alpha is invariant to a uniform linear recoding (the GSS case).
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 suppressMessages({
-  library(network)
+  library(haven)
   library(psych)
 })
 
-GSS_NET <- "data/02_GSS_network_ergm/GSS_net_sim_1000_001.rds"
-ATP_NET <- "data/02_ATP_network_ergm/ATP_net_sim_1000_001.rds"
 OUT_DIR <- "playground/checks-claude/data/"
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
-# Item batteries -------------------------------------------------------------
-# GSS collective-action items. Original GSS coding: 1=did in past year ...
-# 4=would never. Recoded for propensity as 4 - x  (higher = more prone).
-gss_items <- c("signdpet", "avoidbuy", "joindem", "attrally",
-               "cntctgov", "polfunds", "usemedia", "interpol", "actlaw")
-
-# ATP innovation items (binary). Anti-innovation items are reverse-scored so
-# that 1 always means "pro-innovation".
-atp_items_pro  <- c("metech_a", "metech_c", "metech_d")   # pro-innovation
-atp_items_anti <- c("metech_b", "metech_e", "metech_f")   # anti-innovation (reverse)
-
-extract_items <- function(net, items) {
-  df <- as.data.frame(lapply(items, function(v) get.vertex.attribute(net, v)))
-  names(df) <- items
-  df
-}
-
-report_alpha <- function(label, item_df, n_items) {
+report_alpha <- function(label, item_df, note = "") {
   complete <- item_df[complete.cases(item_df), , drop = FALSE]
   a <- psych::alpha(complete, warnings = FALSE)
-  raw_alpha <- a$total$raw_alpha
-  std_alpha <- a$total$std.alpha
   cat("\n========== CRONBACH'S ALPHA:", label, "==========\n")
-  cat("Items (", n_items, "):", paste(names(item_df), collapse = ", "), "\n")
-  cat("Complete cases (nodes):", nrow(complete), "\n")
-  cat(sprintf("Raw alpha       = %.4f\n", raw_alpha))
-  cat(sprintf("Standardized    = %.4f\n", std_alpha))
-  cat("Item-rest correlations:\n")
-  print(round(a$item.stats[, c("r.drop")], 3))
-  verdict <- if (raw_alpha >= 0.70) "PASS (>= 0.70)" else
-             if (raw_alpha >= 0.60) "ACCEPTABLE (0.60-0.70)" else
-             "LOW (< 0.60)"
-  cat("Verdict:", verdict, "\n")
-  cat("==================================================\n")
-  data.frame(construct = label, n_items = n_items,
-             n_cases = nrow(complete),
-             raw_alpha = raw_alpha, std_alpha = std_alpha)
+  if (nzchar(note)) cat(note, "\n")
+  cat("Items (", ncol(item_df), "):", paste(names(item_df), collapse = ", "), "\n")
+  cat("Complete-case respondents:", nrow(complete), "\n")
+  cat(sprintf("Raw alpha        = %.4f\n", a$total$raw_alpha))
+  cat(sprintf("Standardized     = %.4f\n", a$total$std.alpha))
+  cat("Item-rest correlations (r.drop):\n")
+  ir <- round(a$item.stats[, "r.drop"], 3); names(ir) <- names(item_df); print(ir)
+  verdict <- if (a$total$raw_alpha >= 0.70) "GOOD (>= 0.70)" else
+             if (a$total$raw_alpha >= 0.60) "ACCEPTABLE (0.60-0.70)" else "LOW (< 0.60)"
+  cat("Verdict:", verdict, "\n==================================================\n")
+  data.frame(construct = label, source = "original survey data (data/)",
+             n_items = ncol(item_df), n_respondents = nrow(complete),
+             raw_alpha = a$total$raw_alpha, std_alpha = a$total$std.alpha)
 }
 
 results <- list()
 
-# --- GSS (collective action) ---
-if (file.exists(GSS_NET)) {
-  g <- readRDS(GSS_NET)
-  gss_raw <- extract_items(g, gss_items)
-  # Recode 1..4 -> 3..0 (higher = more prone to act). Out-of-range -> NA.
-  gss_recoded <- as.data.frame(lapply(gss_raw, function(x) {
-    x <- ifelse(x %in% 1:4, 4 - x, NA)
-    x
+# ---------------------------------------------------------------------------
+# (1) GSS collective-action propensity  -- GSS_2004_NORC.dta
+#     9 items, all SAME direction: 1 = "did in the past year" ... 4 = "would
+#     never". Construct = propensity to act, so recode 4 - x (1->3 ... 4->0).
+#     All items point the same way => no reverse items; alpha is identical
+#     with or without this uniform recoding (kept for construct fidelity).
+# ---------------------------------------------------------------------------
+GSS_DTA <- "data/02_GSS_network_ergm/GSS_2004_NORC.dta"
+gss_items <- c("signdpet", "avoidbuy", "joindem", "attrally",
+               "cntctgov", "polfunds", "usemedia", "interpol", "actlaw")
+if (file.exists(GSS_DTA)) {
+  g <- read_dta(GSS_DTA)
+  nm_map <- setNames(names(g), tolower(names(g)))
+  gss_df <- as.data.frame(lapply(gss_items, function(it) {
+    x <- as.numeric(g[[nm_map[[it]]]])
+    ifelse(x %in% 1:4, 4 - x, NA)          # uniform recode, same direction
   }))
-  names(gss_recoded) <- gss_items
-  results$gss <- report_alpha("GSS Collective-Action Propensity", gss_recoded, length(gss_items))
-} else {
-  cat("WARNING: GSS network not found at", GSS_NET, "\n")
-}
+  names(gss_df) <- gss_items
+  results$gss <- report_alpha(
+    "GSS Collective-Action Propensity", gss_df,
+    note = "Source: GSS_2004_NORC.dta | direction: all items 1='past year'->high; recode 4-x.")
+} else cat("WARNING: missing", GSS_DTA, "\n")
 
-# --- ATP (innovation) ---
-if (file.exists(ATP_NET)) {
-  a_net <- readRDS(ATP_NET)
-  atp_raw <- extract_items(a_net, c(atp_items_pro, atp_items_anti))
-  # Reverse-score anti-innovation items so 1 = pro-innovation throughout.
-  atp_scored <- atp_raw
-  for (v in atp_items_anti) atp_scored[[v]] <- 1 - atp_scored[[v]]
-  results$atp <- report_alpha("ATP Innovation Propensity", atp_scored, ncol(atp_scored))
-} else {
-  cat("WARNING: ATP network not found at", ATP_NET, "\n")
-}
+# ---------------------------------------------------------------------------
+# (2) ATP innovation propensity  -- ATP_W3_W4.rds
+#     6 binary items. Directions DIFFER:
+#       pro-innovation : METECH_A, _C, _D  (1 = pro)
+#       anti-innovation: METECH_B, _E, _F  (1 = anti)  -> REVERSE so 1 = pro.
+#     Raw file carries 99 sentinels / NA; keep only respondents with all 0/1.
+# ---------------------------------------------------------------------------
+ATP_RDS <- "data/01_ATP_GSS_imputation/ATP_W3_W4.rds"
+atp_pro  <- c("METECH_A", "METECH_C", "METECH_D")
+atp_anti <- c("METECH_B", "METECH_E", "METECH_F")
+if (file.exists(ATP_RDS)) {
+  d <- readRDS(ATP_RDS)
+  atp_df <- d[, c(atp_pro, atp_anti)]
+  keep <- apply(atp_df, 1, function(r) all(r %in% c(0, 1)))   # drop 99/NA
+  atp_df <- atp_df[keep, , drop = FALSE]
+  for (v in atp_anti) atp_df[[v]] <- 1 - atp_df[[v]]          # reverse-score
+  results$atp <- report_alpha(
+    "ATP Innovation Propensity", atp_df,
+    note = "Source: ATP_W3_W4.rds | direction: A/C/D pro (1=pro), B/E/F anti reversed to 1=pro.")
+} else cat("WARNING: missing", ATP_RDS, "\n")
 
-if (length(results) > 0) {
-  summary_df <- do.call(rbind, results)
-  write.csv(summary_df, file.path(OUT_DIR, "cronbach_alpha_summary.csv"), row.names = FALSE)
-  cat("\nSaved summary to", file.path(OUT_DIR, "cronbach_alpha_summary.csv"), "\n")
+if (length(results)) {
+  summ <- do.call(rbind, results)
+  write.csv(summ, file.path(OUT_DIR, "cronbach_alpha_summary.csv"), row.names = FALSE)
+  cat("\nSaved", file.path(OUT_DIR, "cronbach_alpha_summary.csv"), "\n")
 }
