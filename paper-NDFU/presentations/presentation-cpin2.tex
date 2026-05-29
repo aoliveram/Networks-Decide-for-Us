@@ -1,0 +1,346 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{hyperref}
+
+% ============================================================================
+% THEME & COLOR
+% ============================================================================
+\usetheme{Madrid}
+\usecolortheme{default}
+
+% Custom colors for a professional look
+\definecolor{dark_blue}{RGB}{31, 78, 120}
+\definecolor{accent_orange}{RGB}{230, 126, 34}
+\definecolor{light_gray}{RGB}{240, 240, 240}
+
+\setbeamercolor{palette primary}{bg=dark_blue, fg=white}
+\setbeamercolor{palette secondary}{bg=light_gray, fg=dark_blue}
+\setbeamercolor{palette tertiary}{bg=accent_orange, fg=white}
+\setbeamercolor{alerted text}{fg=accent_orange}
+
+% Remove navigation symbols
+\setbeamertemplate{navigation symbols}{}
+
+% Custom title page
+\setbeamertemplate{title page}{
+  \begin{centering}
+    \vspace{2cm}
+    {\Large \textbf{\inserttitle}}
+    \vspace{0.5cm}
+
+    {\normalsize \insertsubtitle}
+    \vspace{1.5cm}
+
+    {\small \insertauthor}
+    \vspace{0.5cm}
+
+    {\tiny \insertinstitute}
+    \vspace{0.5cm}
+
+    {\tiny \insertdate}
+  \end{centering}
+}
+
+% ============================================================================
+% DOCUMENT INFO
+% ============================================================================
+\title{Networks Decide for Us}
+\subtitle{Phase Transitions and Universal Scaling in Homophily-Imputed Adoption Cascades}
+
+\author{Aníbal Olivera Morales}
+\institute{%
+  Centro de Investigación en Complejidad Social (CICS)\\
+  Universidad del Desarrollo, Santiago, Chile\\
+  \vspace{0.3cm}
+  with Jorge Fábrega Lacoa \& Thomas W. Valente
+}
+
+\date{Critical Phenomena in Networks (CPIN) \\ May 26, 2026}
+
+% ============================================================================
+% BEGIN DOCUMENT
+% ============================================================================
+\begin{document}
+
+% ============================================================================
+% SLIDE 1: TITLE
+% ============================================================================
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% ============================================================================
+% SLIDE 2: MOTIVATION
+% ============================================================================
+\begin{frame}{Why Networks Matter for Adoption}
+
+\begin{itemize}
+  \item Collective behaviors (innovations, social movements, beliefs) spread through networks.
+
+  \vspace{0.5cm}
+  \item Classical models: homogeneous populations, synthetic topologies.
+
+  \vspace{0.5cm}
+  \item Reality: people cluster by similarity (\textcolor{accent_orange}{homophily}).
+
+  \vspace{0.5cm}
+  \item \textbf{Question:} Does empirical network structure act as an autonomous causal force?
+
+  \vspace{0.5cm}
+  \item \textbf{Hypothesis:} Homophilic clustering governs both the \textit{volume} and \textit{dynamics} of collective change.
+\end{itemize}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 3: PHYSICS ANALOGY
+% ============================================================================
+\begin{frame}{From Physics to Society: The Mapping}
+
+\begin{columns}
+  \column{0.5\textwidth}
+  \textbf{Ferromagnetic System (Ising)}
+  \begin{itemize}
+    \item Spins: align or anti-align
+    \item Temperature $T$: disorder
+    \item Field $H$: external bias
+    \item Order parameter: Magnetization $M$
+  \end{itemize}
+
+  \column{0.5\textwidth}
+  \textbf{Social Adoption}
+  \begin{itemize}
+    \item Agents: adopt or abstain
+    \item \textcolor{accent_orange}{MSP} (Max Social Proximity): social flexibility
+    \item \textcolor{accent_orange}{IUL} (Intrinsic Utility): innovation attractiveness
+    \item Order parameter: Adoption $\Phi$
+  \end{itemize}
+\end{columns}
+
+\vspace{1cm}
+
+\centering
+\boxed{\text{Low MSP} = \text{rigid clusters (frozen)} \quad | \quad \text{High MSP} = \text{flexible (melted)}}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 4: METHODOLOGY
+% ============================================================================
+\begin{frame}{Methods: From Data to Simulation}
+
+\begin{enumerate}
+  \item \textbf{Network Imputation}
+  \begin{itemize}
+    \item Homophily parameters from GSS core discussion networks (Smith et al., 2014)
+    \item ERGM simulation onto ATP 2014 respondents ($N=1000$)
+  \end{itemize}
+
+  \vspace{0.4cm}
+  \item \textbf{Agent-Based Model (netdiffuseR)}
+  \begin{itemize}
+    \item Hybrid: Rational adoption (q_i ≤ Γ) + Social influence (selective by similarity)
+    \item ~4 million simulations sweeping IUL × MSP × threshold parameters
+  \end{itemize}
+
+  \vspace{0.4cm}
+  \item \textbf{Analysis}
+  \begin{itemize}
+    \item Generalized Additive Models (GAM): measure structural premium
+    \item Phase transition analysis: extract critical exponents (γ)
+  \end{itemize}
+\end{enumerate}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 5: RESULT 1 - STRUCTURAL PREMIUM
+% ============================================================================
+\begin{frame}{Result 1: The Structural Premium}
+
+\vspace{-0.3cm}
+\begin{itemize}
+  \item \textbf{Finding:} Randomizing network structure $\Rightarrow$ 57\% drop in adoption.
+
+  \vspace{0.3cm}
+  \item \textbf{Interpretation:} Homophilic clustering acts as a structural \textit{catalyst}, not just a passive conduit.
+
+  \vspace{0.3cm}
+  \item Local echo chambers allow social reinforcement, even when population is averse to innovation.
+
+  \begin{center}
+    \vspace{0.3cm}
+    \boxed{\text{β}_{\text{structure}} = -0.850 \quad (p < 0.001)}
+  \end{center}
+
+\end{itemize}
+
+\vspace{0.5cm}
+
+\centering
+\textit{Volume: Networks amplify diffusion. But do they also shape \textbf{how} it happens?}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 6: RESULT 2 - CRITICAL EXPONENTS
+% ============================================================================
+\begin{frame}{Result 2: Empirical Criticality}
+
+\vspace{-0.3cm}
+
+In empirical networks:
+\begin{itemize}
+  \item \textbf{Mean-Field universality}: $\gamma \approx 0.977 \approx 1$
+  \item Susceptibility diverges as power law: $\chi \sim |MSP - MSP_c|^{-\gamma}$
+  \item Critical Slowing Down observed
+  \item \textcolor{accent_orange}{Continuous phase transition (2nd order)}
+\end{itemize}
+
+\vspace{0.3cm}
+
+In randomized networks:
+\begin{itemize}
+  \item \textbf{No universality}: $\gamma \approx 4.0$ (unphysical)
+  \item Power-law breaks down
+  \item Abrupt regime shifts
+  \item \textcolor{accent_orange}{Discontinuous transition (1st order)}
+\end{itemize}
+
+\vspace{0.4cm}
+
+\centering
+\boxed{\text{Separation ratio} = \frac{\gamma_{\text{random}}}{\gamma_{\text{empirical}}} \approx 4.3\times}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 7: THE MEAN-FIELD PARADOX
+% ============================================================================
+\begin{frame}{The Paradox: Why Mean-Field in Clustered Networks?}
+
+\vspace{-0.3cm}
+
+\begin{block}{The Puzzle}
+Mean-Field universality ($\gamma = 1$) typically requires well-mixed systems.\\
+But we observe it in highly clustered, homophilic networks.
+\end{block}
+
+\vspace{0.3cm}
+
+\begin{block}{The Resolution}
+Homophilic clusters act as quasi-isolated \textit{subsystems}.\\
+At criticality (MSP $\approx$ MSP$_c$), weak inter-cluster bridges suddenly activate.\\
+This global synchronization is indistinguishable from mean-field behavior.
+\end{block}
+
+\vspace{0.3cm}
+
+\centering
+\textit{Homophily stabilizes local order \& enables global coherence simultaneously.}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 8: IMPLICATIONS
+% ============================================================================
+\begin{frame}{What This Means}
+
+\textbf{Networks don't just affect volume—they govern continuity.}
+
+\vspace{0.5cm}
+
+\begin{description}
+  \item[\textcolor{accent_orange}{Predictability}] Homophilic topologies produce legible cascades (scaling laws).
+
+  \vspace{0.3cm}
+  \item[\textcolor{accent_orange}{Volatility}] Random topologies produce sudden regime shifts (no warning).
+
+  \vspace{0.3cm}
+  \item[\textcolor{accent_orange}{Scale-Free}] At the critical boundary, adoption sizes follow power laws—fractals of social change.
+
+  \vspace{0.3cm}
+  \item[\textcolor{accent_orange}{Sociological Viscosity}] Empirical homophily acts as a \textit{stabilizing} force that prevents chaos.
+\end{description}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 9: LIMITATIONS & FUTURE
+% ============================================================================
+\begin{frame}{Limitations \& Next Steps}
+
+\textbf{Current Constraints:}
+\begin{itemize}
+  \item MSP as global constant (should be heterogeneous by group/individual)
+  \item Static topology (no co-evolution)
+  \item $N = 1000$ (finite-size scaling analysis pending)
+\end{itemize}
+
+\vspace{0.5cm}
+
+\textbf{Natural Extensions:}
+\begin{itemize}
+  \item Heterogeneous MSP distributions by demographic groups
+  \item Adaptive networks (rewiring as behavior spreads)
+  \item Multi-layer topology (overlap across social dimensions)
+\end{itemize}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 10: CONCLUSION
+% ============================================================================
+\begin{frame}{Conclusion}
+
+\begin{center}
+  \Large \textbf{Networks Decide for Us}
+\end{center}
+
+\vspace{0.5cm}
+
+Society's structural layout acts as an active mechanism that:
+
+\begin{enumerate}
+  \item Amplifies collective outcomes (structural premium)
+  \item Determines whether change is continuous or catastrophic (criticality)
+  \item Obeys the same universal laws as physical phase transitions
+\end{enumerate}
+
+\vspace{0.5cm}
+
+\textit{The hidden assumption of homogeneous populations was masking a deeper truth: our networks are not neutral stages for social action—they are the fundamental choreographers of collective behavior.}
+
+\end{frame}
+
+% ============================================================================
+% SLIDE 11: THANK YOU
+% ============================================================================
+\begin{frame}[plain]
+  \begin{centering}
+    \Large \textbf{Thank You}
+
+    \vspace{1cm}
+
+    \normalsize Questions?
+
+    \vspace{1cm}
+
+    \small
+    \href{mailto:an.oliveram@udd.cl}{an.oliveram@udd.cl}\\
+    \href{https://github.com/aoliveram/Networks-Decide-for-Us}{github.com/aoliveram/Networks-Decide-for-Us}
+  \end{centering}
+\end{frame}
+
+\end{document}
