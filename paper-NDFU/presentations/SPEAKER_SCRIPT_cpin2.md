@@ -77,7 +77,7 @@
 >
 > Why is MSP the temperature? Because temperature is what melts order. When the social openness is low, the network is frozen into rigid little echo chambers, you're only influenced by very similar people; when high, you're 'melting' those social boundaries so influence can flow across the whole system.
 >
-> So now you can ask: is there a *critical point* on adoption? 
+> So the question becomes: does adoption have a genuine *critical point* — and if so, what kind of transition is it?
 
 ---
 
@@ -85,7 +85,7 @@
 
 > Just as in the ferromagnetic situation, you can test criticallity following two paths.
 >
-> One path — the green one — you fix the external field and change the temperature. That gives you a *continuous 2nd order* transition. 
+> One path — the green one — you fix the external field at zero and change the temperature. That gives you a *continuous 2nd order* transition. 
 > The other — the blue one — you fix the temperature below the critical point and change the field. That one can give you a *1st order* transition.
 
 ---
@@ -108,8 +108,8 @@
 
 ## Slide 11 — Result 3 (part 1): Field direction, δ ≈ 3 for both (9:35–10:15)
 
-> Now the critical exponents. There are two directions we can probe. First, the *field* direction: we sit right at the critical openness and turn up the attractiveness. Here both networks respond the same way, with an exponent delta of about 3. 
-> So along this axis the two networks look identical; the structure makes no difference.
+> Now the critical exponents. There are two directions we can probe. First, the *field* direction: we sit right at the critical openness and turn up the attractiveness. Here both networks show exponent delta of about 3, close to a mean-field value. 
+> So both kind of networks look identical, and the structure makes no difference.
 
 ---
 
@@ -117,11 +117,11 @@
 
 > Now the *temperature* direction: we fix the attractiveness and turn up the social openness. 
 > On the realistic networks the susceptibility diverges as a clean power law with exponent gamma essentially equal to **1** — which is the classic mean-field value.
->  On the scrambled network gamma is about **4**, which isn't a real critical exponent at all: the power law breaks, and the system either does nothing or explodes with no warning.
+> On the scrambled network gamma is about **4**, which is not a real critical exponent at all.
 >
-> So the punchline: this clean, universal behavior is **not generic** — it appears *only* on the realistic, homophily-built network. Scramble the homophily and you lose it. The structure is what makes social change legible.
+> So the mean-field response appears *only* on the realistic homophily-built network. If you rewire the network, you will lose it.
 >
-> And why does that matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents — the substance, the lattice, the chemistry are all irrelevant. The same logic here: near the tipping point the aggregate doesn't care about each person's exact threshold, the specific content of the behavior, or individual quirks — only the structure and how far we sit from the critical point. That's the precise sense in which structure makes the collective *legible*: a handful of macro-structural parameters govern it, and the microscopic mess washes out.
+> And why does that matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents, so the substance, the lattice, the chemistry are all irrelevant. The logic here is that the aggregate doesn't care about the specific content of the behavior, or individual quirks — but only the structure. So, if we accept this model as an "stylized reallity", we can say that a handful of macro-structural parameters govern the phenomenon.
 
 ---
 
@@ -133,9 +133,7 @@
 > Also, when we have an attractive behaviour and an unattractive, we ended up with almost the same adoption — just because of social influence.
 > 
 > Is the structure an autonomous force deciding *how* change spreads?
-> Yes: on a realistic network the transition is continuous, and across comparable societies it carries statistical early warning — rising volatility, slower recovery — before it tips. Scramble the structure and that warning disappears; change becomes abrupt. This signposted regime is exclusive to homophilic structure. [REVISIT]
->
-> This reframes a familiar intuition: even when a single episode feels abrupt and surprising, the *aggregate* — averaged over comparable cases — follows identifiable, even universal patterns. It's the same reason the S-curve, and the roughly one-quarter tipping fraction, keep reappearing across fax machines, hashtags, and protest waves.
+> Yes: on a realistic network the aggregated pattern is continuous. Even when a single case of social change feels abrupt and surprising, the *aggregate* follows a familiar pattern. Even when there are particular cases when adoption is bimodal, we still use the usual Roger's S-curve to explain social diffusions so different as fax machines, hashtags, and protest waves.
 > 
 > The big message for this community: collective social change is not the sum of individual preferences. At the tipping point it behaves like critical matter — and the control parameter is the structure of our ties. Thank you.
 
