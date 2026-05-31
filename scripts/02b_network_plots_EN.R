@@ -111,13 +111,13 @@ make_plots <- function(graphs, label, out_dir) {
   )
 
   p_lin <- ggplot() + base_layers() +
-    coord_cartesian(xlim = c(0, 100), ylim = c(0, max(deg$mean_pk) * 2.5)) +
+    coord_cartesian(xlim = c(0, 100), ylim = c(0, 0.08)) +   # original limits
     labs(title = "(a) Linear scale", x = expression(italic(k)),
          y = expression(italic(p)[italic(k)])) + theme_pro
 
   p_log <- ggplot() + base_layers() +
     scale_x_log10() + scale_y_log10() +
-    coord_cartesian(xlim = c(10, 70), ylim = c(1e-5, 1)) +
+    coord_cartesian(xlim = c(5, 150), ylim = c(1e-5, 1)) +   # original limits
     labs(title = "(b) Log-log scale",
          x = expression(log[10]~italic(k)),
          y = expression(log[10]~italic(p)[italic(k)])) + theme_pro
