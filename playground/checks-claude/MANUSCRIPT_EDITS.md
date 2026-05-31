@@ -228,6 +228,27 @@ GSS-DP    → Degree-Preserving Randomized baseline network
 
 ---
 
+## 13. γ inconsistency at IUL = 0.275 (paper/abstract vs. actual data) — IMPORTANT
+
+The susceptibility-exponent table is internally inconsistent across documents at the **IUL = 0.275** row:
+
+| Source | $MSP_c$ at IUL=0.275 | GSS $\gamma$ |
+|---|---|---|
+| `paper_SN26.tex` Table, `abstract_SN26.tex` Table 2, `formal_comparison.tex` | 0.166 | **1.539** |
+| `playground/physics_analogy.tex` Table, `output/07_phase_transition/GSS/gamma_exponents.csv` (actual pipeline output) | 0.250 | **0.873** |
+
+So the paper's outlier **1.539** comes from pinning $MSP_c=0.166$ for that row, while the current script pins $MSP_c=0.250$ uniformly and yields **0.873**. This is exactly the $MSP_c$-choice fragility flagged elsewhere.
+
+**Consequence for the "mean γ" claim:**
+- With the data-faithful values (0.977, 0.892, 0.892, **0.873**): mean = **0.91** — clean, uniform, strengthens the Mean-Field ($\gamma\approx1$) story.
+- With the paper's values (…, **1.539**): mean = **1.075**, and the column looks non-uniform (one outlier at 1.54).
+
+**Recommendation:** adopt ONE $MSP_c$ convention. The uniform $MSP_c=0.25$ (→ 0.873) is preferable: it matches the actual computed output, removes the 1.54 outlier, and yields a tighter GSS column (all ∈ [0.87, 0.98], mean 0.91). Update `paper_SN26.tex` Table and `abstract_SN26.tex` Table 2 accordingly. **No document currently prints an average γ**, so there is no average to correct in the paper — but the per-row 1.539 should be reconciled. (The CPIN deck has been set to the data-faithful 0.87 / mean 0.91.)
+
+## 14. BAM notation $\mathrm{logit}[\mathbb{E}(\Phi)]$ is correct — keep it
+
+The question arose whether the BAM should read $\mathrm{logit}(\Phi)$ instead of $\mathrm{logit}[\mathbb{E}(\Phi)]$. **Keep $\mathbb{E}(\Phi)$.** In a GLM/GAM the link function transforms the *conditional mean* of the response, $g(\mu_i)=g(\mathbb{E}[Y_i\mid X_i]) = \eta_i$, not the random outcome itself. Since $\Phi$ is the simulation-level random outcome (final adoption proportion) and the BAM models its expectation, $\mathrm{logit}[\mathbb{E}(\Phi)]$ is the precise and standard form (cf. Wood, mgcv). Writing $\mathrm{logit}(\Phi)$ would be technically loose. No change to paper or deck.
+
 ## Summary of Edits by Priority
 
 | Priority | Section | Edit Type | Complexity |

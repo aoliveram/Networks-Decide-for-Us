@@ -14,7 +14,8 @@
 \usepackage{array}
 \usepackage{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta, positioning}
+\usepackage{qrcode}
+\usetikzlibrary{arrows.meta, positioning, calc}
 
 % ---------- Fonts: clean humanist sans, professional math ----------
 \usefonttheme{professionalfonts}
@@ -25,6 +26,7 @@
 \definecolor{ndred}{RGB}{222,32,38}       % bright red rule
 \definecolor{ndreddark}{RGB}{176,22,28}   % darker brick red (subtitles)
 \definecolor{ndgreen}{RGB}{0,164,80}      % green reference markers
+\definecolor{ndblue}{RGB}{30,90,200}      % path-1 blue
 \definecolor{ndgray}{RGB}{90,90,90}
 
 % ---------- Strip all Beamer chrome ----------
@@ -62,6 +64,20 @@
     \end{center}
     \vfill
   \end{frame}}
+
+% Six-node network snapshot. Args = fill colour (black/white) for nodes 1..6.
+% Shared topology: hub node 4; edges 1-4, 2-4, 4-6, 4-5, 1-2; node 3 isolated.
+\newcommand{\sixnet}[6]{%
+\begin{tikzpicture}[scale=0.5,baseline=-0.6cm]
+  \coordinate (a1) at (0,1.0);   \coordinate (a2) at (-1.05,0.05);
+  \coordinate (a3) at (2.0,1.0); \coordinate (a4) at (1.0,0);
+  \coordinate (a5) at (0.25,-1.1);\coordinate (a6) at (2.35,-0.35);
+  \draw[gray] (a1)--(a4) (a2)--(a4) (a4)--(a6) (a4)--(a5) (a1)--(a2);
+  \foreach \p/\c/\n in {a1/#1/1,a2/#2/2,a3/#3/3,a4/#4/4,a5/#5/5,a6/#6/6}
+    \node[circle,draw,fill=\c,minimum size=4.6mm,inner sep=0pt,
+          label={[font=\tiny,text=ndgray,inner sep=1pt]above:\n}] at (\p){};
+\end{tikzpicture}}
+\newcommand{\snaparrow}{\ {\color{ndred}\large$\boldsymbol{\Rightarrow}$}\ }
 
 % ============================================================================
 \title{Networks Decide for Us}
@@ -105,84 +121,95 @@
 \end{itemize}
 \vspace{0.5cm}
 \begin{center}
-\fcolorbox{ndred}{white}{\parbox{0.86\textwidth}{\centering
-Conditional on \emph{fixed} individual propensities, does empirical homophilic
-structure act as an \emphr{autonomous causal force} — shaping not just \emph{how much}
-adoption occurs, but the \emphr{physics of its tipping points}?}}
+\fcolorbox{ndred}{white}{\parbox{0.9\textwidth}{\centering
+Conditional on \emph{fixed individual propensities}, can the \emphr{shape of more realistic
+networks alone} change the outcome? Can the structure itself be an \emphr{autonomous force},
+deciding not just \emph{how much} spreads, but \emph{how} it spreads?}}
 \end{center}
 \end{frame}
 
 % ================================================================ THE MODEL
 \sectionslide{The model}
 
-% ---- Rational choice
+% ---- Rational choice  (point 1: separated IUL/MUR ; point 2: 3 rational snapshots)
 \begin{frame}{The model — 1) Rational Choice}
-An innovation has an \emph{Intrinsic Utility Level} (IUL) $\Gamma\in[0,1]$.
-Each agent has a \emph{Minimum Utility Requirement} (MUR) $q_i\in[0,1]$ (its aversion).
-\vspace{0.3cm}
+\begin{itemize}
+  \item Following the literature, the attractiveness of the innovation is its
+        \emph{Intrinsic Utility Level} (IUL), $\Gamma\in[0,1]$.
+  \item Each person has a \emph{Minimum Utility Requirement} (MUR), $q_i\in[0,1]$,
+        representing their aversion to adopting the behavior.
+\end{itemize}
+\vspace{0.15cm}
 \begin{center}
-An agent adopts on its own iff
-\qquad \fcolorbox{ndred}{white}{$\;q_i \le \Gamma \;\implies\; a_i = 1\;$}
+An agent adopts on its own iff\quad
+\fcolorbox{ndred}{white}{$\;q_i \le \Gamma \;\implies\; a_i = 1\;$}
 \end{center}
-\vspace{0.4cm}
+\vspace{0.25cm}
 \begin{center}
-\begin{tikzpicture}[every node/.style={circle,draw,minimum size=6mm,inner sep=0pt},
-                    adopt/.style={fill=black,text=white}, scale=1.0]
-  \node[adopt] (1) at (0,1.2) {}; \node (3) at (2.2,1.2) {};
-  \node (2) at (-1.1,0) {}; \node (4) at (1.1,0) {}; \node (6) at (2.6,-0.2) {};
-  \node (5) at (0.2,-1.2) {};
-  \draw (1)--(4) (2)--(4) (4)--(6) (4)--(5) (1)--(2);
-  \node[ndgray,draw=none] at (-1.9,0) {\scriptsize $q_2<\Gamma$};
-  \node[ndgray,draw=none] at (1.95,0.35) {\scriptsize $q_4<\Gamma$};
-  \node[ndgray,draw=none] at (-0.6,-1.5) {\scriptsize $q_5>\Gamma$};
-\end{tikzpicture}
+\sixnet{black}{white}{white}{white}{white}{white}\snaparrow
+\sixnet{black}{white}{white}{black}{white}{white}\snaparrow
+\sixnet{black}{black}{white}{black}{white}{black}
 \end{center}
-\begin{center}\footnotesize Adoption by intrinsic utility is \emphr{deterministic} and \emphr{topology-blind}.\end{center}
+\begin{center}\footnotesize
+Everyone with $q_i\le\Gamma$ adopts, regardless of neighbors:
+\emphr{deterministic} and \emphr{topology-blind}.
+\end{center}
 \end{frame}
 
-% ---- Selective social influence
+% ---- Selective social influence (point 2: 3 social snapshots)
 \begin{frame}{The model — 2) Selective Social Influence}
-If intrinsic adoption fails, agents may adopt by peer contagion \refn{5,6}. Effective exposure:
-\begin{equation*}
+If intrinsic adoption fails, an agent may still adopt by peer contagion if
+$\tau_i \le \tilde{E}_i$ \refn{5,6} — but only \emph{influential} peers, those socially
+\emph{close} in Blau space \refn{7}, count:
+\begin{equation*}\small
   \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
-  \qquad a_i=\begin{cases}1 & \text{if } \tau_i \le \tilde{E}_i\\[2pt]0 & \text{otherwise}\end{cases}
+  \qquad
+  \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right)
 \end{equation*}
-Only \emph{influential} infected peers count — those socially \emph{close} in Blau space:
-\begin{equation*}
-  \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right),
-  \qquad U_{ij}\sim\mathrm{Unif}(0,1)
-\end{equation*}
-\vspace{-0.1cm}
-\begin{itemize}
-  \item $d_{ij}$: social distance between $i$ and $j$; \quad $\sigma(z)=1/(1+e^{-z/T})$.
-  \item \emphr{MSP} (Maximum Social Proximity): how far across demographic lines influence can reach. Socially similar peers persuade more \refn{7}.
-\end{itemize}
-\begin{center}\footnotesize Social adoption is \emphr{stochastic} (via $U_{ij}$) and \emphr{topology-sensitive}.\end{center}
+\vspace{-0.15cm}
+\begin{center}
+\sixnet{black}{white}{white}{white}{black}{white}\snaparrow
+\sixnet{black}{black}{white}{white}{black}{white}\snaparrow
+\sixnet{black}{black}{white}{black}{black}{white}
+\end{center}
+\begin{center}\footnotesize
+$\tau_4=0.5$: close adopters $d_{14},d_{24}<MSP$ count; the distant one $d_{54}>MSP$ does
+\emph{not} $\Rightarrow$ node 4 ignites from similar peers only.\\
+\emphr{MSP} (Maximum Social Proximity) sets how far influence reaches; this channel is
+\emphr{stochastic} and \emphr{topology-sensitive}.
+\end{center}
 \end{frame}
 
 % ================================================================ SETTING UP
 \sectionslide{Imputing structure \& running the model}
 
-\begin{frame}{Imputing a network onto a survey \refn{3}}
-\begin{columns}[T]
-\column{0.55\textwidth}
-\textbf{General Social Survey (GSS 2004)}
-\begin{itemize}\footnotesize
-  \item Representative; demographics (age, sex, educ, race, religion); \emph{ego} network module.
-\end{itemize}
-\textbf{American Trends Panel (ATP 2014)}
-\begin{itemize}\footnotesize
-  \item Representative; same demographics; \emph{no} network — but rich propensity items ($q_i$).
-\end{itemize}
+% ---- Imputation slide (points 4,5: horizontal pipeline, image bottom-right)
+\begin{frame}{Imputing a network onto a survey}
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+  \node[draw,rounded corners,fill=ndreddark!8,text width=2.7cm,align=center,
+        minimum height=1.25cm] (a) {Homophily strengths \refn{3,4}};
+  \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
+        minimum height=1.25cm,right=1.0cm of a] (b) {Construct plausible networks \emph{(ERGM)}};
+  \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
+        minimum height=1.25cm,right=1.0cm of b] (c) {Add propensity scores $q_i$ to each node};
+  \draw[-{Latex},ndred,line width=1pt] (a)--(b);
+  \draw[-{Latex},ndred,line width=1pt] (b)--(c);
+\end{tikzpicture}
+\end{center}
 \vspace{0.2cm}
-Homophily strengths $\hat{\boldsymbol\beta}$ from GSS confidant data \refn{3,4} feed an \emphr{ERGM}:
+\begin{columns}[c]
+\column{0.52\textwidth}
+\footnotesize
+Tie probability is a function of distance in Blau space (age, sex, education, race, religion):
 \begin{equation*}\footnotesize
   \mathrm{logit}\,\Pr(Y_{ij}=1)=\alpha+\boldsymbol\beta^\top \mathbf{d}_{ij}
 \end{equation*}
-$\Rightarrow$ plausible discrete topologies ($N=1000$) on ATP respondents.
-\column{0.45\textwidth}
+$\hat{\boldsymbol\beta}$ comes from GSS confidant data \refn{4}; propensities $q_i$ come from
+real survey answers (innovation, collective action).
+\column{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
+\includegraphics[width=0.92\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
 {\scriptsize Right-skewed degree structure that ER / BA models fail to match jointly.}
 \end{columns}
 \end{frame}
@@ -243,40 +270,61 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
 \end{center}
 \end{frame}
 
+% ---- Two paths slide (point 10: cleaner 3D depth ; point 8: asymmetry framing)
 \begin{frame}{Two paths through the critical point}
 \begin{columns}[c]
-\column{0.5\textwidth}
+\column{0.52\textwidth}
 \centering
-\begin{tikzpicture}[scale=0.95]
+\begin{tikzpicture}[scale=1.05, font=\scriptsize, >={Latex[length=2mm]}]
+  \def\px{0.95}\def\py{0.52}                 % depth (T) step
+  % ---- response surface M(T,H): 3 waterfall profiles, front=sharp, back=smooth ----
+  \foreach \i/\op in {0/80,1/50,2/28}{
+    \begin{scope}[shift={(\i*\px,\i*\py)}]
+      \ifnum\i=0
+        \draw[black!\op,line width=0.9pt] (0,0.30)--(1.42,0.40)--(1.58,1.78)--(3,1.96);
+      \else\ifnum\i=1
+        \draw[black!\op,line width=0.9pt] (0,0.46) .. controls (1.4,0.82) and (1.65,1.55) .. (3,1.92);
+      \else
+        \draw[black!\op,line width=0.9pt] (0,0.62) .. controls (1.5,0.98) and (2.1,1.55) .. (3,1.86);
+      \fi\fi
+    \end{scope}
+  }
+  \draw[black!22] (0,0.30)--(2*\px,0.62+2*\py);     % sheet side rails
+  \draw[black!22] (3,1.96)--(3+2*\px,1.86+2*\py);
+  % ---- floor (T,H) control plane at M=0 ----
+  \fill[black!5] (0,0)--(3,0)--(3+2*\px,2*\py)--(2*\px,2*\py)--cycle;
+  \draw[black!22] (0,0)--(3,0)--(3+2*\px,2*\py)--(2*\px,2*\py)--cycle;
   % axes
-  \draw[-{Latex}] (0,0)--(3.4,0) node[right]{\small $T$ (MSP)};
-  \draw[-{Latex}] (0,0)--(0,2.6) node[above]{\small $M$ ($\Phi$)};
-  \draw[-{Latex}] (0,0)--(-1.5,-1.1) node[left]{\small $H$ (IUL)};
-  % spontaneous magnetization curve (ordered side)
-  \draw[ndgray,thick] (0,2.2) .. controls (1.2,1.9) and (1.8,1.2) .. (2.2,0);
-  % critical point
-  \filldraw[ndred] (2.2,0) circle (1.6pt);
-  \node[ndreddark,font=\scriptsize] at (2.65,0.28) {$T_c$};
-  % path T (green dashed, along T at H=0)
-  \draw[ndgreen,dashed,thick,-{Latex}] (0.2,2.05)--(2.0,0.15);
-  \node[ndgreen,font=\scriptsize] at (0.7,1.5) {2};
-  % path H (along field at T<Tc)
-  \draw[blue,thick,-{Latex}] (-1.0,-0.75)--(1.0,0.75);
-  \node[blue,font=\scriptsize] at (0.55,-0.05) {1};
+  \draw[->,thick] (0,0)--(3.25,0) node[below right=-1pt]{$H$ (IUL)};
+  \draw[->,thick] (0,0)--($(2*\px,2*\py)+(0.3*\px,0.3*\py)$) node[above]{$T$ (MSP)};
+  \draw[->,thick] (0,0)--(0,2.35) node[left]{$M$ ($\Phi$)};
+  % first-order coexistence line (on floor) ending at the critical point
+  \coordinate (cp) at ($(1.5,0)+(1.15*\px,1.15*\py)$);
+  \draw[ndred,line width=1.5pt] (1.5,0)--(cp);
+  \filldraw[ndred] (cp) circle (1.7pt);
+  \node[ndreddark] at ($(cp)+(0.42,0.10)$){$T_c$};
+  \draw[black!35,dashed] (cp)--($(cp)+(0,1.25)$);    % tie floor point to surface kink
+  % Path 1 (blue): vary H at fixed (low) T — crosses the coexistence line
+  \draw[ndblue,line width=1.3pt,->] (0.35,0)--(2.9,0);
+  \node[ndblue] at (2.35,-0.24){\textbf{1}: vary $H$};
+  % Path 2 (green): vary T at fixed H — runs into the critical point
+  \draw[ndgreen,line width=1.3pt,dashed,->] (1.5,0)--($(1.5,0)+(1.95*\px,1.95*\py)$);
+  \node[ndgreen] at ($(1.5,0)+(1.95*\px,1.95*\py)+(0.05,0.2)$){\textbf{2}: vary $T$};
 \end{tikzpicture}
-\column{0.5\textwidth}
+\column{0.48\textwidth}
 \footnotesize
-\textbf{\color{ndgreen}Path 2 — vary MSP at fixed IUL (``Camino-T'')}
+\textbf{\color{ndgreen}Path 2 — vary MSP ($T$) at fixed IUL}
 \begin{itemize}\footnotesize
-  \item continuous, \emphr{2nd-order} transition
-  \item probes the \emphr{social channel} $\Rightarrow$ topology-sensitive
-  \item yields susceptibility exponent $\gamma$
+  \item continuous \emphr{2nd-order} transition; exponent $\gamma$
+  \item drives the \emphr{social channel} $\Rightarrow$ \emphr{topology-sensitive}
+  \item \emphr{only the plausible network reaches $\gamma\approx1$}
 \end{itemize}
 \vspace{0.2cm}
-\textbf{\color{blue}Path 1 — vary IUL at fixed MSP (``Camino-H'')}
+\textbf{\color{ndblue}Path 1 — vary IUL ($H$) at fixed MSP}
 \begin{itemize}\footnotesize
-  \item probes the \emphr{rational channel} $\Rightarrow$ topology-blind
-  \item yields critical-isotherm exponent $\delta$
+  \item field-direction response; exponent $\delta$
+  \item drives the \emphr{rational channel} $\Rightarrow$ \emphr{topology-blind}
+  \item \emphr{both} networks give the same $\delta\approx3$
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -284,46 +332,60 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
 % ================================================================ RESULTS
 \sectionslide{Results}
 
-\begin{frame}{Result 1 — A structural premium (volume)}
+% ---- Result 1 = DYNAMICS (point 12 reorder)
+\begin{frame}{Result 1 — Criticality signatures (dynamics)}
+\centering
+\includegraphics[width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[2pt]
+{\footnotesize Top: Total, Rational and Social adoption. Rational adoption grows smoothly with
+IUL; \emph{social} adoption is more complex, keeping total adoption high over a wide region.
+Bottom-left: susceptibility $\chi=\mathrm{Var}(\Phi)$ ridge; bottom-right: relaxation-time SD
+divergence — \emphr{Critical Slowing Down}.}
+\end{frame}
+
+% ---- Result 2 = STRUCTURAL PREMIUM (point 11: full OR table)
+\begin{frame}{Result 2 — A structural premium (volume)}
 \begin{columns}[c]
-\column{0.54\textwidth}
+\column{0.46\textwidth}
 BAM isolates the marginal effect of destroying empirical structure:
-\vspace{0.3cm}
+\vspace{0.2cm}
 \begin{center}
-\fcolorbox{ndred}{white}{$\;\beta_{\text{DP}}=-0.850^{***}\;$}\\[4pt]
+\fcolorbox{ndred}{white}{$\;\beta_{\text{DP}}=-0.850^{***}\;$ (OR $=0.43$)}\\[4pt]
 {\footnotesize $\Rightarrow$ randomization cuts adoption odds by $\sim$\emphr{57\%}}
 \end{center}
-\vspace{0.3cm}
-\footnotesize Under \emph{identical} individual propensities, homophilic clustering lets social
-reinforcement build inside \emphr{local echo chambers} and overcome resistance — even
-for unattractive innovations ($\Gamma<0.25$).
-\column{0.46\textwidth}
+\vspace{0.2cm}
+\footnotesize Under \emph{identical} propensities, homophilic clustering lets social
+reinforcement build inside \emphr{local echo chambers} — even for unattractive
+innovations ($\Gamma<0.25$).
+\column{0.54\textwidth}
 \centering
-\renewcommand{\arraystretch}{1.2}
-{\footnotesize
-\begin{tabular}{@{}lc@{}}
+\renewcommand{\arraystretch}{1.12}
+{\scriptsize
+\begin{tabular}{@{}lcc@{}}
 \toprule
- & Total adoption \\
+\textbf{Total adoption (GSS)} & Estimate & OR \\
 \midrule
-$\tau_{\text{mean}}$ & $-6.944^{***}$ \\
-$\tau_{\text{sd}}$ & $5.942^{***}$ \\
-DP topology & $\mathbf{-0.850}^{***}$ \\
+(Intercept) & $6.534^{***}$ & --- \\
+$\tau_{\text{mean}}$ & $-6.944^{***}$ & --- \\
+$\tau_{\text{sd}}$ & $5.942^{***}$ & --- \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{Seeding (ref: Random)}}\\
+\quad Central & $0.120^{***}$ & 1.127 \\
+\quad Closeness & $0.119^{***}$ & 1.126 \\
+\quad Eigenvector & $0.118^{***}$ & 1.125 \\
+\quad Marginal & $-0.067^{***}$ & 0.935 \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{Topology (ref: Plausible)}}\\
+\quad Deg.-pres. random & $\mathbf{-0.850}^{***}$ & \textbf{0.427} \\
 \midrule
-Dev. explained & 82.2\% \\
+\multicolumn{3}{@{}l}{Deviance explained: 82.2\%\quad $N=4{,}093{,}440$}\\
 \bottomrule
 \end{tabular}}
-\\[4pt]{\scriptsize $N=4{,}093{,}440$ simulations.}
+\\[3pt]{\scriptsize $^{***}p<0.001$. OR $=\exp(\beta)$.}
 \end{columns}
 \end{frame}
 
-\begin{frame}{Result 2 — Criticality signatures (dynamics)}
-\centering
-\includegraphics[width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[2pt]
-{\footnotesize Top: adoption heatmaps. Bottom-left: susceptibility $\chi=\mathrm{Var}(\Phi)$ ridge.
-Bottom-right: divergence of relaxation-time SD — \emphr{Critical Slowing Down}.}
-\end{frame}
-
-\begin{frame}{Result 3 — Universality: the discriminator}
+% ---- Result 3 = UNIVERSALITY (point 8 reframe ; point 15 fixed table)
+\begin{frame}{Result 3 — Universality is exclusive to plausible networks}
 \begin{columns}[c]
 \column{0.5\textwidth}
 \centering
@@ -334,21 +396,22 @@ Bottom-right: divergence of relaxation-time SD — \emphr{Critical Slowing Down}
 {\footnotesize
 \begin{tabular}{@{}lcc@{}}
 \toprule
-IUL & GSS $\gamma$ & GSS-DP $\gamma$ \\
+IUL & Plausible $\gamma$ & Randomized $\gamma$ \\
 \midrule
 0.200 & 0.98 & 3.71 \\
 0.225 & 0.89 & 3.67 \\
 0.250 & 0.89 & 3.67 \\
-0.275 & 1.54 & 4.67 \\
+0.275 & 0.87 & 4.67 \\
 \midrule
 mean & \emphr{0.91} & \emphr{3.93} \\
 \bottomrule
 \end{tabular}}
-\vspace{0.3cm}
-\begin{itemize}\footnotesize
-  \item GSS: $\gamma\approx1$ — \emphr{Mean-Field universality} (continuous).
-  \item GSS-DP: $\gamma\approx4$ — no power law; \emphr{discontinuous} regime shift.
-  \item Separation $\approx \mathbf{4.3\times}$.
+\vspace{0.15cm}
+\begin{itemize}\scriptsize
+  \item \emphr{Only} the plausible (homophilic) network reaches $\gamma\approx1$ —
+        \emph{Mean-Field universality}, a continuous transition.
+  \item Randomization $\Rightarrow\gamma\approx4$: no power law, \emphr{discontinuous} regime shift.
+  \item Separation $\approx\mathbf{4.3\times}$.
 \end{itemize}
 \end{columns}
 \end{frame}
@@ -358,14 +421,14 @@ mean & \emphr{0.91} & \emphr{3.93} \\
 \column{0.52\textwidth}
 \textbf{Two control parameters, two channels:}
 \begin{itemize}\footnotesize
-  \item \emphr{Path 2 (MSP, $\gamma$)}: drives the \emph{social} channel.
-        $\gamma_{\text{GSS}}\!\approx\!1$ vs.\ $\gamma_{\text{DP}}\!\approx\!4$ — \emphr{topology-sensitive}.
-  \item \emphr{Path 1 (IUL, $\delta$)}: drives the \emph{rational} channel ($q_i\le\Gamma$ is node-local).
-        $\delta_{\text{GSS}}\!\approx\!2.85$, $\delta_{\text{DP}}\!\approx\!2.91$ — \emphr{topology-blind} (both $\approx$ MF $\delta=3$).
+  \item \emphr{Path 2 (MSP, $\gamma$)}: the \emph{social} channel.
+        $\gamma_{\text{GSS}}\!\approx\!1$ vs.\ $\gamma_{\text{DP}}\!\approx\!4$ — \emphr{discriminates}.
+  \item \emphr{Path 1 (IUL, $\delta$)}: the \emph{rational} channel ($q_i\le\Gamma$ is node-local).
+        $\delta_{\text{GSS}}\!\approx\!2.85$, $\delta_{\text{DP}}\!\approx\!2.91$ — \emphr{both $\approx$ MF $\delta=3$}.
 \end{itemize}
 \vspace{0.2cm}
 \footnotesize The field response reflects the \emph{MUR distribution}, shared by both topologies.
-The universality \emphr{discriminator} must therefore be the MSP (temperature) axis.
+So ``universality'' is \emphr{not} generic — it is a fingerprint of empirically homophilic structure.
 \column{0.48\textwidth}
 \centering
 \includegraphics[width=\linewidth]{../../playground/checks-claude/plots/camino_H_critical_isotherm.pdf}\\
@@ -388,27 +451,33 @@ from mean-field behavior. Randomization (DP) destroys this and yields discontinu
 \end{block}
 \vspace{0.1cm}
 \begin{center}\footnotesize
-Homophily provides a \emphr{``sociological viscosity''} that converts chaotic jumps into legible cascades.
+Homophily gives the system a \emphr{``sociological viscosity''}: tipping points arrive
+\emph{with measurable early warning} (rising variance, slow recovery) instead of detonating blind.
 \end{center}
 \end{frame}
 
 % ================================================================ CONCLUSION
 \sectionslide{Conclusions}
 
+% ---- Conclusions structured as answers to the two opening questions (point 18 + 16)
 \begin{frame}{Conclusions}
-\begin{center}{\large \emphr{Networks decide for us} — twice over.}\end{center}
-\vspace{0.4cm}
-\begin{enumerate}
-  \item \textbf{Volume:} empirical homophily yields a \emphr{structural premium} (+57\% odds).
-  \vspace{0.2cm}
-  \item \textbf{Dynamics:} homophily makes tipping points \emphr{continuous \& predictable}
-        (mean-field, $\gamma\approx1$); randomization makes them \emphr{abrupt \& volatile}
-        ($\gamma\approx4$).
-  \vspace{0.2cm}
-  \item \textbf{Mechanism:} the social (MSP) axis carries universality; the rational (IUL)
-        axis is topology-blind ($\delta\approx3$).
-\end{enumerate}
-\vspace{0.4cm}
+\begin{center}{\large \emphr{Networks decide for us} — and the answer to both opening questions is \emph{yes}.}\end{center}
+\vspace{0.25cm}
+\textbf{\color{ndgreen}Q1. Can the shape of realistic networks \emph{alone} change the outcome?}
+\begin{itemize}\footnotesize
+  \item \emphr{Volume:} empirical homophily yields a \emphr{structural premium} ($+57\%$ odds).
+  \item When society is not too restrictive (high MSP), \emphr{highly attractive and unattractive
+        innovations reach nearly the same adoption} — purely through social influence.
+\end{itemize}
+\vspace{0.15cm}
+\textbf{\color{ndgreen}Q2. Is structure an autonomous force deciding \emph{how} it spreads?}
+\begin{itemize}\footnotesize
+  \item \emphr{Dynamics:} homophily makes tipping points \emphr{continuous \& predictable}
+        ($\gamma\approx1$); randomization makes them \emphr{abrupt \& volatile} ($\gamma\approx4$).
+  \item Universality is \emphr{exclusive} to plausible networks; the rational (IUL) axis is
+        topology-blind ($\delta\approx3$).
+\end{itemize}
+\vspace{0.2cm}
 \begin{center}\footnotesize
 Macroscopic social change is not the linear sum of individual preferences —
 it is governed by the structure of our ties.
@@ -431,14 +500,15 @@ it is governed by the structure of our ties.
 \end{enumerate}
 \end{frame}
 
-% ---------------------------------------------------------------- THANKS
+% ---------------------------------------------------------------- THANKS (point 17: QR)
 \begin{frame}[plain]
   \vfill
   \begin{center}
     {\Large Thanks!}\\[2pt]
-    {\color{ndred}\rule{0.30\textwidth}{1.1pt}}\\[0.8cm]
-    {\footnotesize \texttt{an.oliveram@udd.cl}}\\[2pt]
-    {\footnotesize\color{ndgray} github.com/aoliveram/Networks-Decide-for-Us}
+    {\color{ndred}\rule{0.30\textwidth}{1.1pt}}\\[0.7cm]
+    \qrcode[height=2.3cm]{https://github.com/aoliveram/Networks-Decide-for-Us}\\[0.35cm]
+    {\footnotesize Code \& data: \texttt{github.com/aoliveram/Networks-Decide-for-Us}}\\[4pt]
+    {\footnotesize \texttt{an.oliveram@udd.cl}}
   \end{center}
   \vfill
 \end{frame}
