@@ -92,9 +92,9 @@
 
 ---
 
-## Slide 9 — Result 1: Criticality signatures (dynamics) (8:00–8:50)
+## Slide 9 — Result 1: Adoption and criticality  (dynamics) (8:00–8:50)
 
-> First, the dynamics. These three plots map adoption over the attractiveness–openness plane, and you can see how *rational adoption* grows as the attractiveness grows, but *social adoption* is more complex, so we have similar total adoption over a large region just because social adoption is relevant even when the attractiveness is low.
+> First, the dynamics. These three plots map adoption over the attractiveness–openness plane, and you can see how *rational adoption* grows as the attractiveness grows, but *social adoption* is more complex, so we have similar total adoption over a large region just because social adoption is relevant **even when the attractiveness is low**.
 > Look at the bottom left: there's a sharp ridge where the *variance* of outcomes explodes (on the right you only have the variance of the number of steps of the simulation) — these are the fingerprints of a critical point.
 
 ---
@@ -107,43 +107,37 @@
 
 ---
 
-## Slide 11 — Result 3: Universality, the discriminator (9:35–10:45)
+## Slide 11 — Result 3 (part 1): Field direction, δ ≈ 3 for both (9:35–10:15)
 
-> Third, the critical exponents. Near the critical point, susceptibility follows a power law, and the exponent *gamma* is essentially **1** on the realistic networks. That's the classical *mean-field value*.
+> Now the critical exponents. There are two directions we can probe. First, the *field* direction: we sit right at the critical openness and turn up the innovation's attractiveness. Here both networks — the realistic one and the scrambled one — respond the same way, with an exponent delta of about 3. So along this axis the two networks look identical; the structure makes no difference. (This part is still exploratory.)
+
+---
+
+## Slide 12 — Result 3 (part 2): Temperature direction, γ discriminates (10:15–10:55)
+
+> Now the *temperature* direction: we fix the attractiveness and turn up the social openness. Here the two networks part ways. On the realistic network the susceptibility diverges as a clean power law with exponent gamma essentially equal to **1** — the classic mean-field value, a continuous transition. On the scrambled network gamma is about **4**, which isn't a real critical exponent at all: the power law breaks, and the system either does nothing or explodes with no warning.
 >
-> In the scrambled network, gamma is about **4** — which isn't a real critical exponent at all. The power law breaks. The system stops being predictable: it either does nothing or explodes, with no warning.
->
-> So the punchline: this clean, universal behavior is **not generic** — it shows up *only* on the realistic, homophily-built network. Scramble the homophily and you lose it. The structure is what makes social change legible.
+> So the punchline: this clean, universal behavior is **not generic** — it appears *only* on the realistic, homophily-built network. Scramble the homophily and you lose it. The structure is what makes social change legible.
 
 ---
 
-## Slide 12 — Why only the MSP axis discriminates (10:45–11:15)
+## Slide 13 — Conclusions (10:55–11:40)
 
-> One subtlety we recently found, and I think it's elegant. Remember the two paths. The temperature path — MSP, the social channel — is the one that tells realistic and scrambled networks apart: gamma 1 versus 4. The field path — changing attractiveness, the individual channel — gives the *same* exponent for both, around 3, because that channel doesn't care about the network at all; it only reflects people's private preferences. So the structure-sensitivity lives exactly where it should: in the social axis.
-
-*(Keep this light; flag as recent/exploratory.)*
-
----
-
-## Slide 13 — The mean-field paradox (11:15–11:40)
-
-> Quick honest puzzle. Mean-field behavior usually shows up in *well-mixed* systems — and a clustered, homophilic network is the opposite of well-mixed. 
-> Our resolution: the clusters behave like little subsystems weakly linked by similarity bridges, and right at the critical point those bridges switch on together and synchronize the whole thing — which *looks* mean-field. Homophily gives the system a kind of 'social viscosity' that turns chaos into a smooth cascade.
+> So, to wrap up — let me answer the two questions I opened with.
+> Can the shape of the network *alone* change the outcome? Yes: empirical homophily gives a 57-percent premium in adoption, and when society is open enough, a wildly attractive innovation and an unattractive one end up with almost the same reach — purely through social influence.
+> Is the structure an autonomous force deciding *how* change spreads? Yes: on a realistic network the transition is continuous, and across comparable societies it carries statistical early warning — rising volatility, slower recovery — before it tips. Scramble the structure and that warning disappears; change becomes abrupt. This signposted regime is exclusive to homophilic structure.
+> The big message for this community: collective social change is not the sum of individual preferences. At the tipping point it behaves like critical matter — and the control parameter is the structure of our ties. Thank you.
 
 ---
 
-## Slide 14 — Conclusions (11:40–12:10)
-
-> So, to wrap up. Networks decide for us in two ways. 
-> They set the *volume* of collective behavior — the 57 percent premium. 
-> And they set its *character* — homophily makes tipping points continuous and predictable; destroy it and they become abrupt and volatile.
->
-> The big message for this community: collective social change is not the sum of individual preferences. At the tipping point it behaves like critical matter — and the control parameter is the structure of our ties. Thank you."
+## Slide 14 — References / Thanks
+*(Stay on Thanks; take questions. The QR links to the GitHub repo.)*
 
 ---
 
-## Slide 15 — References / Thanks
-*(Stay on Thanks; take questions.)*
+## Appendix slide — The mean-field paradox (only if asked)
+
+> A puzzle you might raise: mean-field behavior usually shows up in *well-mixed* systems, and a clustered homophilic network is the opposite of well-mixed. The resolution is that networks have no spatial dimension — your neighbors-of-neighbors grow exponentially, so the system effectively sits *above* the dimension where mean-field becomes exact. So mean-field is actually the *expected* outcome on a network. What really differs between our two networks isn't the dimension, it's the *order* of the transition: the clustered one is continuous, the scrambled one is discontinuous. Homophily gives the system a kind of 'social viscosity' that turns an abrupt shatter into a gradual, signposted cascade.
 
 ---
 
@@ -154,9 +148,10 @@
 | Model (2 slides) | 1:40–4:00 |
 | Data + design | 4:00–5:45 |
 | Physics mapping + paths | 5:45–8:00 |
-| Results (3 slides) | 8:00–10:45 |
-| Subtlety + paradox | 10:45–11:40 |
-| Conclusions | 11:40–12:10 |
+| Results (4 slides: dynamics, premium, δ, γ) | 8:00–10:55 |
+| Conclusions | 10:55–11:40 |
+| Buffer / Q&A | 11:40–12:00 |
+| *(mean-field paradox = appendix, only if asked)* | — |
 
 ### Anticipated questions
 - *"Isn't mean-field trivial / expected for N=1000?"* → finite-size caveat; the **contrast** with the scrambled network (γ≈4) is the result, not the absolute value.

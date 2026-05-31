@@ -25,7 +25,7 @@
 % ---------- Colors (matched to the JORNADA deck) ----------
 \definecolor{ndred}{RGB}{222,32,38}       % bright red rule
 \definecolor{ndreddark}{RGB}{176,22,28}   % darker brick red (subtitles)
-\definecolor{ndgreen}{RGB}{0,164,80}      % green reference markers
+\definecolor{ndgreen}{RGB}{0,118,54}      % green reference markers (darker)
 \definecolor{ndblue}{RGB}{30,90,200}      % path-1 blue
 \definecolor{ndgray}{RGB}{90,90,90}
 
@@ -119,11 +119,14 @@
   \vspace{0.3cm}
   \item Real networks are shaped by \emphr{multidimensional homophily} — similar people cluster \refn{2}.
 \end{itemize}
-\vspace{0.5cm}
 \begin{center}
-\fcolorbox{ndred}{white}{\parbox{0.9\textwidth}{\centering
-Conditional on \emph{fixed individual propensities}, can the \emphr{shape of more realistic
-networks alone} change the outcome? Can the structure itself be an \emphr{autonomous force},
+\fcolorbox{ndred}{white}{\parbox{1.0\textwidth}{
+\centering
+Conditional on \emph{fixed individual propensities},
+
+Can the \emphr{shape of realistic networks alone} change the outcome? 
+
+Can the structure itself be an \emphr{autonomous force},
 deciding not just \emph{how much} spreads, but \emph{how} it spreads?}}
 \end{center}
 \end{frame}
@@ -134,7 +137,7 @@ deciding not just \emph{how much} spreads, but \emph{how} it spreads?}}
 % ---- Rational choice  (point 1: separated IUL/MUR ; point 2: 3 rational snapshots)
 \begin{frame}{The model — 1) Rational Choice}
 \begin{itemize}
-  \item Following the literature, the attractiveness of the innovation is its
+  \item The attractiveness of the innovation is its
         \emph{Intrinsic Utility Level} (IUL), $\Gamma\in[0,1]$.
   \item Each person has a \emph{Minimum Utility Requirement} (MUR), $q_i\in[0,1]$,
         representing their aversion to adopting the behavior.
@@ -148,31 +151,24 @@ An agent adopts on its own iff\quad
 \begin{center}
 \includegraphics[width=0.95\textwidth]{graph-rational-choice.png}
 \end{center}
-\begin{center}\footnotesize
-Everyone with $q_i\le\Gamma$ adopts, regardless of neighbors:
-\emphr{deterministic} and \emphr{topology-blind}.
-\end{center}
 \end{frame}
 
 % ---- Selective social influence (point 2: 3 social snapshots)
 \begin{frame}{The model — 2) Selective Social Influence}
-If intrinsic adoption fails, an agent may still adopt by peer contagion if
-$\tau_i \le \tilde{E}_i$ \refn{5,6} — but only \emph{influential} peers, those socially
-\emph{close} in Blau space \refn{7}, count:
-\begin{equation*}\small
+Adopt by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{5,6} 
+— but only those socially \emph{close} \refn{7} count:
+\vspace{0.05cm}
+\begin{equation*}
   \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
   \qquad
   \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right)
 \end{equation*}
-\vspace{-0.05cm}
+\begin{itemize}
+  \item Where \emphr{MSP} (Maximum Social Proximity) sets how far influence reaches. 
+\end{itemize}
+\vspace{0.05cm}
 \begin{center}
-\includegraphics[width=0.95\textwidth]{graph-social-influence.png}
-\end{center}
-\begin{center}\footnotesize
-$\tau_4=0.5$: close adopters $d_{14},d_{24}<MSP$ count; the distant one $d_{54}>MSP$ does
-\emph{not} $\Rightarrow$ node 4 ignites from similar peers only.\\
-\emphr{MSP} (Maximum Social Proximity) sets how far influence reaches; this channel is
-\emphr{stochastic} and \emphr{topology-sensitive}.
+\includegraphics[width=0.9\textwidth]{graph-social-influence.png}
 \end{center}
 \end{frame}
 
@@ -197,22 +193,24 @@ $\tau_4=0.5$: close adopters $d_{14},d_{24}<MSP$ count; the distant one $d_{54}>
 \begin{columns}[c]
 \column{0.52\textwidth}
 \footnotesize
-Tie probability is a function of distance in Blau space (age, sex, education, race, religion):
-\begin{equation*}\footnotesize
+Tie probability is a function of social distance (age, sex, education, race, religion):
+\vspace{0.2cm}
+\begin{equation*}
   \mathrm{logit}\,\Pr(Y_{ij}=1)=\alpha+\boldsymbol\beta^\top \mathbf{d}_{ij}
 \end{equation*}
+
 $\hat{\boldsymbol\beta}$ comes from GSS confidant data \refn{4}; propensities $q_i$ come from
 real survey answers (innovation, collective action).
 \column{0.48\textwidth}
 \centering
 \includegraphics[width=0.92\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
-{\scriptsize Right-skewed degree structure that ER / BA models fail to match jointly.}
+{\scriptsize Right-skewed degree structure that Erdös-Rényi / Barabási-Albert models fail to match jointly.}
 \end{columns}
 \end{frame}
 
 \begin{frame}{Comprehensive simulation design}
-Hybrid social contagion via \texttt{netdiffuseR} \refn{9}, over plausible (GSS) vs.\
-\emphr{degree-preserving randomized} (GSS-DP) topologies.
+Hybrid social contagion via \texttt{netdiffuseR} \refn{9}, over plausible \emphr{GSS} vs.\
+degree-preserving randomized \emphr{GSS-DP} topologies.
 \vspace{0.2cm}
 \begin{itemize}
   \item \textbf{IUL} ($\Gamma$): 41 levels $[0,1]$. \quad \textbf{MSP} ($h$): 13 levels $[0,1]$.
@@ -225,7 +223,7 @@ Total: $\;41\times13\times4\times4\times5\times \text{(runs)} \;\approx\; \emphr
 \end{center}
 \vspace{0.2cm}
 We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
-\begin{equation*}\footnotesize
+\begin{equation*}
   \mathrm{logit}\big[\mathbb{E}(\Phi)\big]=\beta_0+\mathbf{Z}\boldsymbol\beta
   +\beta_{\text{DP}}\,\mathbb{I}_{\text{DP}}+s(\mathrm{IUL},\mathrm{MSP})
 \end{equation*}
@@ -244,14 +242,14 @@ We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
 \midrule
 Spin $s_i\in\{0,1\}$        & $\leftrightarrow$ & Adoption state $a_i$ \\
 Magnetization $M$           & $\leftrightarrow$ & Adoption $\Phi=N_{\text{ad}}/N$ \\
-External field $H$          & $\leftrightarrow$ & \emphr{IUL} $\Gamma$ (rational bias) \\
-Temperature $T$             & $\leftrightarrow$ & \emphr{MSP} $h$ (social agitation) \\
-Exchange $J_{ij}$           & $\leftrightarrow$ & Homophily / clustering \\
-Susceptibility $\chi$       & $\leftrightarrow$ & $\mathrm{Var}(\Phi)$ (FDT) \\
+External field $H$          & $\leftrightarrow$ & \emphr{IUL} \\
+Temperature $T$             & $\leftrightarrow$ & \emphr{MSP} \\
+Exchange $J_{ij}$           & $\leftrightarrow$ & Clustering $w_{ij}$ \\
+Susceptibility $\chi$       & $\leftrightarrow$ & $\mathrm{Var}(\Phi)$ \\
 \bottomrule
 \end{tabular}
 \column{0.44\textwidth}
-\footnotesize
+\small
 Pseudo-Hamiltonian:
 \begin{equation*}
 \mathcal{H}\approx -\!\!\sum_{\langle i,j\rangle}\! w_{ij}(h)\,s_i s_j \;-\; \Gamma\sum_i s_i
@@ -261,7 +259,7 @@ Pseudo-Hamiltonian:
 \emphr{High MSP} $\to$ boundaries ``melt'', global cascades possible.
 \end{columns}
 \vspace{0.3cm}
-\begin{center}\footnotesize
+\begin{center}\small
 Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\propto |MSP-MSP_c|^{-\gamma}$
 \end{center}
 \end{frame}
@@ -276,40 +274,36 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
   \draw[->] (0,0)--(4.2,0) node[right]{MSP ($T$)};
   \draw[->] (0,0)--(0,2.25) node[left]{$\Phi$};
   \draw[densely dotted,gray] (2.0,0)--(2.0,2.05) node[above,black]{$T_c$};
-  % plausible: continuous 2nd-order rise
-  \draw[ndgreen,line width=1.1pt] (0,0.15) to[out=7,in=212] (2.0,1.0) to[out=32,in=183] (4.0,1.9);
-  % randomized: discontinuous step (1st order)
+  % the two possible behaviours along the temperature axis
+  \draw[ndgreen,line width=1.1pt] (0,0.15) to[out=7,in=242] (2.0,1.0) to[out=62,in=183] (4.0,1.9);
   \draw[ndred,line width=1.1pt,dashed] (0,0.12)--(1.9,0.22)--(2.05,1.82)--(4.0,1.9);
-  \node[ndgreen] at (3.1,1.05){\scriptsize plausible};
-  \node[ndred]   at (0.95,1.55){\scriptsize random};
+  \node[ndgreen] at (3.3,0.9){\scriptsize 2nd order};
+  \node[ndred]   at (0.95,1.6){\scriptsize 1st order};
 \end{tikzpicture}\\[-1pt]
-{\scriptsize \textbf{Path 2 — vary $T$:} continuous (\textcolor{ndgreen}{plausible}, $\gamma\!\approx\!1$) vs.\ discontinuous (\textcolor{ndred}{random}, $\gamma\!\approx\!4$).}\\[7pt]
-% --- Plot B: Path 1 — vary H (IUL) at fixed T = T_c ---
+{\scriptsize \textbf{Path 2 — vary $T$:} a continuous (2nd-order) \emph{or} discontinuous (1st-order) transition; exponent $\gamma$.}\\[7pt]
+% --- Plot B: Path 1 — vary H (IUL) at fixed T ---
 \begin{tikzpicture}[scale=0.62, font=\tiny, >={Latex[length=1.6mm]}]
   \draw[->] (0,0)--(4.2,0) node[right]{IUL ($H$)};
   \draw[->] (0,0)--(0,2.25) node[left]{$\Phi$};
-  % critical isotherm Phi ~ H^{1/delta}: concave, same for both topologies
   \draw[ndblue,line width=1.1pt] (0,0) to[out=72,in=192] (1.3,1.5) to[out=12,in=178] (4.0,1.95);
-  \draw[ndreddark,line width=1.1pt,dashed] (0,0) to[out=66,in=195] (1.5,1.35) to[out=10,in=180] (4.0,1.8);
-  \node[ndblue]    at (2.7,1.15){\scriptsize plausible};
-  \node[ndreddark] at (2.7,0.55){\scriptsize random};
+  \node[ndblue] at (2.7,1.0){\scriptsize critical isotherm};
 \end{tikzpicture}\\[-1pt]
-{\scriptsize \textbf{Path 1 — vary $H$ at $T=T_c$:} same critical isotherm, $\delta\!\approx\!3$ for \emph{both}.}
+{\scriptsize \textbf{Path 1 — vary $H$ at fixed $T$:} the field response; exponent $\delta$.}
 \column{0.48\textwidth}
 \footnotesize
 \textbf{\color{ndgreen}Path 2 — vary MSP ($T$) at fixed IUL}
 \begin{itemize}\footnotesize
-  \item continuous \emphr{2nd-order} transition; exponent $\gamma$
-  \item drives the \emphr{social channel} $\Rightarrow$ \emphr{topology-sensitive}
-  \item \emphr{only the plausible network reaches $\gamma\approx1$}
+  \item the temperature route to the critical point
+  \item if continuous, $\chi=\mathrm{Var}(\Phi)\sim|MSP-MSP_c|^{-\gamma}$
 \end{itemize}
 \vspace{0.2cm}
 \textbf{\color{ndblue}Path 1 — vary IUL ($H$) at fixed MSP}
 \begin{itemize}\footnotesize
-  \item field-direction response; exponent $\delta$
-  \item drives the \emphr{rational channel} $\Rightarrow$ \emphr{topology-blind}
-  \item \emphr{both} networks give the same $\delta\approx3$
+  \item the field route (critical isotherm)
+  \item yields the exponent $\delta$
 \end{itemize}
+\vspace{0.25cm}
+{\footnotesize What does each path reveal about the structure? $\rightarrow$ \emphr{Results}.}
 \end{columns}
 \end{frame}
 
@@ -317,13 +311,15 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
 \sectionslide{Results}
 
 % ---- Result 1 = DYNAMICS (point 12 reorder)
-\begin{frame}{Result 1 — Criticality signatures (dynamics)}
+\begin{frame}{Result 1 — Adoption and criticality (dynamics)}
 \centering
-\includegraphics[width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[2pt]
+% trim={left bottom right top}; increase the LAST value (top) to crop more of the title
+\includegraphics[trim={0 0 0 0.9cm}, clip, width=0.88\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[2pt]
 {\footnotesize Top: Total, Rational and Social adoption. Rational adoption grows smoothly with
-IUL; \emph{social} adoption is more complex, keeping total adoption high over a wide region.
-Bottom-left: susceptibility $\chi=\mathrm{Var}(\Phi)$ ridge; bottom-right: relaxation-time SD
-divergence — \emphr{Critical Slowing Down}.}
+IUL.
+
+Bottom-left: Susceptibility $\chi=\mathrm{Var}(\Phi)$; Bottom-right: relaxation-time SD
+divergence.}
 \end{frame}
 
 % ---- Result 2 = STRUCTURAL PREMIUM (point 11: full OR table)
@@ -334,12 +330,12 @@ BAM isolates the marginal effect of destroying empirical structure:
 \vspace{0.2cm}
 \begin{center}
 \fcolorbox{ndred}{white}{$\;\beta_{\text{DP}}=-0.850^{***}\;$ (OR $=0.43$)}\\[4pt]
-{\footnotesize $\Rightarrow$ randomization cuts adoption odds by $\sim$\emphr{57\%}}
+\vspace{0.2cm}
+{\small $\rightarrow$ randomization cuts adoption by $\sim$\emphr{57\%}}
 \end{center}
 \vspace{0.2cm}
-\footnotesize Under \emph{identical} propensities, homophilic clustering lets social
-reinforcement build inside \emphr{local echo chambers} — even for unattractive
-innovations ($\Gamma<0.25$).
+\small Under \emph{identical} propensities, homophilic clustering lets social
+reinforcement build inside \emphr{local echo chambers}.
 \column{0.54\textwidth}
 \centering
 \renewcommand{\arraystretch}{1.12}
@@ -368,12 +364,40 @@ $\tau_{\text{sd}}$ & $5.942^{***}$ & --- \\
 \end{columns}
 \end{frame}
 
-% ---- Result 3 = UNIVERSALITY (point 8 reframe ; point 15 fixed table)
+% ---- Result 3 (part 1) = FIELD DIRECTION: delta ~ 3 for both (point 4) ----
+\begin{frame}{Result 3 — Field direction: $\delta\approx3$ for both networks}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\centering
+\includegraphics[width=0.95\linewidth]{../../playground/checks-claude/plots/camino_H_critical_isotherm.pdf}\\
+{\scriptsize Critical isotherms $\Phi(\mathrm{IUL})$ at $MSP=MSP_c$.}
+\column{0.5\textwidth}
+\renewcommand{\arraystretch}{1.25}
+{\footnotesize
+\begin{tabular}{@{}lc@{}}
+\toprule
+Topology & $\delta$ \\
+\midrule
+Plausible (GSS) & 2.85 \\
+Randomized (GSS-DP) & 2.91 \\
+\midrule
+mean-field & \emphr{3.0} \\
+\bottomrule
+\end{tabular}}
+\vspace{0.25cm}
+\begin{itemize}\footnotesize
+  \item Sweeping IUL at $MSP=MSP_c$, \emph{both} networks give $\delta\approx3$ — close to mean-field.
+  \item The field (IUL) direction does \emphr{not} distinguish the two topologies. \emph{(exploratory)}
+\end{itemize}
+\end{columns}
+\end{frame}
+
+% ---- Result 3 (part 2) = UNIVERSALITY (point 8 reframe ; point 15 fixed table)
 \begin{frame}{Result 3 — Universality is exclusive to plausible networks}
 \begin{columns}[c]
 \column{0.5\textwidth}
 \centering
-\includegraphics[width=\linewidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}\\
+\includegraphics[width=0.95\linewidth]{../../plots/07_phase_transition/GSS/method4_exponents.pdf}\\
 {\scriptsize Log-log: $\chi\sim|MSP-MSP_c|^{-\gamma}$ along the Widom line.}
 \column{0.5\textwidth}
 \renewcommand{\arraystretch}{1.25}
@@ -391,53 +415,12 @@ mean & \emphr{0.91} & \emphr{3.93} \\
 \bottomrule
 \end{tabular}}
 \vspace{0.15cm}
-\begin{itemize}\scriptsize
-  \item \emphr{Only} the plausible (homophilic) network reaches $\gamma\approx1$ —
-        \emph{Mean-Field universality}, a continuous transition.
-  \item Randomization $\Rightarrow\gamma\approx4$: no power law, \emphr{discontinuous} regime shift.
-  \item Separation $\approx\mathbf{4.3\times}$.
-\end{itemize}
-\end{columns}
-\end{frame}
-
-\begin{frame}{Why only the MSP axis discriminates}
-\begin{columns}[c]
-\column{0.52\textwidth}
-\textbf{Two control parameters, two channels:}
 \begin{itemize}\footnotesize
-  \item \emphr{Path 2 (MSP, $\gamma$)}: the \emph{social} channel.
-        $\gamma_{\text{GSS}}\!\approx\!1$ vs.\ $\gamma_{\text{DP}}\!\approx\!4$ — \emphr{discriminates}.
-  \item \emphr{Path 1 (IUL, $\delta$)}: the \emph{rational} channel ($q_i\le\Gamma$ is node-local).
-        $\delta_{\text{GSS}}\!\approx\!2.85$, $\delta_{\text{DP}}\!\approx\!2.91$ — \emphr{both $\approx$ MF $\delta=3$}.
+  \item Only the realistic networks reaches \emphr{$\gamma\approx1$} —
+        continuous trans. — \emph{Mean-Field universality}.
+  \item Randomization $\Rightarrow$ \emphr{$\gamma\approx4$}: no power law. Separation $\approx\mathbf{4.3\times}$.
 \end{itemize}
-\vspace{0.2cm}
-\footnotesize The field response reflects the \emph{MUR distribution}, shared by both topologies.
-So ``universality'' is \emphr{not} generic — it is a fingerprint of empirically homophilic structure.
-\column{0.48\textwidth}
-\centering
-\includegraphics[width=\linewidth]{../../playground/checks-claude/plots/camino_H_critical_isotherm.pdf}\\
-{\scriptsize Critical isotherms $\Phi(\mathrm{IUL})$: same $\delta\!\approx\!3$ for both. \emph{(exploratory)}}
 \end{columns}
-\end{frame}
-
-% ================================================================ DISCUSSION
-\begin{frame}{The mean-field paradox — and its resolution}
-\begin{block}{\footnotesize Puzzle}
-\footnotesize Mean-field $\gamma=1$ usually needs a \emph{well-mixed} system.
-We recover it in a \emph{strongly clustered, homophilic} network.
-\end{block}
-\vspace{0.1cm}
-\begin{block}{\footnotesize Resolution}
-\footnotesize Homophilic clusters behave as quasi-isolated subsystems coupled by
-\emph{weak, similarity-selective bridges}. As MSP $\to MSP_c$ these bridges activate
-together, synchronizing clusters into one coherent order parameter — \emph{indistinguishable}
-from mean-field behavior. Randomization (DP) destroys this and yields discontinuity instead.
-\end{block}
-\vspace{0.1cm}
-\begin{center}\footnotesize
-Homophily gives the system a \emphr{``sociological viscosity''}: tipping points arrive
-\emph{with measurable early warning} (rising variance, slow recovery) instead of detonating blind.
-\end{center}
 \end{frame}
 
 % ================================================================ CONCLUSION
@@ -445,33 +428,35 @@ Homophily gives the system a \emphr{``sociological viscosity''}: tipping points 
 
 % ---- Conclusions structured as answers to the two opening questions (point 18 + 16)
 \begin{frame}{Conclusions}
-\begin{center}{\large \emphr{Networks decide for us} — and the answer to both opening questions is \emph{yes}.}\end{center}
+
 \vspace{0.25cm}
-\textbf{\color{ndgreen}Q1. Can the shape of realistic networks \emph{alone} change the outcome?}
-\begin{itemize}\footnotesize
+\textbf{\color{black} Can the shape of realistic networks \emph{alone} change the outcome?}
+\vspace{0.10cm}
+\begin{itemize}\small
   \item \emphr{Volume:} empirical homophily yields a \emphr{structural premium} ($+57\%$ odds).
   \item When society is not too restrictive (high MSP), \emphr{highly attractive and unattractive
         innovations reach nearly the same adoption} — purely through social influence.
 \end{itemize}
-\vspace{0.15cm}
-\textbf{\color{ndgreen}Q2. Is structure an autonomous force deciding \emph{how} it spreads?}
-\begin{itemize}\footnotesize
-  \item \emphr{Dynamics:} homophily makes tipping points \emphr{continuous \& predictable}
-        ($\gamma\approx1$); randomization makes them \emphr{abrupt \& volatile} ($\gamma\approx4$).
-  \item Universality is \emphr{exclusive} to plausible networks; the rational (IUL) axis is
-        topology-blind ($\delta\approx3$).
+\vspace{0.25cm}
+\textbf{\color{black} Is structure an autonomous force deciding \emph{how} it spreads?}
+\vspace{0.10cm}
+\begin{itemize}\small
+  \item \emphr{Dynamics:} in realistic networks the transition is \emphr{continuous} ($\gamma\approx1$) —
+        across comparable societies, tipping points carry \emph{statistical} early warning
+        (rising variance, slow recovery); randomization erases it (\emphr{$\gamma\approx4$}, abrupt).
+  \item This signposted regime is \emphr{exclusive} to empirically homophilic structure.
 \end{itemize}
 \vspace{0.2cm}
-\begin{center}\footnotesize
-Macroscopic social change is not the linear sum of individual preferences —
-it is governed by the structure of our ties.
+\begin{center}\small
+\emph{Macroscopic social change is not the linear sum of individual preferences —
+it is governed by the structure of our ties}.
 \end{center}
 \end{frame}
 
 % ---------------------------------------------------------------- REFERENCES
 \begin{frame}{References}
 \footnotesize
-\begin{enumerate}\itemsep1.5pt
+\begin{enumerate}\itemsep1.3pt
   \item Goldberg, A. (2021). Associative Diffusion and the Pitfalls of Structural Reductionism. \emph{Am. Sociol. Rev.} 86(6).
   \item McPherson, M., Smith-Lovin, L., \& Cook, J. (2001). Birds of a Feather: Homophily in Social Networks. \emph{Annu. Rev. Sociol.} 27.
   \item McPherson, M., \& Smith, J. A. (2019). Network Effects in Blau Space: Imputing Social Context from Survey Data. \emph{Socius} 5.
@@ -492,9 +477,31 @@ it is governed by the structure of our ties.
     {\color{ndred}\rule{0.30\textwidth}{1.1pt}}\\[0.7cm]
     \qrcode[height=2.3cm]{https://github.com/aoliveram/Networks-Decide-for-Us}\\[0.35cm]
     {\footnotesize Code \& data: \texttt{github.com/aoliveram/Networks-Decide-for-Us}}\\[4pt]
-    {\footnotesize \texttt{an.oliveram@udd.cl}}
+    {\footnotesize \texttt{an.oliveram@udd.cl} $\;\cdot\;$ \texttt{aoliveram.cl}}
   \end{center}
   \vfill
+\end{frame}
+
+% ---------------------------------------------------------------- APPENDIX (point 5: moved out of main narrative)
+\begin{frame}{Appendix — The mean-field paradox \& its resolution}
+\begin{block}{\small Puzzle}
+\small Mean-field $\gamma=1$ usually needs a \emph{well-mixed} system.
+But we have a \emph{strongly clustered, homophilic} network.
+\end{block}
+\vspace{0.1cm}
+\begin{block}{\small Resolution}
+\footnotesize Complex networks have no finite spatial dimension — neighborhoods expand
+exponentially, so the system sits \emph{above} the upper critical dimension and mean-field
+is the \emph{generic} expectation. The real contrast is the \emph{order} of the transition:
+homophilic clustering yields a continuous (2nd-order) transition, whereas degree-preserving
+randomization collapses into a discontinuous (1st-order) regime shift.
+\end{block}
+\vspace{0.1cm}
+\begin{center}\small
+Homophily gives the system a \emphr{``sociological viscosity''}: across comparable societies,
+tipping points carry \emph{statistical} early warning (rising variance, slow recovery)
+instead of detonating blind.
+\end{center}
 \end{frame}
 
 \end{document}

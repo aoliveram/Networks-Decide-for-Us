@@ -249,6 +249,32 @@ So the paper's outlier **1.539** comes from pinning $MSP_c=0.166$ for that row, 
 
 The question arose whether the BAM should read $\mathrm{logit}(\Phi)$ instead of $\mathrm{logit}[\mathbb{E}(\Phi)]$. **Keep $\mathbb{E}(\Phi)$.** In a GLM/GAM the link function transforms the *conditional mean* of the response, $g(\mu_i)=g(\mathbb{E}[Y_i\mid X_i]) = \eta_i$, not the random outcome itself. Since $\Phi$ is the simulation-level random outcome (final adoption proportion) and the BAM models its expectation, $\mathrm{logit}[\mathbb{E}(\Phi)]$ is the precise and standard form (cf. Wood, mgcv). Writing $\mathrm{logit}(\Phi)$ would be technically loose. No change to paper or deck.
 
+## 15. Reframe the "mean-field paradox" via network dimensionality (IMPORTANT for the physics framing)
+
+The current SM frames $\gamma\approx1$ on a clustered network as surprising ("mean-field usually needs a well-mixed system"). A cleaner, more correct framing: **complex networks have no finite spatial dimension** — neighborhoods expand (super)exponentially, so the system sits *above* the upper critical dimension ($d_u=4$ for Ising), where **mean-field exponents are the generic, expected outcome** (Dorogovtsev, Goltsev & Mendes, *Critical phenomena in complex networks*, Rev. Mod. Phys. 80, 2008). So $\gamma\approx1$, $\delta\approx3$ are exactly what one should expect for a continuous transition *on a network*; they are NOT evidence of low-dimensional (d=1/2/3) Ising behavior.
+
+**Consequence for interpretation:** the contrast between plausible (GSS, $\gamma\approx1$) and randomized (GSS-DP, $\gamma\approx4$) is **not a difference of universality class or dimension** — both are effectively infinite-dimensional. It is a difference in the **order of the transition**: clustering yields a *continuous* (2nd-order) transition; degree-preserving randomization yields a *discontinuous* (1st-order / hybrid) regime shift (cf. bootstrap/threshold percolation on random graphs). Recommend rewriting SM S3 accordingly and dropping the "quasi-isolated clusters synchronize" hand-wave in favor of this standard, citable account.
+
+## 16. Honest ensemble-vs-realization framing of the early-warning / "predictability" claim
+
+The exponents and "critical slowing down" are computed from the **variance and mean across the ~24 stochastic realizations per (IUL, MSP) cell** — they are **ensemble** quantities. So the early-warning signals (rising variance, diverging relaxation time) describe the *distribution of outcomes across comparable societies / repeated histories*, NOT a precursor guaranteed within one society's single timeline. The manuscript should:
+- State explicitly that $\chi=\mathrm{Var}(\Phi)$ and the relaxation-time divergence are ensemble fluctuation measures.
+- Frame the contribution as "structure sets the **statistical character / risk profile** of collective change" (smooth-and-signposted vs. bimodal-and-abrupt), not deterministic forecasting of a given event.
+- Note that a *single-society time series* would show the precursors only if the control parameter (MSP) **drifts slowly through $MSP_c$** over time — a stronger assumption not yet simulated (future work, connects to Scheffer et al. early-warning-signals literature with sliding-window variance/autocorrelation).
+
+This is the most reviewer-exposed honesty point; getting ahead of it strengthens credibility.
+
+## 17. Frame IUL$\approx$0.2 as a pseudo-critical / Widom locus, not literally $H=0$
+
+The four IUL values $\{0.200,0.225,0.250,0.275\}$ were chosen as the "zero-field equivalent" via the **steepest adoption jump**. Per phase-transition practice (supercritical-fluid Widom-line literature; finite-size-scaling studies), when $H=0$ is physically inaccessible the standard is to locate the pseudo-critical line via **maximum susceptibility** (the Widom line, $\chi$-peak), and practitioners use *several* loci (specific-heat-like max, $\chi$-peak, max order-parameter slope) which **coincide only at the true critical point and "split into a bundle" away from it**. Recommend:
+- Reframe IUL$\approx$0.2 as the **pseudo-critical / Widom locus**, not "$H=0$".
+- Report that the **max-susceptibility locus** and the **steepest-jump locus** coincide (they do on the $T$-path: both give $MSP_c=0.25$) — this is the evidence that justifies the choice; prefer $\chi$-max for the actual exponent fit ($\chi_{\max}\sim L^{\gamma/\nu}$).
+- Acknowledge the finite-size shift of the peak ($\sim N^{-1/\nu}$). Sources: Simeoni et al. *Nat. Phys.* 2010 (Widom line); arXiv:2512.21748 (three-estimator FSS practice).
+
+## 18. Future extension: risky / high-cost collective action propensities
+
+For a thesis chapter or follow-up, the current $q_i$ (low-risk action; medium-risk innovation) can be extended to **risky/violent collective action** using the sources catalogued in `playground/checks-claude/RISKY_COLLECTIVE_ACTION_DATA.md` (ARIS Activism–Radicalism Intention Scales for item structure; UC Davis "Life in America" / CPOST for representative violent-tail base rates; WVS-7 strike/occupy items as the public low-risk bridge), or — as a first computational step — a strongly right-skewed assumed aversion distribution calibrated to those base rates, then re-running the IUL×MSP sweep to test whether the structural premium and the $\gamma\approx1$ vs $\gamma\approx4$ contrast survive a mostly-averse population.
+
 ## Summary of Edits by Priority
 
 | Priority | Section | Edit Type | Complexity |
