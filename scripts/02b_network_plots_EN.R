@@ -89,10 +89,15 @@ make_plots <- function(graphs, label, out_dir) {
   k_er <- 0:(N0 - 1)
   er_t <- tibble(k = k_er, pk = dbinom(k_er, size = N0 - 1, prob = p_er)) %>%
     filter(pk > 1e-12)
-  # BA theory: P(k) = 2 m (m+1) / [k (k+1)(k+2)]
+  # BA theory: P(k) = 2 m (m+1) / [k (k+1)(k+2)]   (valid for k >= m)
   m_ba <- max(1L, round(k_mean / 2))
   k_ba <- m_ba:(N0 - 1)
   ba_t <- tibble(k = k_ba, pk = (2 * m_ba * (m_ba + 1)) / (k_ba * (k_ba + 1) * (k_ba + 2)))
+  # Left extension of the BA line (dashed): power-law guide ~ k^{-2.81}
+  # anchored at the BA value P(m_ba) = 2/(m_ba+2), drawn for k < m_ba.
+  gamma_left <- 2.81
+  C_left <- (2 / (m_ba + 2)) * (m_ba ^ gamma_left)
+  ba_left <- tibble(k = 2:m_ba, pk = C_left * (2:m_ba) ^ (-gamma_left))
 
   col_map  <- setNames(c(col_BA, col_ER, col_EMP), c("BA (theory)", "ER (theory)", emp_lab))
   fill_map <- setNames(col_EMP, sd_lab)
@@ -116,6 +121,8 @@ make_plots <- function(graphs, label, out_dir) {
          y = expression(italic(p)[italic(k)])) + theme_pro
 
   p_log <- ggplot() + base_layers() +
+    geom_line(data = ba_left, aes(x = k, y = pk), color = col_BA,
+              linetype = "dashed", linewidth = 0.9) +   # leftward BA extension
     scale_x_log10() + scale_y_log10() +
     coord_cartesian(xlim = c(5, 150), ylim = c(1e-5, 1)) +   # original limits
     labs(title = "(b) Log-log scale",
