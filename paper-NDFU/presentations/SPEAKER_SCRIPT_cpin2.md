@@ -120,6 +120,8 @@
 >  On the scrambled network gamma is about **4**, which isn't a real critical exponent at all: the power law breaks, and the system either does nothing or explodes with no warning.
 >
 > So the punchline: this clean, universal behavior is **not generic** — it appears *only* on the realistic, homophily-built network. Scramble the homophily and you lose it. The structure is what makes social change legible.
+>
+> And why does that matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents — the substance, the lattice, the chemistry are all irrelevant. The same logic here: near the tipping point the aggregate doesn't care about each person's exact threshold, the specific content of the behavior, or individual quirks — only the structure and how far we sit from the critical point. That's the precise sense in which structure makes the collective *legible*: a handful of macro-structural parameters govern it, and the microscopic mess washes out.
 
 ---
 
@@ -132,6 +134,8 @@
 > 
 > Is the structure an autonomous force deciding *how* change spreads?
 > Yes: on a realistic network the transition is continuous, and across comparable societies it carries statistical early warning — rising volatility, slower recovery — before it tips. Scramble the structure and that warning disappears; change becomes abrupt. This signposted regime is exclusive to homophilic structure. [REVISIT]
+>
+> This reframes a familiar intuition: even when a single episode feels abrupt and surprising, the *aggregate* — averaged over comparable cases — follows identifiable, even universal patterns. It's the same reason the S-curve, and the roughly one-quarter tipping fraction, keep reappearing across fax machines, hashtags, and protest waves.
 > 
 > The big message for this community: collective social change is not the sum of individual preferences. At the tipping point it behaves like critical matter — and the control parameter is the structure of our ties. Thank you.
 
@@ -148,17 +152,27 @@
 
 ---
 
-### Timing cheat-sheet
-| Block | Target |
-|---|---|
-| Intro + question | 0:00–1:40 |
-| Model (2 slides) | 1:40–4:00 |
-| Data + design | 4:00–5:45 |
-| Physics mapping + paths | 5:45–8:00 |
-| Results (4 slides: dynamics, premium, δ, γ) | 8:00–10:55 |
-| Conclusions | 10:55–11:40 |
-| Buffer / Q&A | 11:40–12:00 |
-| *(mean-field paradox = appendix, only if asked)* | — |
+### Timing cheat-sheet (per slide, after universality additions)
+| # | Slide | Duration | Cumulative |
+|---|---|---|---|
+| 1 | Title | 0:35 | 0:35 |
+| 2 | The question | 0:55 | 1:30 |
+| 3 | Rational Choice | 0:55 | 2:25 |
+| 4 | Selective Social Influence | 1:15 | 3:40 |
+| 5 | Imputation | 1:00 | 4:40 |
+| 6 | Simulation design | 0:40 | 5:20 |
+| 7 | Physics mapping | 1:10 | 6:30 |
+| 8 | Two paths | 0:55 | 7:25 |
+| 9 | Result 1 — dynamics | 0:50 | 8:15 |
+| 10 | Result 2 — premium | 0:45 | 9:00 |
+| 11 | Result 3-i — δ (both) | 0:35 | 9:35 |
+| 12 | Result 3-ii — γ **(+ universality / micro-irrelevance)** | 1:20 | 10:55 |
+| 13 | Conclusions **(+ real phenomena)** | 1:05 | 12:00 |
+| 14 | Thanks | 0:10 | 12:10 |
+
+**Total ≈ 12:10** — slightly over. The additions made slide 12 the heaviest (~1:20) and slide 13 ~1:05. **Release valve:** compress slide 11 (δ, exploratory) from 0:35 to ~0:15 — "along the field axis both networks look identical, δ≈3; the interesting axis is temperature" — which brings you back to ~11:50. Checkpoint: be at "Two paths" (slide 8) by ~7:25.
+
+*(The mean-field paradox is an appendix slide — only if asked.)*
 
 ### Anticipated questions
 - *"Isn't mean-field trivial / expected for N=1000?"* → finite-size caveat; the **contrast** with the scrambled network (γ≈4) is the result, not the absolute value.

@@ -275,6 +275,37 @@ The four IUL values $\{0.200,0.225,0.250,0.275\}$ were chosen as the "zero-field
 
 For a thesis chapter or follow-up, the current $q_i$ (low-risk action; medium-risk innovation) can be extended to **risky/violent collective action** using the sources catalogued in `playground/checks-claude/RISKY_COLLECTIVE_ACTION_DATA.md` (ARIS Activism–Radicalism Intention Scales for item structure; UC Davis "Life in America" / CPOST for representative violent-tail base rates; WVS-7 strike/occupy items as the public low-risk bridge), or — as a first computational step — a strongly right-skewed assumed aversion distribution calibrated to those base rates, then re-running the IUL×MSP sweep to test whether the structural premium and the $\gamma\approx1$ vs $\gamma\approx4$ contrast survive a mostly-averse population.
 
+## 19. The meaning of universality — the "so what?" (full interpretation for the Discussion)
+
+This section records, in full, the interpretive argument for *why* the universality result matters and how far the "structure makes social change legible" claim can be pushed. It is the intellectual core of the Discussion and should be written carefully to pre-empt the "so what?" reaction.
+
+### 19.1 What it means that adoption is mean-field
+
+Universality = **the microscopic details are irrelevant** to the aggregate behavior near the critical point. You do not need to know each individual's exact threshold, every tie, or every attribute: a handful of macro-structural parameters (the control parameter MSP and the distance to the critical point) govern the collective dynamics. This is *exactly* what universality means in statistical physics, and it is the precise, defensible content of "structure makes the collective legible."
+
+- **Physics examples of irrelevant micro-detail:** boiling water and a ferromagnet at their critical points fall in the *same* universality class and share the *same* exponents — the chemistry, the substance, the precise lattice geometry, the atomic species are all irrelevant. Only dimensionality and symmetry (the macro-level features) matter.
+- **Social analogues that would be irrelevant here:** each agent's exact MUR/threshold value, the specific *content* of the innovation/behavior being diffused, individual idiosyncrasies and cognition. What remains relevant: the structure of the ties and how far the system sits from the tipping point.
+
+### 19.2 What known sociological facts this explains
+
+1. **The S-shaped diffusion curve** (Rogers; Bass). A continuous transition with order-parameter growth *is* the sigmoid aggregate-adoption curve. The phase-transition picture gives a mechanistic foundation for the classic S-curve.
+2. **The recurrence of tipping points / critical mass** (Granovetter 1978; Schelling; Centola's ~25% experiments). A continuous transition with a well-defined critical point is the formal object behind "critical mass." Universality explains *why the same tipping phenomenon recurs across utterly different domains* (fads, technologies, norms, protests): the cross-domain regularity of diffusion (same S-curves, same threshold structure) is, in physics terms, universality.
+
+### 19.3 How far "structure makes social change legible" can be defended
+
+- **Defensible:** near criticality the *aggregate* obeys a low-dimensional, scale-free, universal law; macro-observables (variance, relaxation time) carry characteristic, measurable signatures. The aggregate is "legible" = describable with a few parameters and carrying *statistical* early-warning signals (an ensemble property — see §16).
+- **Over-reach to avoid:** "legible" ≠ "predictable at the individual or single-event level." One cannot predict which specific protest erupts or who adopts. There is a productive irony worth stating explicitly: **the aggregate is maximally legible (universal law) precisely in the regime where individual outcomes are least predictable** — at criticality, variance diverges and avalanches of *all sizes* occur (scale-free). The honest one-liner: *"the rules governing the distribution of outcomes are legible and universal, even though any single outcome is maximally uncertain."*
+
+### 19.4 The crucial reframing of the contribution (avoid the "so what?")
+
+For a physics-literate reader, *finding* mean-field on a network is **not surprising** — networks are effectively infinite-dimensional, so mean-field is the *generic* expectation (see §15). Therefore the contribution should **not** be framed as "we found universality." The non-trivial, defensible contribution is the **contrast**: empirically homophilic structure yields a **continuous, universal, signposted** transition, whereas degree-preserving randomization yields a **discontinuous, warningless** one. **Structure decides the *order* (and the legibility) of collective change, not merely its volume.** Lean the Discussion on (a) this continuous-vs-discontinuous contrast and (b) the empirical (survey-calibrated) grounding — not on the bare fact that γ≈1.
+
+### 19.5 A concrete closing framing (candidate Discussion / abstract sentence)
+
+> "Even when a single episode of social change feels abrupt and surprising, the aggregate dynamics — averaged over comparable cases — appears to follow identifiable, continuous, even universal patterns."
+
+This is exactly what a continuous, mean-field transition predicts, and it respects the ensemble caveat (it is the *mean* that carries the pattern, not the single realization). It can be anchored to real phenomena: S-curves of innovation adoption (smartphones, hybrid corn, contraception); recurrent tipping fractions in norm change (Centola's ~25%; same-sex-marriage opinion shift; #MeToo); protest waves/revolutions that feel sudden ex-post but show aggregate precursors (rising strike frequency, polarization indices). Always scope the claim to the aggregate/ensemble level; individual events remain unpredictable.
+
 ## Summary of Edits by Priority
 
 | Priority | Section | Edit Type | Complexity |
