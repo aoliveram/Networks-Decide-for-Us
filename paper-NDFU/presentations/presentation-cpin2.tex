@@ -269,7 +269,18 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
 \begin{columns}[c]
 \column{0.52\textwidth}
 \centering
-% --- Plot A: Path 2 — vary T (MSP) at fixed IUL ---
+% --- Plot B: Path 1 — vary H (IUL) at fixed T  (now on TOP) ---
+\begin{tikzpicture}[scale=0.62, font=\tiny, >={Latex[length=1.6mm]}]
+  \draw[->] (0,0)--(4.2,0) node[right]{IUL ($H$)};
+  \draw[->] (0,0)--(0,2.25) node[left]{$\Phi$};
+  % critical isotherm Phi ~ H^{1/delta}: concave, same for both topologies
+  \draw[ndblue,line width=1.1pt] (0,0) to[out=72,in=192] (1.3,1.5) to[out=12,in=178] (4.0,1.95);
+  \draw[ndreddark,line width=1.1pt,dashed] (0,0) to[out=66,in=195] (1.5,1.35) to[out=10,in=180] (4.0,1.8);
+  \node[ndblue]    at (2.7,1.15){\scriptsize plausible};
+  \node[ndreddark] at (2.7,0.55){\scriptsize random};
+\end{tikzpicture}\\[-1pt]
+{\scriptsize \textbf{Path 1 — vary $H$ at fixed $T$:} exponent $\delta$.}\\[7pt]
+% --- Plot A: Path 2 — vary T (MSP) at fixed IUL  (now on BOTTOM) ---
 \begin{tikzpicture}[scale=0.62, font=\tiny, >={Latex[length=1.6mm]}]
   \draw[->] (0,0)--(4.2,0) node[right]{MSP ($T$)};
   \draw[->] (0,0)--(0,2.25) node[left]{$\Phi$};
@@ -281,30 +292,19 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
   \node[ndgreen] at (3.1,1.05){\scriptsize plausible};
   \node[ndred]   at (0.95,1.55){\scriptsize random};
 \end{tikzpicture}\\[-1pt]
-{\scriptsize \textbf{Path 2 — vary $T$:} a continuous (2nd-order) \emph{or} discontinuous (1st-order) transition; exponent $\gamma$.}\\[7pt]
-% --- Plot B: Path 1 — vary H (IUL) at fixed T ---
-\begin{tikzpicture}[scale=0.62, font=\tiny, >={Latex[length=1.6mm]}]
-  \draw[->] (0,0)--(4.2,0) node[right]{IUL ($H$)};
-  \draw[->] (0,0)--(0,2.25) node[left]{$\Phi$};
-  % critical isotherm Phi ~ H^{1/delta}: concave, same for both topologies
-  \draw[ndblue,line width=1.1pt] (0,0) to[out=72,in=192] (1.3,1.5) to[out=12,in=178] (4.0,1.95);
-  \draw[ndreddark,line width=1.1pt,dashed] (0,0) to[out=66,in=195] (1.5,1.35) to[out=10,in=180] (4.0,1.8);
-  \node[ndblue]    at (2.7,1.15){\scriptsize plausible};
-  \node[ndreddark] at (2.7,0.55){\scriptsize random};
-\end{tikzpicture}\\[-1pt]
-{\scriptsize \textbf{Path 1 — vary $H$ at fixed $T$:} exponent $\delta$.}
+{\scriptsize \textbf{Path 2 — vary $T$:} a continuous (2nd-order) \emph{or} discontinuous (1st-order) transition; exponent $\gamma$.}
 \column{0.48\textwidth}
 \footnotesize
-\textbf{\color{ndgreen}Path 2 — fix IUL, vary MSP ($T$)}
-\begin{itemize}\footnotesize
-  \item the temperature route to the critical point
-  \item if continuous, $\chi=\mathrm{Var}(\Phi)\sim|MSP-MSP_c|^{-\gamma}$
-\end{itemize}
-\vspace{0.2cm}
 \textbf{\color{ndblue}Path 1 — fix MSP, vary IUL ($H$)}
 \begin{itemize}\footnotesize
   \item the field route (critical isotherm)
   \item yields the exponent $\delta$
+\end{itemize}
+\vspace{0.2cm}
+\textbf{\color{ndgreen}Path 2 — fix IUL, vary MSP ($T$)}
+\begin{itemize}\footnotesize
+  \item the temperature route to the critical point
+  \item if continuous, $\chi=\mathrm{Var}(\Phi)\sim|MSP-MSP_c|^{-\gamma}$
 \end{itemize}
 \vspace{0.25cm}
 {\footnotesize What does each path reveal about the structure? $\rightarrow$ \emphr{Results}.}
