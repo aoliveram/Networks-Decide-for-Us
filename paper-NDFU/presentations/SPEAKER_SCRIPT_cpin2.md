@@ -121,7 +121,7 @@
 >
 > So the mean-field response appears *only* on the realistic homophily-built network. If you rewire the network, you will lose it.
 >
-> And why does that matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents, so the substance, the lattice, the chemistry are all irrelevant. The logic here is that the aggregate doesn't care about the specific content of the behavior, or individual quirks — but only the structure. So, if we accept this model as an "stylized reallity", we can say that a handful of macro-structural parameters govern the phenomenon.
+> And why does that matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents, so the substance, the lattice, the chemistry are all irrelevant. The logic here is that the aggregate doesn't care about the specific content of the behavior, or individual quirks — but only the structure. So, if we accept this model as a *stylized reality*, we can say that a handful of macro-structural parameters govern the phenomenon.
 
 ---
 
@@ -135,7 +135,7 @@
 > Is the structure an autonomous force deciding *how* change spreads?
 > Yes: on a realistic network the aggregated pattern is continuous. Even when a single case of social change feels abrupt and surprising, the *aggregate* follows a familiar pattern. Even when there are particular cases when adoption is bimodal, we still use the usual Roger's S-curve to explain social diffusions so different as fax machines, hashtags, and protest waves.
 > 
-> The big message for this community: collective social change is not the sum of individual preferences. At the tipping point it behaves like critical matter — and the control parameter is the structure of our ties. Thank you.
+> The big message for this community: collective social change is not the sum of individual preferences. It’s governed by the structure of our real topology. Thank you.
 
 ---
 
