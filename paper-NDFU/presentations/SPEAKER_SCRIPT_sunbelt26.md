@@ -11,29 +11,37 @@
 
 ---
 
-## Slide 2 — The question (0:30–1:30)
+## Slide 2 — Collective behavior spreads on networks (0:30–1:15)
 
 > Here's the setup. Behaviors — adopting a new product, joining a protest — spread person to person, like a contagion. And real human networks have a very particular texture: we tend to cluster with people like us. Same age, same education, same background. That's homophily.
 >
-> But here's the frustrating part. Most diffusion models run on *made-up* networks. And most of our great surveys measure *people* — their attitudes, their propensities — but they don't tell us who's connected to whom.
->
-> So the question I want to answer is: if we *freeze* everyone's individual propensity, does the *shape of the network alone* — not who the people are — decide how much spreads?
+> So a natural question hangs over all of this: how much of *where* a behavior ends up is about *who* people are, and how much is about *how* they're wired together?
 
 ---
 
-## Slide 3 — The gap, and where we go (1:30–2:30)
+## Slide 3 — The gap (1:15–2:15)
 
-> Let me put three standing problems on the table. One: diffusion models usually use synthetic networks — small-world, scale-free — not real ones. Two: the surveys that *do* measure propensities, like the ATP or the GSS, have no network data at all. And three: a lot of threshold models quietly assume that *every* adoption needs peer influence.
+> Let me put three standing problems on the table. One: diffusion models usually use synthetic networks — small-world, scale-free — not real ones. Two: the surveys that *do* measure propensities, like the ATP or the GSS, have no network data at all.
 >
-> Our paper makes two moves against this. First, we *impute* a plausible whole-network onto real survey respondents — we build them a realistic social network out of empirical homophily. Second, we measure how much that structure actually causes diffusion, and we dig into *what about the structure* matters.
+> And three — this is the one I want you to hold onto. A lot of threshold models quietly assume that *every* adoption needs peer influence. And there's a beautiful paper by Macy and Evtushenko in Sociological Science: when a group with weak interest somehow still tips, the explanation they reach for is *stochastic noise* — a random spark that spontaneously instigates the cascade.
 >
-> We're building on McPherson and Smith's idea of imputing social context from surveys — but we push it from a single latent "context" number all the way to full, simulable networks.
+> Our bet is different. We want to see whether *measured preference* and *real structure* — not noise, not made-up graphs — can do that work.
 
 ---
 
-## Slide 4 — Adoption, part 1: Rational Choice (2:30–3:30)
+## Slide 4 — Where we go (2:15–3:00)
 
-> The model has two ways a person adopts. The first is simple and selfish: if the thing is attractive enough to me personally, I adopt it on my own. We call the attractiveness of the behavior its "Intrinsic Utility Level" — think of it as a quality score; the highest-quality option is the one that would win the most head-to-head comparisons. And each person has a personal bar it has to clear — their minimum requirement.
+> So our paper makes two moves. First, we *impute* a plausible whole-network onto real survey respondents — we build them a realistic social network out of empirical homophily. We're building on McPherson and Smith's idea of imputing social context from surveys, but we push it from a single latent "context" number all the way to full, simulable networks.
+>
+> Second, we measure how much that structure actually *causes* diffusion — and then we dig into *what about the structure* matters.
+>
+> The precise question, in the box: holding individual propensities fixed, does the *shape of the network alone* — not who its members are — decide how much spreads?
+
+---
+
+## Slide 5 — Adoption, part 1: Rational Choice (3:00–3:50)
+
+> The model has two ways a person adopts. The first is simple and selfish: if the thing is attractive enough to me personally, I adopt it on my own. We call the attractiveness of the behavior its "Intrinsic Utility Level" — think of it as a quality score. And each person has a personal bar it has to clear — their minimum requirement.
 >
 > The key thing about this first channel — look at the little networks — is that it completely ignores the network. People adopt on their own, wherever they happen to sit.
 
@@ -93,63 +101,49 @@
 
 ---
 
-## Slide 11 — Where this sits (11:00–12:00)
-
-> Let me place this against a paper many of you know — Macy and Evtushenko, in Sociological Science. They reintroduce individual idiosyncrasy into threshold models as *stochastic noise*, and they show something lovely: a little noise can *spontaneously instigate* a cascade that a weak-interest group would otherwise never get off the ground.
->
-> We go one level *behind* that. Our idiosyncrasy isn't noise — it's *measured preference*. At low intrinsic utility, the people who adopt on their own — the rational adopters — *are* the instigators. They're not random sparks; they're real, surveyed preferences. And on top of that, we show it's the *structure*, not just the spread of thresholds, that governs the outcome.
->
-> The one-line version: the same agents, on a different topology, produce a different society.
-
----
-
-## Slide 12 — Teaser: the shape of change (12:15–13:15)
-
-> I'll leave you with one teaser, because I think it's the fun part. Beyond *how much* spreads, the structure also governs *how* the change arrives.
->
-> On a realistic network, the tipping is smooth and predictable — a continuous transition. On a scrambled network, it's abrupt — all-or-nothing, with no warning. There's actually a deep signature here that physicists call universality — the aggregate behaves like a phase transition in matter. But that's a whole other talk, and I'd love to get into it in the questions.
-
----
-
-## Slide 13 — Conclusions (13:15–14:15)
+## Slide 11 — Conclusions (11:00–12:15)
 
 > So, to wrap up — three takeaways.
-> A method: you can impute realistic, *simulable* whole-networks onto survey respondents from empirical homophily. That's reusable anywhere you've got propensities but no ties.
-> A finding: holding individual preferences fixed, real structure gives you a 57-percent adoption premium.
-> And a mechanism: what "breaking structure" destroys, above all, is homophily — your neighbors stop being similar to you.
+> A *method*: you can impute realistic, *simulable* whole-networks onto survey respondents from empirical homophily. That's reusable anywhere you've got propensities but no ties.
+> A *finding*: holding individual preferences fixed, real structure gives you a 57-percent adoption premium.
+> And a *mechanism*: what "breaking structure" destroys, above all, is homophily — your neighbors stop being similar to you.
+>
+> And let me close the loop with Macy and Evtushenko, who I mentioned at the start. They explain surprising cascades with *stochastic noise*. Here, the thing that drives the outcome isn't noise — it's *measured preference* and real structure. The same agents, on a different topology, produce a different society.
 >
 > The big message: where a behavior ends up isn't the sum of individual preferences. It's governed by the structure of our ties. Networks decide for us.
 
 ---
 
-## Slide 14 — Limitations & next steps (14:15–14:45)
+## Slide 12 — Thanks / References (12:15–12:45)
+*(Stay on Thanks; take questions. QR links to the preprint. Finishing a bit early leaves room for Q&A — and for the backup slide if there's appetite.)*
 
-> Quickly, where we're headed. First, the cleanest test to separate homophily from clustering: keep the network *byte-for-byte identical* and just shuffle the attributes across nodes — that isolates pure homophily. Second, let openness vary by group instead of being one global number. Third, push the propensities to higher-stakes behavior — risky collective action. And fourth, the criticality story from the teaser, as a companion paper.
+> Thank you — the QR there links to the draft, and I'm very happy to take questions.
 
 ---
 
-## Slide 15 — Thanks / References (14:45–15:00)
-*(Stay on Thanks; take questions. QR links to the preprint.)*
+## Backup slide (only if time remains, or in Q&A) — the shape of change
 
-> Thank you — the QR there links to the draft, and I'm very happy to take questions.
+> If there's time, one teaser. Beyond *how much* spreads, the structure also governs *how* the change arrives. On a realistic network the tipping is smooth and predictable — a continuous transition. On a scrambled one, it's abrupt — all-or-nothing.
+>
+> And there's a deeper signature: near the tipping point, the realistic networks show what physicists call *universality* — mean-field scaling, the same math as a phase transition in matter. In the table, the susceptibility exponent gamma is about 1 for the real networks and about 4 for the scrambled ones — so gamma *tells them apart*. The field exponent delta is about 3 for both, so it doesn't. That's a whole companion paper, and I'd love to get into it.
 
 ---
 
 ### Timing cheat-sheet
 | Block | Target |
 |---|---|
-| Title + question + gap | 0:00–2:30 |
-| Model (2 slides) | 2:30–4:45 |
+| Motivation + gap + where-we-go | 0:00–3:00 |
+| Model (2 slides) | 3:00–4:45 |
 | Pipeline | 4:45–6:45 |
 | Diagnosis: topology (B) + homophily (C) | 6:45–8:45 |
 | Simulation design | 8:45–9:30 |
 | Result 1 (premium) | 9:30–11:00 |
-| Macy connection | 11:00–12:00 |
-| Teaser (physics) | 12:00–13:15 |
-| Conclusions + next | 13:15–14:45 |
-| Thanks / Q&A | 14:45–15:00 |
+| Conclusions (incl. Macy loop) | 11:00–12:15 |
+| Thanks / Q&A | 12:15–15:00 |
+| *(Backup: shape-of-change + γ/δ — only if asked)* | — |
 
-**Release valve if running long:** compress the topology slide (B) to two sentences — "scrambling also hurts clustering and modularity, but the controls are identical, and homophily is the most complete collapse" — and move straight to the homophily slide (C). The diagnosis now *sets up* the premium, so it should feel like one continuous build.
+**Note:** Macy is now *front-loaded* in "The gap" (as motivation) and *closed* in Conclusions — no standalone middle slide. The physics is a single **backup slide after Thanks**, used only if time/appetite remains or in Q&A. This deliberately finishes ~12–13 min, leaving generous Q&A.
+**Release valve if running long:** compress the topology slide (B) to two sentences — "scrambling also hurts clustering and modularity, but the controls are identical, and homophily is the most complete collapse" — and move straight to the homophily slide (C). The diagnosis *sets up* the premium, so it should feel like one continuous build.
 
 ### Anticipated questions
 - *"Are the imputed networks validated?"* → they reproduce the right-skewed degree distribution and realistic clustering of real networks (the degree-dist figure); held-out tie-feature validation is the natural next robustness check.

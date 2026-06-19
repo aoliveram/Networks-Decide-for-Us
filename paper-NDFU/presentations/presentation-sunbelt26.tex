@@ -98,49 +98,54 @@
   \end{center}
 \end{frame}
 
-% ---------------------------------------------------------------- 2. THE QUESTION
-\begin{frame}{The question}
+% ---------------------------------------------------------------- 2. MOTIVATION
+\begin{frame}{Collective behavior spreads on networks}
 \begin{itemize}
   \item Collective behaviors — innovations, mobilizations — spread as
         \emphr{contagions} on social networks.
-  \vspace{0.3cm}
+  \vspace{0.4cm}
   \item Real human networks have a specific texture: we cluster with people
         like us — \emphr{multidimensional homophily} \refn{1}.
-  \vspace{0.3cm}
-  \item Yet most diffusion models run on \emph{synthetic} topologies, and most
-        surveys give us \emph{individuals} but \emph{not their networks}.
+  \vspace{0.4cm}
+  \item So a natural question: how much of \emph{where} a behavior ends up is about
+        \emph{who people are}, and how much is about \emph{how they are wired together}?
 \end{itemize}
-\vspace{0.5cm}
-\begin{center}
-\fcolorbox{ndred}{white}{\parbox{0.92\textwidth}{\centering
-Holding individual propensities \emph{fixed}, does the \emphr{shape of the network
-alone} — not who its members are — decide \emph{how much} collective behavior spreads?}}
-\end{center}
 \end{frame}
 
 % ---------------------------------------------------------------- 3. THE GAP
-\begin{frame}{The gap, and where we go}
-\begin{columns}[T]
-\column{0.52\textwidth}
-\textbf{The standing problems}
-\begin{itemize}\small
-  \item Diffusion ABMs use \emph{made-up} networks (small-world, scale-free) \refn{2}.
-  \item Rich surveys (ATP, GSS) measure \emph{propensities} but have \emph{no} relational data.
-  \item Threshold models often assume \emph{all} adoption needs peer influence \refn{3}.
+\begin{frame}{The gap}
+\begin{itemize}
+  \item Diffusion ABMs run on \emph{made-up} networks (small-world, scale-free) \refn{2}.
+  \vspace{0.25cm}
+  \item Rich surveys (ATP, GSS) measure \emph{propensities} but carry \emph{no} relational data.
+  \vspace{0.25cm}
+  \item Threshold models often assume \emph{all} adoption needs peer influence — and when
+        weak-interest groups still tip, the usual explanation is \emph{stochastic noise} that
+        spontaneously instigates a cascade \refn{8}.
 \end{itemize}
-\column{0.48\textwidth}
-\textbf{Our two moves}
-\begin{itemize}\small
-  \item \emphr{Impute} plausible whole-networks onto real survey respondents
-        from empirical homophily.
-  \item \emphr{Measure} the causal premium of that structure on diffusion,
-        and ask \emph{what about it} matters.
-\end{itemize}
-\end{columns}
-\vspace{0.5cm}
+\vspace{0.4cm}
 \begin{center}\small
-Building on \emph{imputing social context from survey data} \refn{4} —
-but going from a latent context term to \emphr{full simulable networks}.
+We ask whether \emphr{measured preference and real structure} — not noise, not synthetic
+graphs — can do that work.
+\end{center}
+\end{frame}
+
+% ---------------------------------------------------------------- 3b. WHERE WE GO
+\begin{frame}{Where we go}
+\textbf{Two moves}
+\begin{itemize}
+  \item \emphr{Impute} plausible whole-networks onto real survey respondents from
+        empirical homophily — going from McPherson \& Smith's latent ``context'' term \refn{4}
+        to \emphr{full simulable networks}.
+  \vspace{0.2cm}
+  \item \emphr{Measure} the causal premium of that structure on diffusion — and ask
+        \emph{what about the structure} actually matters.
+\end{itemize}
+\vspace{0.4cm}
+\begin{center}
+\fcolorbox{ndred}{white}{\parbox{0.92\textwidth}{\centering
+Holding individual propensities \emph{fixed}, does the \emphr{shape of the network alone} —
+not who its members are — decide \emph{how much} collective behavior spreads?}}
 \end{center}
 \end{frame}
 
@@ -308,89 +313,30 @@ $\tau_{\text{sd}}$ & $5.942^{***}$ & --- \\
 \end{columns}
 \end{frame}
 
-% ---- 9. literature connection ----
-\begin{frame}{Where this sits}
-\begin{columns}[T]
-\column{0.5\textwidth}
-\textbf{Macy \& Evtushenko (2020)} \refn{8}
-\begin{itemize}\small
-  \item Reintroduce individual idiosyncrasy as \emph{stochastic noise}.
-  \item Noise can \emph{spontaneously instigate} cascades a weak-interest group would otherwise doom.
-\end{itemize}
-\column{0.5\textwidth}
-\textbf{Here}
-\begin{itemize}\small
-  \item Idiosyncrasy is \emphr{measured preference}, not noise.
-  \item At low IUL, \emph{rational} adopters are endogenous instigators — we go one
-        level \emph{behind} spontaneous instigation.
-  \item And \emphr{structure}, not just the threshold distribution, governs the outcome.
-\end{itemize}
-\end{columns}
-\vspace{0.5cm}
-\begin{center}\small
-\emph{The same agents, on a different topology, produce a different society.}
-\end{center}
-\end{frame}
-
-% ---- 10. teaser: the SHAPE of change (single physics slice) ----
-\begin{frame}{Teaser — the \emph{shape} of change also differs}
-\begin{columns}[c]
-\column{0.54\textwidth}
-\small
-Beyond \emph{how much}, structure governs \emph{how} adoption tips:
-\begin{itemize}\small
-  \item Plausible networks $\rightarrow$ a \emphr{continuous, predictable} transition.
-  \item Randomized networks $\rightarrow$ an \emphr{abrupt, all-or-nothing} regime shift.
-\end{itemize}
-\vspace{0.2cm}
-There is even a signature of \emphr{universality} (mean-field scaling) — a story for
-another talk \refn{9}. Happy to discuss in Q\&A.
-\column{0.46\textwidth}
-\centering
-\includegraphics[trim={0 0 0 0.9cm}, clip, width=\linewidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\
-{\scriptsize Adoption \& its variance over the IUL--MSP plane.}
-\end{columns}
-\end{frame}
-
 % ================================================================ CLOSE
-% ---- 11. conclusions ----
+% ---- conclusions ----
 \begin{frame}{Conclusions}
 \begin{center}{\large \emphr{Networks decide for us.}}\end{center}
-\vspace{0.3cm}
+\vspace{0.25cm}
 \begin{enumerate}
   \item \textbf{A method:} impute \emphr{simulable whole-networks} onto survey respondents
         from empirical homophily — reusable wherever you have propensities but no ties.
-  \vspace{0.15cm}
+  \vspace{0.1cm}
   \item \textbf{A finding:} holding propensities fixed, empirical structure yields a
         \emphr{$+57\%$ adoption premium}.
-  \vspace{0.15cm}
+  \vspace{0.1cm}
   \item \textbf{A mechanism:} what ``breaking structure'' destroys is, above all,
         \emphr{homophily} — neighbors stop being similar.
 \end{enumerate}
-\vspace{0.3cm}
+\vspace{0.2cm}
 \begin{center}\small
-\emph{Macroscopic diffusion is not the sum of individual preferences —
-it is governed by the structure of our ties.}
+Unlike Macy \& Evtushenko \refn{8}, the idiosyncrasy that drives this is
+\emphr{measured preference}, not stochastic noise: \emph{the same agents, on a different
+topology, produce a different society.}
 \end{center}
 \end{frame}
 
-% ---- 12. limitations / next ----
-\begin{frame}{Limitations \& next steps}
-\begin{itemize}
-  \item \emphr{Separate homophily from clustering:} the attribute-shuffle null model —
-        identical topology, permuted node attributes — isolates pure homophily.
-  \vspace{0.2cm}
-  \item \emphr{Heterogeneous MSP:} social porosity that varies by group, not a global constant.
-  \vspace{0.2cm}
-  \item \emphr{Higher-stakes behavior:} extend the propensity scores to risky / high-cost
-        collective action.
-  \vspace{0.2cm}
-  \item \emphr{The criticality story:} the continuous-vs-abrupt transition and its
-        universality (the teaser) — a companion paper.
-\end{itemize}
-\end{frame}
-
-% ---- 13. references ----
+% ---- references ----
 \begin{frame}{References}
 \footnotesize
 \begin{enumerate}\itemsep1.2pt
@@ -421,6 +367,42 @@ it is governed by the structure of our ties.}
       \texttt{https://doi.org/10.5281/zenodo.19360209}}
   \end{center}
   \vfill
+\end{frame}
+
+% ---- BACKUP / only if time remains: the SHAPE of change + universality ----
+\begin{frame}{Backup — the \emph{shape} of change also differs}
+\begin{columns}[c]
+\column{0.5\textwidth}
+\small
+Beyond \emph{how much}, structure governs \emph{how} adoption tips:
+\begin{itemize}\small
+  \item Plausible (GSS) $\rightarrow$ \emphr{continuous, predictable} transition.
+  \item Randomized (GSS-DP) $\rightarrow$ \emphr{abrupt} regime shift.
+\end{itemize}
+\vspace{0.2cm}
+Near the tipping point the GSS networks show \emphr{mean-field universality}; the randomized
+ones do not \refn{9}.
+\vspace{0.25cm}
+
+{\footnotesize Critical exponents (mean over IUL):}\\[2pt]
+\renewcommand{\arraystretch}{1.15}
+{\footnotesize
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & \textbf{Plausible (GSS)} & \textbf{Random (GSS-DP)} \\
+\midrule
+Susceptibility $\gamma$ & $\approx 0.91$ & $\approx 3.9$ \\
+Critical isotherm $\delta$ & $\approx 2.85$ & $\approx 2.91$ \\
+\midrule
+mean-field & $\gamma{=}1,\ \delta{=}3$ & --- \\
+\bottomrule
+\end{tabular}}\\[3pt]
+{\scriptsize Only $\gamma$ (the temperature axis) discriminates topology.}
+\column{0.5\textwidth}
+\centering
+\includegraphics[trim={0 0 0 0.9cm}, clip, width=\linewidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\
+{\scriptsize Adoption \& its variance over the IUL--MSP plane.}
+\end{columns}
 \end{frame}
 
 \end{document}

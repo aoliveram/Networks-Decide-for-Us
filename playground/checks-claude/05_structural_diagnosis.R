@@ -178,33 +178,37 @@ box_one <- function(stat, title) {
 B_stats  <- c("clustering_global","clustering_local","triangles",
               "assort_degree","mean_path_length","modularity")
 B_titles <- c("Global clustering","Avg local clustering","Triangles",
-              "Degree assortativity","Mean path length","Modularity (Louvain)")
+              "Degree assortativity","Mean path length","Modularity")
 pB <- wrap_plots(Map(box_one, B_stats, B_titles), ncol = 3)
 ggsave(file.path(PLOTS, "structural_diagnosis_B.pdf"), pB, width = 9, height = 5.6)
 
-# --- Plot 2: family C, 1x2 (smaller) ---
-# left: per-axis attribute assortativity; GSS/GSS-DP labels above the grouped boxes (no legend)
+# --- Plot 2: family C, 1x2 (assortativity panel wider, social-distance panel thinner) ---
+# left: per-axis attribute assortativity; GSS/GSS-DP labels above EACH axis pair (no legend)
+AXIS_ORDER <- c("Age", "Education", "Race", "Religion", "Sex")
 assort_long <- allstats %>%
   select(topo, assort_race, assort_sex, assort_relig, assort_age, assort_educ) %>%
   pivot_longer(-topo, names_to = "axis", values_to = "val") %>%
-  mutate(axis = recode(axis, assort_race="Race", assort_sex="Sex", assort_relig="Religion",
-                       assort_age="Age", assort_educ="Education"))
+  mutate(axis = factor(recode(axis, assort_race="Race", assort_sex="Sex", assort_relig="Religion",
+                       assort_age="Age", assort_educ="Education"), levels = AXIS_ORDER))
 ytopC <- max(assort_long$val, na.rm = TRUE)
-labC <- data.frame(axis = c("Age", "Age"), topo = c("GSS", "GSS-DP"),
-                   x = c(0.78, 1.22), hj = c(1, 0), val = ytopC + 0.10)
+# one GSS + one GSS-DP label above every axis pair (dodge half-width ~0.2)
+labC <- do.call(rbind, lapply(seq_along(AXIS_ORDER), function(k) data.frame(
+  axis = factor(AXIS_ORDER[k], levels = AXIS_ORDER),
+  topo = c("GSS", "GSS-DP"),
+  x    = k + c(-0.2, 0.2),
+  val  = ytopC + 0.085)))
 pC1 <- ggplot(assort_long, aes(axis, val, fill = topo)) +
-  geom_boxplot(width = 0.7, outlier.size = 0.3, alpha = 0.85, position = position_dodge(0.8)) +
-  geom_text(data = labC, aes(x = x, label = topo, color = topo, hjust = hj), vjust = 0,
-            size = 2.6, fontface = "bold", show.legend = FALSE) +
+  geom_boxplot(width = 0.55, outlier.size = 0.3, alpha = 0.85, position = position_dodge(0.55)) +
+  geom_text(data = labC, aes(x = x, label = topo, color = topo), vjust = 0,
+            size = 2.1, fontface = "bold", show.legend = FALSE) +
   scale_fill_manual(values = COLS, guide = "none") +
   scale_color_manual(values = COLS, guide = "none") +
-  scale_y_continuous(expand = expansion(mult = c(0.05, 0.16))) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.14))) +
   labs(title = "Attribute assortativity by Blau axis", x = NULL, y = "Assortativity") +
   theme_bw(base_size = 9) +
-  theme(axis.text.x = element_text(angle = 20, hjust = 1),
-        plot.title = element_text(size = 9, face = "bold"))
+  theme(plot.title = element_text(size = 9, face = "bold"))
 pC2 <- box_one("mean_edge_gower", "Mean social distance")
-pC <- pC1 + pC2 + plot_layout(widths = c(1.7, 1))
-ggsave(file.path(PLOTS, "structural_diagnosis_C.pdf"), pC, width = 7.5, height = 3.3)
+pC <- pC1 + pC2 + plot_layout(widths = c(2.6, 1))
+ggsave(file.path(PLOTS, "structural_diagnosis_C.pdf"), pC, width = 8.2, height = 3.3)
 
-cat("\nSaved: structural_diagnosis_summary.csv, _B.pdf (3x2), _C.pdf (1x2, smaller)\n")
+cat("\nSaved: structural_diagnosis_summary.csv, _B.pdf (3x2), _C.pdf (1x2)\n")
