@@ -1,0 +1,425 @@
+% ============================================================================
+% Networks Decide for Us — Sunbelt 2026
+% Session: "Contagion and Diffusion processes through Social Networks"
+% Classic-SNA framing: LEAD with the imputation pipeline + structural premium;
+% physics demoted to a single teaser slide. ~15 min talk + 5 min Q&A.
+% Style replicates the CPIN / "JORNADA REDES" deck.
+% Compile: pdflatex presentation-sunbelt26.tex  (run twice)
+% ============================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{qrcode}
+\usetikzlibrary{arrows.meta, positioning, calc}
+
+% ---------- Fonts: clean humanist sans, professional math ----------
+\usefonttheme{professionalfonts}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% ---------- Colors (matched to the JORNADA deck) ----------
+\definecolor{ndred}{RGB}{222,32,38}       % bright red rule
+\definecolor{ndreddark}{RGB}{176,22,28}   % darker brick red (subtitles)
+\definecolor{ndgreen}{RGB}{0,118,54}      % green reference markers (darker)
+\definecolor{ndblue}{RGB}{30,90,200}      % accent blue
+\definecolor{ndgray}{RGB}{90,90,90}
+
+% ---------- Strip all Beamer chrome ----------
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{structure}{fg=ndreddark}
+\setbeamertemplate{itemize item}{\color{ndreddark}\textbullet}
+\setbeamertemplate{itemize subitem}{\color{ndgray}\textendash}
+
+% ---------- Frame title: centered black title + full-width red rule ----------
+\setbeamercolor{frametitle}{fg=black,bg=white}
+\setbeamerfont{frametitle}{size=\Large, series=\mdseries}
+\setbeamertemplate{frametitle}{%
+  \vspace{0.35cm}%
+  \begin{center}\insertframetitle\end{center}%
+  \vspace{-0.18cm}%
+  {\color{ndred}\hrule height 1.1pt}%
+}
+
+% ---------- Minimal footline: page number only ----------
+\setbeamertemplate{footline}{%
+  \hfill{\color{ndgray}\scriptsize\insertframenumber}\hspace{0.5cm}\vspace{0.2cm}}
+
+% ---------- Helper macros ----------
+\newcommand{\refn}[1]{{\color{ndgreen}[#1]}}
+\newcommand{\emphr}[1]{{\color{ndreddark}\textbf{#1}}}
+
+% Section-divider slide
+\newcommand{\sectionslide}[1]{%
+  \begin{frame}[plain]
+    \vfill
+    \begin{center}
+      {\Large #1}\\[2pt]
+      {\color{ndred}\rule{0.30\textwidth}{1.1pt}}
+    \end{center}
+    \vfill
+  \end{frame}}
+
+% ============================================================================
+\title{Networks Decide for Us}
+\subtitle{Imputed homophilic networks and the structural premium of diffusion}
+\author{Aníbal Olivera M.}
+\date{}
+
+\begin{document}
+
+% ---------------------------------------------------------------- 1. TITLE
+\begin{frame}[plain]
+  \vspace{0.6cm}
+  \begin{center}
+    {\footnotesize\color{ndgray} Centro de Investigación en Complejidad Social $\cdot$ Universidad del Desarrollo $\cdot$ Chile}
+  \end{center}
+  \vspace{1.0cm}
+  \begin{center}
+    {\LARGE \textbf{Networks Decide for Us}}\\[0.5cm]
+    {\large \color{ndreddark} Imputed homophilic networks and the structural premium of diffusion}
+  \end{center}
+  \vspace{1.2cm}
+  \begin{center}
+    {\normalsize Aníbal Olivera M.}\\[2pt]
+    {\footnotesize PhD(c) in Social Complexity Sciences, CICS}\\[2pt]
+    {\footnotesize with Jorge Fábrega \& Thomas W. Valente}
+  \end{center}
+  \vfill
+  \begin{center}
+    {\scriptsize\color{ndgray} Sunbelt 2026 — \emph{Contagion and Diffusion processes through Social Networks}}
+  \end{center}
+\end{frame}
+
+% ---------------------------------------------------------------- 2. THE QUESTION
+\begin{frame}{The question}
+\begin{itemize}
+  \item Collective behaviors — innovations, mobilizations — spread as
+        \emphr{contagions} on social networks.
+  \vspace{0.3cm}
+  \item Real human networks have a specific texture: we cluster with people
+        like us — \emphr{multidimensional homophily} \refn{1}.
+  \vspace{0.3cm}
+  \item Yet most diffusion models run on \emph{synthetic} topologies, and most
+        surveys give us \emph{individuals} but \emph{not their networks}.
+\end{itemize}
+\vspace{0.5cm}
+\begin{center}
+\fcolorbox{ndred}{white}{\parbox{0.92\textwidth}{\centering
+Holding individual propensities \emph{fixed}, does the \emphr{shape of the network
+alone} — not who its members are — decide \emph{how much} collective behavior spreads?}}
+\end{center}
+\end{frame}
+
+% ---------------------------------------------------------------- 3. THE GAP
+\begin{frame}{The gap, and where we go}
+\begin{columns}[T]
+\column{0.52\textwidth}
+\textbf{The standing problems}
+\begin{itemize}\small
+  \item Diffusion ABMs use \emph{made-up} networks (small-world, scale-free) \refn{2}.
+  \item Rich surveys (ATP, GSS) measure \emph{propensities} but have \emph{no} relational data.
+  \item Threshold models often assume \emph{all} adoption needs peer influence \refn{3}.
+\end{itemize}
+\column{0.48\textwidth}
+\textbf{Our two moves}
+\begin{itemize}\small
+  \item \emphr{Impute} plausible whole-networks onto real survey respondents
+        from empirical homophily.
+  \item \emphr{Measure} the causal premium of that structure on diffusion,
+        and ask \emph{what about it} matters.
+\end{itemize}
+\end{columns}
+\vspace{0.5cm}
+\begin{center}\small
+Building on \emph{imputing social context from survey data} \refn{4} —
+but going from a latent context term to \emphr{full simulable networks}.
+\end{center}
+\end{frame}
+
+% ================================================================ THE MODEL
+\sectionslide{The model}
+
+% ---- 4. Rational choice
+\begin{frame}{Adoption, part 1 — Rational Choice}
+\begin{itemize}
+  \item A behavior has an \emph{Intrinsic Utility Level} (IUL) $\Gamma\in[0,1]$ —
+        a latent quality scale: the highest-IUL option is the one that wins the
+        most \emphr{pairwise comparisons} \refn{5}.
+  \item Each person has a \emph{Minimum Utility Requirement} $q_i\in[0,1]$
+        (their aversion).
+\end{itemize}
+\vspace{0.1cm}
+\begin{center}
+An agent adopts on its own iff\quad
+\fcolorbox{ndred}{white}{$\;q_i \le \Gamma \;\implies\; a_i = 1\;$}
+\end{center}
+\vspace{0.15cm}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{graph-rational-choice.png}
+\end{center}
+\begin{center}\footnotesize
+This channel is \emphr{topology-blind} — it does not need the network at all.
+\end{center}
+\end{frame}
+
+% ---- 4. Selective social influence
+\begin{frame}{Adoption, part 2 — Selective Social Influence}
+Otherwise, an agent adopts by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{3}
+— but only peers who are socially \emph{close} \refn{6} count:
+\vspace{0.05cm}
+\begin{equation*}
+  \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
+  \qquad
+  \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right)
+\end{equation*}
+\begin{itemize}\small
+  \item $d_{ij}$: social (Blau-space) distance; \emphr{MSP} (Maximum Social Proximity)
+        sets how far across demographic lines influence can reach.
+\end{itemize}
+\vspace{0.05cm}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{graph-social-influence.png}
+\end{center}
+\end{frame}
+
+% ================================================================ PIPELINE
+\sectionslide{Imputing networks onto a survey}
+
+% ---- 5. THE PIPELINE (methodological novelty) ----
+\begin{frame}{The imputation pipeline}
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+  \node[draw,rounded corners,fill=ndreddark!8,text width=3.0cm,align=center,
+        minimum height=1.3cm] (a) {Empirical homophily strengths $\hat{\boldsymbol{\beta}}$ \refn{6,4}};
+  \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
+        minimum height=1.3cm,right=1.0cm of a] (b) {Simulate whole networks via \emphr{ERGM}};
+  \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
+        minimum height=1.3cm,right=1.0cm of b] (c) {Attach survey propensities $q_i$ to each node};
+  \draw[-{Latex},ndred,line width=1pt] (a)--(b);
+  \draw[-{Latex},ndred,line width=1pt] (b)--(c);
+\end{tikzpicture}
+\end{center}
+\vspace{0.15cm}
+\begin{columns}[c]
+\column{0.54\textwidth}
+\footnotesize
+Tie probability is a function of distance in Blau space
+(age, sex, education, race, religion):
+\begin{equation*}\footnotesize
+  \mathrm{logit}\,\Pr(Y_{ij}=1)=\alpha+\boldsymbol\beta^\top \mathbf{d}_{ij}
+\end{equation*}
+$\hat{\boldsymbol\beta}$ transported from GSS confidant data \refn{6};
+propensities from ATP (innovation) and GSS (collective action).
+\column{0.46\textwidth}
+\centering
+\includegraphics[width=0.95\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
+{\scriptsize Imputed networks reproduce the right-skewed degree structure of real
+networks — synthetic models don't.}
+\end{columns}
+\end{frame}
+
+% ---- 6. Simulation design ----
+\begin{frame}{Simulation design}
+Hybrid social contagion via \texttt{netdiffuseR} \refn{7}, over plausible (GSS) vs.\
+\emphr{degree-preserving randomized} (GSS-DP) topologies.
+\vspace{0.25cm}
+\begin{itemize}
+  \item \textbf{IUL} ($\Gamma$): 41 levels. \quad \textbf{MSP} ($h$): 13 levels.
+  \item \textbf{Thresholds} $\tau_i\sim\mathcal{N}(\mu,\sigma)$; \textbf{seeding}: random, central, marginal, closeness, eigenvector.
+\end{itemize}
+\vspace{0.25cm}
+\begin{center}
+$\;41\times13\times4\times4\times5\times \text{(runs)}\;\approx\;\emphr{$4\times10^{6}$ simulations}$
+\end{center}
+\vspace{0.25cm}
+The DP baseline keeps each person's \emph{number} of ties but rewires \emph{whom}
+they connect to — our counterfactual for ``the same people, different structure.''
+\end{frame}
+
+% ================================================================ RESULTS
+\sectionslide{Results}
+
+% ---- 7. RESULT 1: structural premium ----
+\begin{frame}{Result 1 — A structural premium}
+\begin{columns}[c]
+\column{0.46\textwidth}
+A Big Additive Model isolates the marginal effect of destroying empirical structure:
+\vspace{0.2cm}
+\begin{center}
+\fcolorbox{ndred}{white}{$\;\beta_{\text{DP}}=-0.850^{***}\;$ (OR $=0.43$)}\\[4pt]
+{\small $\rightarrow$ randomization cuts adoption odds by $\sim$\emphr{57\%}}
+\end{center}
+\vspace{0.2cm}
+\small Same people, same propensities — only the \emphr{wiring} changed.
+Homophilic clustering lets social reinforcement build inside local echo chambers.
+\column{0.54\textwidth}
+\centering
+\renewcommand{\arraystretch}{1.12}
+{\scriptsize
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Total adoption (GSS)} & Estimate & OR \\
+\midrule
+(Intercept) & $6.534^{***}$ & --- \\
+$\tau_{\text{mean}}$ & $-6.944^{***}$ & --- \\
+$\tau_{\text{sd}}$ & $5.942^{***}$ & --- \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{Seeding (ref: Random)}}\\
+\quad Central & $0.120^{***}$ & 1.127 \\
+\quad Closeness & $0.119^{***}$ & 1.126 \\
+\quad Eigenvector & $0.118^{***}$ & 1.125 \\
+\quad Marginal & $-0.067^{***}$ & 0.935 \\
+\addlinespace
+\multicolumn{3}{@{}l}{\textit{Topology (ref: Plausible)}}\\
+\quad Deg.-pres. random & $\mathbf{-0.850}^{***}$ & \textbf{0.427} \\
+\midrule
+\multicolumn{3}{@{}l}{Deviance explained: 82.2\%\quad $N=4{,}093{,}440$}\\
+\bottomrule
+\end{tabular}}
+\\[3pt]{\scriptsize $^{***}p<0.001$. OR $=\exp(\beta)$.}
+\end{columns}
+\end{frame}
+
+% ---- 8a. RESULT 2: what does breaking structure destroy? (family C) ----
+\begin{frame}{Result 2 — What does ``breaking structure'' destroy?}
+\centering
+\includegraphics[width=0.96\textwidth]{../../playground/checks-claude/plots/structural_diagnosis_C.pdf}\\[3pt]
+{\footnotesize 100 plausible vs.\ 100 DP networks. \emphr{Homophily is annihilated}:
+every Blau-axis assortativity collapses to $\approx 0$, and the model's own tie distance
+($d_{ij}$, Gower) rises \emphr{+42\%} — neighbors go from \emph{similar} to \emph{random}.
+All $p<10^{-30}$.}
+\end{frame}
+
+% ---- 8b. RESULT 2 cont.: higher-order topology (family B) ----
+\begin{frame}{Result 2 — Topology degrades too, but less completely}
+\centering
+\includegraphics[height=0.74\textheight]{../../playground/checks-claude/plots/structural_diagnosis_B.pdf}\\[2pt]
+{\footnotesize Clustering $-31\%$, triangles $-31\%$, modularity $-47\%$ — yet path length
+barely moves; degree, density, giant component identical (controls). \emphr{Homophily} is the
+prime suspect; isolating it from clustering is ongoing work (attribute-shuffle null).}
+\end{frame}
+
+% ---- 9. literature connection ----
+\begin{frame}{Where this sits}
+\begin{columns}[T]
+\column{0.5\textwidth}
+\textbf{Macy \& Evtushenko (2020)} \refn{8}
+\begin{itemize}\small
+  \item Reintroduce individual idiosyncrasy as \emph{stochastic noise}.
+  \item Noise can \emph{spontaneously instigate} cascades a weak-interest group would otherwise doom.
+\end{itemize}
+\column{0.5\textwidth}
+\textbf{Here}
+\begin{itemize}\small
+  \item Idiosyncrasy is \emphr{measured preference}, not noise.
+  \item At low IUL, \emph{rational} adopters are endogenous instigators — we go one
+        level \emph{behind} spontaneous instigation.
+  \item And \emphr{structure}, not just the threshold distribution, governs the outcome.
+\end{itemize}
+\end{columns}
+\vspace{0.5cm}
+\begin{center}\small
+\emph{The same agents, on a different topology, produce a different society.}
+\end{center}
+\end{frame}
+
+% ---- 10. teaser: the SHAPE of change (single physics slice) ----
+\begin{frame}{Teaser — the \emph{shape} of change also differs}
+\begin{columns}[c]
+\column{0.54\textwidth}
+\small
+Beyond \emph{how much}, structure governs \emph{how} adoption tips:
+\begin{itemize}\small
+  \item Plausible networks $\rightarrow$ a \emphr{continuous, predictable} transition.
+  \item Randomized networks $\rightarrow$ an \emphr{abrupt, all-or-nothing} regime shift.
+\end{itemize}
+\vspace{0.2cm}
+There is even a signature of \emphr{universality} (mean-field scaling) — a story for
+another talk \refn{9}. Happy to discuss in Q\&A.
+\column{0.46\textwidth}
+\centering
+\includegraphics[trim={0 0 0 0.9cm}, clip, width=\linewidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\
+{\scriptsize Adoption \& its variance over the IUL--MSP plane.}
+\end{columns}
+\end{frame}
+
+% ================================================================ CLOSE
+% ---- 11. conclusions ----
+\begin{frame}{Conclusions}
+\begin{center}{\large \emphr{Networks decide for us.}}\end{center}
+\vspace{0.3cm}
+\begin{enumerate}
+  \item \textbf{A method:} impute \emphr{simulable whole-networks} onto survey respondents
+        from empirical homophily — reusable wherever you have propensities but no ties.
+  \vspace{0.15cm}
+  \item \textbf{A finding:} holding propensities fixed, empirical structure yields a
+        \emphr{$+57\%$ adoption premium}.
+  \vspace{0.15cm}
+  \item \textbf{A mechanism:} what ``breaking structure'' destroys is, above all,
+        \emphr{homophily} — neighbors stop being similar.
+\end{enumerate}
+\vspace{0.3cm}
+\begin{center}\small
+\emph{Macroscopic diffusion is not the sum of individual preferences —
+it is governed by the structure of our ties.}
+\end{center}
+\end{frame}
+
+% ---- 12. limitations / next ----
+\begin{frame}{Limitations \& next steps}
+\begin{itemize}
+  \item \emphr{Separate homophily from clustering:} the attribute-shuffle null model —
+        identical topology, permuted node attributes — isolates pure homophily.
+  \vspace{0.2cm}
+  \item \emphr{Heterogeneous MSP:} social porosity that varies by group, not a global constant.
+  \vspace{0.2cm}
+  \item \emphr{Higher-stakes behavior:} extend the propensity scores to risky / high-cost
+        collective action.
+  \vspace{0.2cm}
+  \item \emphr{The criticality story:} the continuous-vs-abrupt transition and its
+        universality (the teaser) — a companion paper.
+\end{itemize}
+\end{frame}
+
+% ---- 13. references ----
+\begin{frame}{References}
+\footnotesize
+\begin{enumerate}\itemsep1.2pt
+  \item McPherson, Smith-Lovin \& Cook (2001). Birds of a Feather. \emph{Annu. Rev. Sociol.} 27.
+  \item Goldberg (2021). Associative Diffusion \& the Pitfalls of Structural Reductionism. \emph{ASR} 86(6).
+  \item Granovetter (1978). Threshold Models of Collective Behavior. \emph{AJS} 83(6). / Valente (1996). \emph{Soc. Networks} 18(1).
+  \item McPherson \& Smith (2019). Network Effects in Blau Space. \emph{Socius} 5.
+  \item Bradley \& Terry (1952). Rank Analysis of Incomplete Block Designs. \emph{Biometrika} 39.
+  \item Smith, McPherson \& Smith-Lovin (2014). Social Distance in the U.S. \emph{ASR} 79(3).
+  \item Vega Yon, Olivera M.\ \& Valente (2025). \texttt{netdiffuseR}. \emph{Zenodo}.
+  \item Macy \& Evtushenko (2020). Threshold Models of Collective Behavior II. \emph{Sociological Science} 7.
+  \item Sethna (2021). \emph{Statistical Mechanics: Entropy, Order Parameters, and Complexity}. Oxford UP.
+\end{enumerate}
+\end{frame}
+
+% ---- 14. thanks + QR ----
+\begin{frame}[plain]
+  \vfill
+  \begin{center}
+    {\Large Thanks!}\\[2pt]
+    {\color{ndred}\rule{0.30\textwidth}{1.1pt}}\\[0.6cm]
+    \qrcode[height=2.2cm]{https://doi.org/10.5281/zenodo.19360209}\\[0.3cm]
+    {\footnotesize Scan: preprint draft (Zenodo)}\\[5pt]
+    {\footnotesize \texttt{an.oliveram@udd.cl} $\;\cdot\;$ \texttt{aoliveram.cl}}\\[6pt]
+    \parbox{0.82\textwidth}{\centering\scriptsize\color{ndgray}
+      Olivera Morales, A., Fábrega, J., \& Valente, T. (2026). \emph{Networks Decide for Us:
+      Emergence of Adoption in Homophily-Imputed Social Topologies}. Zenodo.
+      \texttt{https://doi.org/10.5281/zenodo.19360209}}
+  \end{center}
+  \vfill
+\end{frame}
+
+\end{document}
