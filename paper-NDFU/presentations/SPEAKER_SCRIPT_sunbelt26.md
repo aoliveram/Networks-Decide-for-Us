@@ -61,43 +61,39 @@
 
 ---
 
-## Slide 7 — Simulation design (6:45–7:30)
+## Slide 7 — Breaking structure: what it destroys, part 1 (topology) (6:45–7:45)
 
-> Then we just run it — a lot. We sweep the attractiveness of the behavior, the openness parameter MSP, the thresholds, and different ways of seeding the first adopters. About four million simulations.
+> Before I run anything, I want to ask a sharper question. Our counterfactual is going to be a "scrambled" network — same number of ties per person, but rewired at random. That scrambling breaks *a lot* of things at once. So: what exactly does it break? We measured it, across a hundred real networks and a hundred scrambled twins.
 >
-> And here's the crucial comparison. For every realistic network, we build a "scrambled" twin: same number of connections per person, but we rewire *whom* they connect to at random. That destroys the homophily but keeps the degree. That scrambled version — we call it degree-preserving randomization — is our counterfactual for "the same people, a different structure."
+> This first plot is the *topology*. Scrambling damages it — clustering drops about a third, triangles drop a third, the community structure, modularity, drops by half. So topology is a suspect. But notice the path length barely moves, and — not shown here — degree, density and the giant component are *identical*. So this isn't a size artifact; it's a structural one.
 
 ---
 
-## Slide 8 — Result 1: The structural premium (7:30–9:00)  ← headline finding
+## Slide 8 — Breaking structure: what it destroys, part 2 (homophily) (7:45–8:45)  ← the key one
 
-> First result, and it's the headline. We fit a big additive model to isolate the effect of *just* the structure. When we scramble the network — destroy the homophily but keep everything else — adoption odds drop by about **57 percent**.
+> But here's the dramatic one — and it's the cleaner culprit. On the left: homophily by each demographic axis — age, education, race, religion, sex. In the real networks it's strongly positive: similar people are connected. In the scrambled ones, every single one collapses to *zero*. Random mixing.
 >
-> Let that sink in: same people, same preferences, same thresholds. The *only* thing that changed is the wiring. And it cuts adoption by more than half.
+> And on the right is the cleanest number in the whole study: the average social distance *along the ties* — the exact quantity my influence rule uses — jumps 42 percent. In a real network your neighbors are *similar* to you; scramble it, and your neighbors become *random strangers*. That's the mechanism, in one number. So when we destroy "structure," what we mostly destroy is homophily. Keep that in mind for the next slide.
+
+---
+
+## Slide 9 — Simulation design (8:45–9:30)
+
+> Okay, now we run it — a lot. We sweep the attractiveness of the behavior, the openness parameter MSP, the thresholds, and different ways of seeding the first adopters. About four million simulations, on the real networks versus their scrambled twins. Then we fit a big additive model to pull out the effect of *just* the structure.
+
+---
+
+## Slide 10 — Result 1: The structural premium (9:30–11:00)  ← headline finding
+
+> And here's the headline. When we scramble the network — destroy the homophily but keep everything else — adoption odds drop by about **57 percent**.
+>
+> Let that sink in: same people, same preferences, same thresholds. The *only* thing that changed is the wiring — and, as we just saw, mostly the homophily. And it cuts adoption by more than half.
 >
 > Why? Because homophilic clusters are echo chambers, and echo chambers turn out to be *useful* here — they let social reinforcement build up safely in a corner until it's strong enough to ignite. So homophily isn't a barrier to spread. It's a catalyst.
 
 ---
 
-## Slide 9 — Result 2a: What does breaking structure destroy? (9:00–10:30)  ← the new diagnosis
-
-> Okay — so structure matters. But *what about* the structure? When we scramble the network, we break a lot of things at once. So we measured, across a hundred real networks and a hundred scrambled twins, exactly what changes.
->
-> This plot is the answer, and it's dramatic. On the left: homophily by each demographic axis — age, education, race, religion, sex. In the real networks it's strongly positive: similar people are connected. In the scrambled ones, every single one collapses to *zero*. Random mixing.
->
-> And on the right is the cleanest number in the paper: the average social distance *along the ties* — the exact quantity my influence rule uses — jumps 42 percent. In a real network your neighbors are *similar* to you; scramble it, and your neighbors become *random strangers*. That's the mechanism, in one number. All of this is wildly significant — p less than ten to the minus thirty.
-
----
-
-## Slide 10 — Result 2b: Topology degrades too (10:30–11:15)
-
-> Now, to be honest with you: scrambling also damages the *topology* itself. Clustering drops about a third, triangles drop a third, the community structure — modularity — drops by half. So those are suspects too.
->
-> But notice two things. The controls — degree, density, the giant component — are *identical*, so this isn't a size artifact. And the most complete collapse, the one that touches my model directly, is the homophily. So homophily is the prime suspect. Cleanly separating it from clustering is what we're doing next — I'll come back to that.
-
----
-
-## Slide 11 — Where this sits (11:15–12:15)
+## Slide 11 — Where this sits (11:00–12:00)
 
 > Let me place this against a paper many of you know — Macy and Evtushenko, in Sociological Science. They reintroduce individual idiosyncrasy into threshold models as *stochastic noise*, and they show something lovely: a little noise can *spontaneously instigate* a cascade that a weak-interest group would otherwise never get off the ground.
 >
@@ -144,15 +140,16 @@
 |---|---|
 | Title + question + gap | 0:00–2:30 |
 | Model (2 slides) | 2:30–4:45 |
-| Pipeline + design | 4:45–7:30 |
-| Result 1 (premium) | 7:30–9:00 |
-| Result 2 (diagnosis, 2 slides) | 9:00–11:15 |
-| Macy connection | 11:15–12:15 |
-| Teaser (physics) | 12:15–13:15 |
+| Pipeline | 4:45–6:45 |
+| Diagnosis: topology (B) + homophily (C) | 6:45–8:45 |
+| Simulation design | 8:45–9:30 |
+| Result 1 (premium) | 9:30–11:00 |
+| Macy connection | 11:00–12:00 |
+| Teaser (physics) | 12:00–13:15 |
 | Conclusions + next | 13:15–14:45 |
 | Thanks / Q&A | 14:45–15:00 |
 
-**Release valve if running long:** compress Slide 10 (topology degrades) to two sentences — "scrambling also hurts clustering and modularity, but the controls are identical and homophily is the most complete collapse" — and skip straight to Macy.
+**Release valve if running long:** compress the topology slide (B) to two sentences — "scrambling also hurts clustering and modularity, but the controls are identical, and homophily is the most complete collapse" — and move straight to the homophily slide (C). The diagnosis now *sets up* the premium, so it should feel like one continuous build.
 
 ### Anticipated questions
 - *"Are the imputed networks validated?"* → they reproduce the right-skewed degree distribution and realistic clustering of real networks (the degree-dist figure); held-out tie-feature validation is the natural next robustness check.

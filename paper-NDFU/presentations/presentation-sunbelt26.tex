@@ -150,11 +150,9 @@ but going from a latent context term to \emphr{full simulable networks}.
 % ---- 4. Rational choice
 \begin{frame}{Adoption, part 1 — Rational Choice}
 \begin{itemize}
-  \item A behavior has an \emph{Intrinsic Utility Level} (IUL) $\Gamma\in[0,1]$ —
-        a latent quality scale: the highest-IUL option is the one that wins the
-        most \emphr{pairwise comparisons} \refn{5}.
-  \item Each person has a \emph{Minimum Utility Requirement} $q_i\in[0,1]$
-        (their aversion).
+  \item A behavior has an \emph{Intrinsic Utility Level} \emphr{IUL}, $\Gamma\in[0,1]$.
+  \item Each person has a \emph{Minimum Utility Requirement} \emphr{MUR}, $q_i\in[0,1]$,
+        representing their aversion to adopting the behavior.
 \end{itemize}
 \vspace{0.1cm}
 \begin{center}
@@ -191,57 +189,79 @@ Otherwise, an agent adopts by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{3
 \end{frame}
 
 % ================================================================ PIPELINE
-\sectionslide{Imputing networks onto a survey}
+\sectionslide{Imputing structure \& running the model}
 
-% ---- 5. THE PIPELINE (methodological novelty) ----
-\begin{frame}{The imputation pipeline}
+% ---- 5. THE PIPELINE (copied from CPIN deck) ----
+\begin{frame}{Imputing a network onto a survey}
 \begin{center}
 \begin{tikzpicture}[every node/.style={font=\footnotesize}]
-  \node[draw,rounded corners,fill=ndreddark!8,text width=3.0cm,align=center,
-        minimum height=1.3cm] (a) {Empirical homophily strengths $\hat{\boldsymbol{\beta}}$ \refn{6,4}};
+  \node[draw,rounded corners,fill=ndreddark!8,text width=2.7cm,align=center,
+        minimum height=1.25cm] (a) {Homophily strengths $\hat{\boldsymbol{\beta}}$ \refn{6,4}};
   \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
-        minimum height=1.3cm,right=1.0cm of a] (b) {Simulate whole networks via \emphr{ERGM}};
+        minimum height=1.25cm,right=1.0cm of a] (b) {Construct realistic networks};
   \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
-        minimum height=1.3cm,right=1.0cm of b] (c) {Attach survey propensities $q_i$ to each node};
+        minimum height=1.25cm,right=1.0cm of b] (c) {Add propensity scores $q_i$ to each node};
   \draw[-{Latex},ndred,line width=1pt] (a)--(b);
   \draw[-{Latex},ndred,line width=1pt] (b)--(c);
 \end{tikzpicture}
 \end{center}
-\vspace{0.15cm}
+\vspace{0.2cm}
 \begin{columns}[c]
-\column{0.54\textwidth}
+\column{0.52\textwidth}
 \footnotesize
-Tie probability is a function of distance in Blau space
-(age, sex, education, race, religion):
-\begin{equation*}\footnotesize
+Tie probability is a function of social distance (age, sex, education, race, religion):
+\vspace{0.2cm}
+\begin{equation*}
   \mathrm{logit}\,\Pr(Y_{ij}=1)=\alpha+\boldsymbol\beta^\top \mathbf{d}_{ij}
 \end{equation*}
-$\hat{\boldsymbol\beta}$ transported from GSS confidant data \refn{6};
-propensities from ATP (innovation) and GSS (collective action).
-\column{0.46\textwidth}
+
+$\hat{\boldsymbol\beta}$ comes from GSS confidant data \refn{6}; propensities $q_i$ come from
+real survey answers (innovation, collective action).
+\column{0.48\textwidth}
 \centering
-\includegraphics[width=0.95\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
-{\scriptsize Imputed networks reproduce the right-skewed degree structure of real
-networks — synthetic models don't.}
+\includegraphics[width=0.92\linewidth]{../../plots/02_GSS_network_ergm_tests/GSS_degree_dist.pdf}\\
+{\scriptsize Right-skewed degree structure that Erdös-Rényi / Barabási-Albert models fail to match jointly.}
 \end{columns}
 \end{frame}
 
-% ---- 6. Simulation design ----
-\begin{frame}{Simulation design}
-Hybrid social contagion via \texttt{netdiffuseR} \refn{7}, over plausible (GSS) vs.\
-\emphr{degree-preserving randomized} (GSS-DP) topologies.
-\vspace{0.25cm}
+% ---- 6a. RESULT 2 moved up: higher-order topology (family B) ----
+\begin{frame}{What does ``breaking structure'' destroy? — topology}
+\centering
+\includegraphics[height=0.72\textheight]{../../playground/checks-claude/plots/structural_diagnosis_B.pdf}\\[2pt]
+{\footnotesize 100 plausible (GSS) vs.\ 100 degree-preserving randomized (GSS-DP).
+Clustering $-31\%$, triangles $-31\%$, modularity $-47\%$ — yet path length barely moves,
+and degree/density/giant-component are identical. The topology degrades, but not uniformly.}
+\end{frame}
+
+% ---- 6b. RESULT 2: homophily (family C) ----
+\begin{frame}{What does ``breaking structure'' destroy? — homophily}
+\centering
+\includegraphics[width=0.82\textwidth]{../../playground/checks-claude/plots/structural_diagnosis_C.pdf}\\[6pt]
+{\footnotesize \emphr{Homophily is annihilated}: every Blau-axis assortativity collapses to
+$\approx 0$, and the model's own tie distance ($d_{ij}$) rises \emphr{+42\%} — neighbors go
+from \emph{similar} to \emph{random}. This is the prime suspect behind the premium. All $p<10^{-30}$.}
+\end{frame}
+
+% ---- 6c. Simulation design (copied from CPIN deck) ----
+\begin{frame}{Comprehensive simulation design}
+Hybrid social contagion via \texttt{netdiffuseR} \refn{7}, over plausible \emphr{GSS} vs.\
+degree-preserving randomized \emphr{GSS-DP} topologies.
+\vspace{0.2cm}
 \begin{itemize}
-  \item \textbf{IUL} ($\Gamma$): 41 levels. \quad \textbf{MSP} ($h$): 13 levels.
-  \item \textbf{Thresholds} $\tau_i\sim\mathcal{N}(\mu,\sigma)$; \textbf{seeding}: random, central, marginal, closeness, eigenvector.
+  \item \textbf{IUL} ($\Gamma$): 41 levels $[0,1]$. \quad \textbf{MSP} ($h$): 13 levels $[0,1]$.
+  \item \textbf{Thresholds} $\tau_i\sim\mathcal{N}(\mu,\sigma)$: $\mu\in\{.3,.4,.5,.6\}$, $\sigma\in\{.08,.12,.16,.20\}$.
+  \item \textbf{Seeding}: random, central, marginal, closeness, eigenvector.
 \end{itemize}
-\vspace{0.25cm}
+\vspace{0.2cm}
 \begin{center}
-$\;41\times13\times4\times4\times5\times \text{(runs)}\;\approx\;\emphr{$4\times10^{6}$ simulations}$
+Total: $\;41\times13\times4\times4\times5\times \text{(runs)} \;\approx\; \emphr{$4\times10^{6}$ simulations}$
 \end{center}
-\vspace{0.25cm}
-The DP baseline keeps each person's \emph{number} of ties but rewires \emph{whom}
-they connect to — our counterfactual for ``the same people, different structure.''
+\vspace{0.2cm}
+We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
+\begin{equation*}
+  \mathrm{logit}\big[\mathbb{E}(\Phi)\big]=\beta_0+\mathbf{Z}\boldsymbol\beta
+  +\beta_{\text{DP}}\,\mathbb{I}_{\text{DP}}+s(\mathrm{IUL},\mathrm{MSP})
+\end{equation*}
 \end{frame}
 
 % ================================================================ RESULTS
@@ -286,25 +306,6 @@ $\tau_{\text{sd}}$ & $5.942^{***}$ & --- \\
 \end{tabular}}
 \\[3pt]{\scriptsize $^{***}p<0.001$. OR $=\exp(\beta)$.}
 \end{columns}
-\end{frame}
-
-% ---- 8a. RESULT 2: what does breaking structure destroy? (family C) ----
-\begin{frame}{Result 2 — What does ``breaking structure'' destroy?}
-\centering
-\includegraphics[width=0.96\textwidth]{../../playground/checks-claude/plots/structural_diagnosis_C.pdf}\\[3pt]
-{\footnotesize 100 plausible vs.\ 100 DP networks. \emphr{Homophily is annihilated}:
-every Blau-axis assortativity collapses to $\approx 0$, and the model's own tie distance
-($d_{ij}$, Gower) rises \emphr{+42\%} — neighbors go from \emph{similar} to \emph{random}.
-All $p<10^{-30}$.}
-\end{frame}
-
-% ---- 8b. RESULT 2 cont.: higher-order topology (family B) ----
-\begin{frame}{Result 2 — Topology degrades too, but less completely}
-\centering
-\includegraphics[height=0.74\textheight]{../../playground/checks-claude/plots/structural_diagnosis_B.pdf}\\[2pt]
-{\footnotesize Clustering $-31\%$, triangles $-31\%$, modularity $-47\%$ — yet path length
-barely moves; degree, density, giant component identical (controls). \emphr{Homophily} is the
-prime suspect; isolating it from clustering is ongoing work (attribute-shuffle null).}
 \end{frame}
 
 % ---- 9. literature connection ----
