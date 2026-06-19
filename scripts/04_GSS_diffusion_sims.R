@@ -170,7 +170,7 @@ run_diffusion_simulation <- function(
 
         graph_for_this_run_ergm <- readRDS(current_network_path)
         graph_for_this_run <- asIgraph(graph_for_this_run_ergm)
-        # --- Topology selection (GSS vs ER vs ER_degseq) ---
+        # --- Topology selection (GSS vs ER vs ER_degseq vs SH) ---
         base_graph_for_attributes <- graph_for_this_run
         if (CURRENT_GRAPH_TYPE_LABEL == "ER") {
           graph_for_this_run <- random_er_same_density(base_graph_for_attributes)
@@ -185,6 +185,22 @@ run_diffusion_simulation <- function(
             if (!(attr %in% igraph::vertex_attr_names(graph_for_this_run))) {
               igraph::vertex_attr(graph_for_this_run, attr) <- igraph::vertex_attr(base_graph_for_attributes, attr)
             }
+          }
+        } else if (CURRENT_GRAPH_TYPE_LABEL == "SH") {
+          # GSS-SH (attribute SHuffle / null model #3): keep topology BYTE-IDENTICAL,
+          # permute the node attributes so only homophily (attribute<->position
+          # alignment) is destroyed. d_ij is recomputed below from these permuted
+          # attributes, so the selective-influence filter sees random neighbors.
+          graph_for_this_run <- base_graph_for_attributes
+          # reproducible per-run permutation (independent of the later threshold seed)
+          set.seed(run_idx * 7919 + network_file_idx)
+          perm <- sample(vcount(graph_for_this_run))
+          sh_attrs <- c("age","educ_num","race","relig","sex","mur_score",
+                        "signdpet","avoidbuy","joindem","attrally","cntctgov",
+                        "polfunds","usemedia","interpol","actlaw")
+          for (attr in intersect(sh_attrs, igraph::vertex_attr_names(graph_for_this_run))) {
+            v <- igraph::vertex_attr(graph_for_this_run, attr)
+            graph_for_this_run <- igraph::set_vertex_attr(graph_for_this_run, attr, value = v[perm])
           }
         } else {
           # GSS: keep loaded topology as-is

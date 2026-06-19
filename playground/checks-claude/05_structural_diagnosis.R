@@ -208,7 +208,7 @@ pC1 <- ggplot(assort_long, aes(axis, val, fill = topo)) +
   theme_bw(base_size = 9) +
   theme(plot.title = element_text(size = 9, face = "bold"))
 pC2 <- box_one("mean_edge_gower", "Mean social distance")
-pC <- pC1 + pC2 + plot_layout(widths = c(2.6, 1))
-ggsave(file.path(PLOTS, "structural_diagnosis_C.pdf"), pC, width = 8.2, height = 3.3)
+pC <- pC1 + pC2 + plot_layout(widths = c(4, 1))
+ggsave(file.path(PLOTS, "structural_diagnosis_C.pdf"), pC, width = 8.6, height = 3.2)
 
 cat("\nSaved: structural_diagnosis_summary.csv, _B.pdf (3x2), _C.pdf (1x2)\n")

@@ -242,9 +242,8 @@ and degree/density/giant-component are identical. The topology degrades, but not
 \begin{frame}{What does ``breaking structure'' destroy? — homophily}
 \centering
 \includegraphics[width=0.82\textwidth]{../../playground/checks-claude/plots/structural_diagnosis_C.pdf}\\[6pt]
-{\footnotesize \emphr{Homophily is annihilated}: every Blau-axis assortativity collapses to
-$\approx 0$, and the model's own tie distance ($d_{ij}$) rises \emphr{+42\%} — neighbors go
-from \emph{similar} to \emph{random}. This is the prime suspect behind the premium. All $p<10^{-30}$.}
+{\footnotesize \emphr{Homophily is destroyed}: every Blau-axis assortativity collapses to
+$\approx 0$, and the social distance $d_{ij}$ rises \emphr{+42\%}.}
 \end{frame}
 
 % ---- 6c. Simulation design (copied from CPIN deck) ----
@@ -272,8 +271,19 @@ We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
 % ================================================================ RESULTS
 \sectionslide{Results}
 
-% ---- 7. RESULT 1: structural premium ----
-\begin{frame}{Result 1 — A structural premium}
+% ---- 7a. RESULT 1: adoption dynamics (top row of figure1; crop bottom row) ----
+\begin{frame}{Result 1 — How adoption plays out}
+\centering
+% crop: keep only the TOP row (Total / Rational / Social adoption); drop the bottom row
+\includegraphics[trim={0 4.95cm 0 0.9cm}, clip, width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[4pt]
+{\footnotesize Mean adoption over the attractiveness (IUL) -- openness (MSP) plane.
+\emphr{Rational} adoption grows smoothly with attractiveness; \emphr{social} adoption is more
+complex, so total adoption stays high over a wide region — \emph{even when the behavior is
+barely attractive}, social influence alone carries it.}
+\end{frame}
+
+% ---- 7b. RESULT 2: structural premium ----
+\begin{frame}{Result 2 — A structural premium}
 \begin{columns}[c]
 \column{0.46\textwidth}
 A Big Additive Model isolates the marginal effect of destroying empirical structure:
@@ -374,34 +384,36 @@ topology, produce a different society.}
 \begin{columns}[c]
 \column{0.5\textwidth}
 \small
-Beyond \emph{how much}, structure governs \emph{how} adoption tips:
-\begin{itemize}\small
-  \item Plausible (GSS) $\rightarrow$ \emphr{continuous, predictable} transition.
-  \item Randomized (GSS-DP) $\rightarrow$ \emphr{abrupt} regime shift.
-\end{itemize}
-\vspace{0.2cm}
+Beyond \emph{how much}, structure governs \emph{how} adoption tips.
+\begin{equation*}
+  \chi\sim|MSP-MSP_c|^{-\gamma}
+\end{equation*}
+\begin{equation*}
+  \Phi\sim|IUL-IUL_c|^{-\delta}
+\end{equation*}
+
 Near the tipping point the GSS networks show \emphr{mean-field universality}; the randomized
 ones do not \refn{9}.
 \vspace{0.25cm}
 
-{\footnotesize Critical exponents (mean over IUL):}\\[2pt]
 \renewcommand{\arraystretch}{1.15}
 {\footnotesize
 \begin{tabular}{@{}lcc@{}}
 \toprule
- & \textbf{Plausible (GSS)} & \textbf{Random (GSS-DP)} \\
+Critical exponents & \textbf{GSS} & \textbf{GSS-DP} \\
 \midrule
-Susceptibility $\gamma$ & $\approx 0.91$ & $\approx 3.9$ \\
-Critical isotherm $\delta$ & $\approx 2.85$ & $\approx 2.91$ \\
+Suscept. $\gamma$ & $\approx 0.91$ & $\approx 3.9$ \\
+Isotherm $\delta$ & $\approx 2.85$ & $\approx 2.91$ \\
 \midrule
 mean-field & $\gamma{=}1,\ \delta{=}3$ & --- \\
 \bottomrule
 \end{tabular}}\\[3pt]
-{\scriptsize Only $\gamma$ (the temperature axis) discriminates topology.}
 \column{0.5\textwidth}
 \centering
-\includegraphics[trim={0 0 0 0.9cm}, clip, width=\linewidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\
-{\scriptsize Adoption \& its variance over the IUL--MSP plane.}
+\includegraphics[width=\linewidth]{../../playground/checks-claude/plots/camino_H_critical_isotherm.pdf}\\
+{\scriptsize Critical isotherms $\Phi(\mathrm{IUL})$ at $MSP{=}MSP_c$: \emph{both} topologies
+give $\delta\!\approx\!3$. The field axis does \emph{not} discriminate — only $\gamma$ (the
+temperature axis) does.}
 \end{columns}
 \end{frame}
 
