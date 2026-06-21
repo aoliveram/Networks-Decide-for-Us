@@ -1,19 +1,20 @@
 
 == BAM Total Adoption ==
                       Estimate  Std. Error    z value      Pr(>|z|)
-(Intercept)         6.53423713 0.017619873  370.84474  0.000000e+00
-tau_mean           -6.94397757 0.016829938 -412.59673  0.000000e+00
-tau_sd              5.94249074 0.039164809  151.73037  0.000000e+00
-seed_typecentral    0.12026690 0.005483863   21.93106 1.313465e-106
-seed_typecloseness  0.11931848 0.005483640   21.75899 5.678031e-105
-seed_typeeigen      0.11831239 0.005483403   21.57645 2.989424e-103
-seed_typemarginal  -0.06680884 0.005445064  -12.26961  1.318801e-34
-network_typeER     -0.84996037 0.003550100 -239.41870  0.000000e+00
+(Intercept)         6.38369076 0.015283808  417.67670  0.000000e+00
+tau_mean           -6.78393839 0.014861343 -456.48218  0.000000e+00
+tau_sd              5.81973468 0.034694895  167.74037  0.000000e+00
+seed_typecentral    0.13022370 0.004860167   26.79408 3.787763e-158
+seed_typecloseness  0.12957112 0.004860037   26.66052 1.351488e-156
+seed_typeeigen      0.12903178 0.004859930   26.55013 2.559211e-155
+seed_typemarginal  -0.07289073 0.004825179  -15.10633  1.471113e-51
+network_typeER     -0.83975093 0.003513078 -239.03565  0.000000e+00
+network_typeSH     -0.76629848 0.004596990 -166.69570  0.000000e+00
 
 -- smooths --
                                                edf   Ref.df   Chi.sq p-value
-s(IUL,MSP):contagion_typeInnovation       8.998007 8.999998 357704.2       0
-s(IUL,MSP):contagion_typeCollectiveAction 8.998231 8.999998 405514.7       0
+s(IUL,MSP):contagion_typeInnovation       8.998113 8.999998 376792.6       0
+s(IUL,MSP):contagion_typeCollectiveAction 8.998756 8.999999 588299.5       0
 
-Deviance explained: 0.8219167
-Elapsed (s): 10.2
+Deviance explained: 0.8260481
+Elapsed (s): 12.36

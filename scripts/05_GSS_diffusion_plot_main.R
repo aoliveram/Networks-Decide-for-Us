@@ -10,7 +10,7 @@ source("scripts/05_GSS_diffusion_plot.R")
 
 # Configuration
 strategies_to_plot <- c("random", "central", "marginal", "eigen", "closeness")
-graph_types <- c("GSS", "ER")
+graph_types <- c("GSS", "ER", "SH")
 
 cat("Starting massive plot generation for GSS datasets...\n")
 
@@ -24,6 +24,10 @@ for (graph_type in graph_types) {
         RESULTS_DIR <- "output/04_GSS_ER_diffusion_sims/"
         PLOTS_DIR <- "plots/04_GSS_ER_diffusion_sims/"
         NET_LABEL <- "GSS-net-ER"
+    } else if (graph_type == "SH") {
+        RESULTS_DIR <- "output/04_GSS_SH_diffusion_sims/"
+        PLOTS_DIR <- "plots/04_GSS_SH_diffusion_sims/"
+        NET_LABEL <- "GSS-net-SH"
     }
 
     cat(paste0("\n---------------------------------------------------------------\n"))

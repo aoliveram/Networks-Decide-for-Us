@@ -20,6 +20,7 @@ dir_atp_emp <- "output/04_ATP_diffusion_sims"
 dir_atp_er  <- "output/04_ATP_ER_diffusion_sims"
 dir_gss_emp <- "output/04_GSS_diffusion_sims"
 dir_gss_er  <- "output/04_GSS_ER_diffusion_sims"
+dir_gss_sh  <- "output/04_GSS_SH_diffusion_sims"   # attribute-shuffle null (#3)
 
 # Function to list the "all" results files
 ls_grand_combined <- function(path) {
@@ -33,15 +34,18 @@ files_atp_emp <- ls_grand_combined(dir_atp_emp)
 files_atp_er  <- ls_grand_combined(dir_atp_er)
 files_gss_emp <- ls_grand_combined(dir_gss_emp)
 files_gss_er  <- ls_grand_combined(dir_gss_er)
+files_gss_sh  <- ls_grand_combined(dir_gss_sh)
 
 cat("Found files:\n")
 cat("ATP Emp: ", length(files_atp_emp), "\n")
 cat("ATP ER:  ", length(files_atp_er), "\n")
 cat("GSS Emp: ", length(files_gss_emp), "\n")
 cat("GSS ER:  ", length(files_gss_er), "\n")
+cat("GSS SH:  ", length(files_gss_sh), "\n")
 
 stopifnot(length(files_atp_emp) + length(files_atp_er) +
-            length(files_gss_emp) + length(files_gss_er) > 0)
+            length(files_gss_emp) + length(files_gss_er) +
+            length(files_gss_sh) > 0)
 
 make_sources <- function(paths, contagion_type, network_type) {
   tibble(path = paths,
@@ -53,7 +57,8 @@ sources <- bind_rows(
   make_sources(files_atp_emp, "Innovation",       "Empirical"),
   make_sources(files_atp_er,  "Innovation",       "ER"),
   make_sources(files_gss_emp, "CollectiveAction", "Empirical"),
-  make_sources(files_gss_er,  "CollectiveAction", "ER")
+  make_sources(files_gss_er,  "CollectiveAction", "ER"),
+  make_sources(files_gss_sh,  "CollectiveAction", "SH")
 )
 
 message("== Discovered results files ==")
@@ -150,7 +155,7 @@ df_all <- df_all %>%
     adopt_rational = suppressWarnings(as.numeric(adopt_rational)),
     seed_type      = as.factor(seed_type),
     contagion_type = factor(contagion_type, levels = c("Innovation","CollectiveAction")),
-    network_type   = factor(network_type,   levels = c("Empirical","ER"))
+    network_type   = factor(network_type,   levels = c("Empirical","ER","SH"))
   ) %>%
   filter(is.finite(IUL), is.finite(MSP),
          is.finite(tau_mean), is.finite(tau_sd),

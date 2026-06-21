@@ -9,9 +9,12 @@ library(patchwork)
 library(viridis)
 
 # --- Configuration ---
-RESULTS_DIR <- "output/04_GSS_ER_diffusion_sims/"
-PLOTS_DIR <- "plots/07_phase_transition/GSS_ER/"
-DATA_OUT_DIR <- "output/07_phase_transition/GSS_ER/"
+# TOPO can be set via env var NDFU_TOPO = "GSS" | "GSS_ER" | "GSS_SH"
+# (default keeps the original GSS_ER behavior if unset).
+TOPO <- Sys.getenv("NDFU_TOPO", unset = "GSS_ER")
+RESULTS_DIR  <- paste0("output/04_", TOPO, "_diffusion_sims/")
+PLOTS_DIR    <- paste0("plots/07_phase_transition/", TOPO, "/")
+DATA_OUT_DIR <- paste0("output/07_phase_transition/", TOPO, "/")
 SEEDING_STRATEGY <- "random"
 THRESHOLD_MEAN_TARGET <- 0.4
 TAU_SD_TARGETS <- c(0.12)
