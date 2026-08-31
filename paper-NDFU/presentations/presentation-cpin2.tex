@@ -91,7 +91,7 @@
 \begin{frame}[plain]
   \vspace{0.6cm}
   \begin{center}
-    {\footnotesize\color{ndgray} Centro de Investigación en Complejidad Social (CICS) $\cdot$ Universidad del Desarrollo}
+    {\footnotesize\color{ndgray} Centro de Investigación en Complejidad Social $\cdot$ Universidad del Desarrollo $\cdot$ Chile}
   \end{center}
   \vspace{1.1cm}
   \begin{center}
@@ -115,9 +115,10 @@
 \begin{itemize}
   \item Collective behaviors (innovations, mobilizations) spread as \emphr{adoption cascades} on social networks.
   \vspace{0.3cm}
-  \item Most models use \emph{synthetic} topologies and treat agents as cognition-free relays \refn{1}.
+  \item Most models use \emph{synthetic} topologies and treat agents as simple relays \refn{1}.
   \vspace{0.3cm}
-  \item Real networks are shaped by \emphr{multidimensional homophily} — similar people cluster \refn{2}.
+  \item We cluster with people like us. Real networks are shaped by \emphr{multidimensional homophily} \refn{2}.
+  \item Individual \emph{preferences} to adopting behaviors can be measured in surveys.
 \end{itemize}
 \begin{center}
 \fcolorbox{ndred}{white}{\parbox{1.0\textwidth}{
@@ -138,8 +139,8 @@ deciding not just \emph{how much} spreads, but \emph{how} it spreads?}}
 \begin{frame}{The model — 1) Rational Choice}
 \begin{itemize}
   \item The attractiveness of the innovation is its
-        \emph{Intrinsic Utility Level} (IUL), $\Gamma\in[0,1]$.
-  \item Each person has a \emph{Minimum Utility Requirement} (MUR), $q_i\in[0,1]$,
+        \emph{Intrinsic Utility Level} \emphr{IUL}, $\Gamma\in[0,1]$.
+  \item Each person has a \emph{Minimum Utility Requirement} \emphr{MUR}, $q_i\in[0,1]$,
         representing their aversion to adopting the behavior.
 \end{itemize}
 \vspace{0.15cm}
@@ -156,7 +157,7 @@ An agent adopts on its own iff\quad
 % ---- Selective social influence (point 2: 3 social snapshots)
 \begin{frame}{The model — 2) Selective Social Influence}
 Adopt by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{5,6} 
-— but only those socially \emph{close} \refn{7} count:
+— but only those socially \emph{close} count:
 \vspace{0.05cm}
 \begin{equation*}
   \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
@@ -164,7 +165,7 @@ Adopt by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{5,6}
   \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right)
 \end{equation*}
 \begin{itemize}
-  \item Where \emphr{MSP} (Maximum Social Proximity) sets how far influence reaches. 
+  \item There is a Maximum Social Proximity \emphr{MSP} where the limit of influence sits \refn{7}. 
 \end{itemize}
 \vspace{0.05cm}
 \begin{center}
@@ -173,7 +174,7 @@ Adopt by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{5,6}
 \end{frame}
 
 % ================================================================ SETTING UP
-\sectionslide{Imputing structure \& running the model}
+\sectionslide{Constructing networks \& running the model}
 
 % ---- Imputation slide (points 4,5: horizontal pipeline, image bottom-right)
 \begin{frame}{Imputing a network onto a survey}
@@ -182,7 +183,7 @@ Adopt by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{5,6}
   \node[draw,rounded corners,fill=ndreddark!8,text width=2.7cm,align=center,
         minimum height=1.25cm] (a) {Homophily strengths $\hat{\boldsymbol{\beta}}$ \refn{3,4}};
   \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
-        minimum height=1.25cm,right=1.0cm of a] (b) {Construct plausible networks};
+        minimum height=1.25cm,right=1.0cm of a] (b) {Construct realistic networks};
   \node[draw,rounded corners,fill=ndreddark!8,text width=2.9cm,align=center,
         minimum height=1.25cm,right=1.0cm of b] (c) {Add propensity scores $q_i$ to each node};
   \draw[-{Latex},ndred,line width=1pt] (a)--(b);
@@ -255,12 +256,12 @@ Pseudo-Hamiltonian:
 \mathcal{H}\approx -\!\!\sum_{\langle i,j\rangle}\! w_{ij}(h)\,s_i s_j \;-\; \Gamma\sum_i s_i
 \end{equation*}
 \vspace{0.1cm}
-\emphr{Low MSP} $\to$ rigid echo chambers (frozen domains).\\[3pt]
-\emphr{High MSP} $\to$ boundaries ``melt'', global cascades possible.
+\emphr{Low MSP} $\to$ rigid echo chambers.\\[3pt]
+\emphr{High MSP} $\to$ boundaries ``melt''.
 \end{columns}
 \vspace{0.3cm}
 \begin{center}\small
-Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\propto |MSP-MSP_c|^{-\gamma}$
+Does adoption have a critical point? — and if so, what kind of transition is it?
 \end{center}
 \end{frame}
 
@@ -279,7 +280,7 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
   \node[ndblue]    at (2.7,1.15){\scriptsize plausible};
   \node[ndreddark] at (2.7,0.55){\scriptsize random};
 \end{tikzpicture}\\[-1pt]
-{\scriptsize \textbf{Path 1 — vary $H$ at fixed $T$:} exponent $\delta$.}\\[7pt]
+{\scriptsize \textbf{Path 1 — fix $T$, vary $H$:} exponent $\delta$.}\\[7pt]
 % --- Plot A: Path 2 — vary T (MSP) at fixed IUL  (now on BOTTOM) ---
 \begin{tikzpicture}[scale=0.62, font=\tiny, >={Latex[length=1.6mm]}]
   \draw[->] (0,0)--(4.2,0) node[right]{MSP ($T$)};
@@ -292,7 +293,7 @@ Susceptibility diverges near criticality \refn{8}: $\;\chi=\mathrm{Var}(\Phi)\pr
   \node[ndgreen] at (3.1,1.05){\scriptsize plausible};
   \node[ndred]   at (0.95,1.55){\scriptsize random};
 \end{tikzpicture}\\[-1pt]
-{\scriptsize \textbf{Path 2 — vary $T$:} a continuous (2nd-order) \emph{or} discontinuous (1st-order) transition; exponent $\gamma$.}
+{\scriptsize \textbf{Path 2 — fix $H$, vary $T$:} exponent $\gamma$.}
 \column{0.48\textwidth}
 \footnotesize
 \textbf{\color{ndblue}Path 1 — fix MSP, vary IUL ($H$)}
@@ -423,6 +424,7 @@ mean & \emphr{0.91} & \emphr{3.93} \\
   \item Only the realistic networks reaches \emphr{$\gamma\approx1$} —
         continuous trans. — \emph{Mean-Field universality}.
   \item Randomization $\Rightarrow$ \emphr{$\gamma\approx4$}. Rewire the network and the mean-field behavior is lost.
+  \item Universality means the microscopic details don't matter.
 \end{itemize}
 \end{columns}
 \end{frame}

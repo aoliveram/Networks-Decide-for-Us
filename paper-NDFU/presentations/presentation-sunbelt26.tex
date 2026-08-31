@@ -15,9 +15,10 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{xcolor}
+\usepackage{colortbl}   % \rowcolor in tables
 \usepackage{tikz}
 \usepackage{qrcode}
-\usetikzlibrary{arrows.meta, positioning, calc}
+\usetikzlibrary{arrows.meta, positioning, calc, decorations.pathreplacing}
 
 % ---------- Fonts: clean humanist sans, professional math ----------
 \usefonttheme{professionalfonts}
@@ -77,11 +78,11 @@
 
 % ---------------------------------------------------------------- 1. TITLE
 \begin{frame}[plain]
-  \vspace{0.6cm}
+  \vspace{0.5cm}
   \begin{center}
-    {\footnotesize\color{ndgray} Centro de Investigación en Complejidad Social $\cdot$ Universidad del Desarrollo $\cdot$ Chile}
+    \includegraphics[height=1.0cm]{UDD.png}\hspace{1.2cm}\raisebox{0.25cm}{\includegraphics[height=0.5cm]{poliCICS.pdf}}
   \end{center}
-  \vspace{1.0cm}
+  \vspace{0.9cm}
   \begin{center}
     {\LARGE \textbf{Networks Decide for Us}}\\[0.5cm]
     {\large \color{ndreddark} Imputed homophilic networks and the structural premium of diffusion}
@@ -89,8 +90,8 @@
   \vspace{1.2cm}
   \begin{center}
     {\normalsize Aníbal Olivera M.}\\[2pt]
-    {\footnotesize PhD(c) in Social Complexity Sciences, CICS}\\[2pt]
-    {\footnotesize with Jorge Fábrega \& Thomas W. Valente}
+    {\footnotesize PhD(c) in Social Complexity Sciences, (CICS)}\\[2pt]
+    {\footnotesize with Jorge Fábrega (CICS)}
   \end{center}
   \vfill
   \begin{center}
@@ -99,35 +100,19 @@
 \end{frame}
 
 % ---------------------------------------------------------------- 2. MOTIVATION
-\begin{frame}{Collective behavior spreads on networks}
+% ---------------------------------------------------------------- OVERVIEW
+\begin{frame}{The question}
 \begin{itemize}
-  \item Collective behaviors — innovations, mobilizations — spread as
-        \emphr{contagions} on social networks.
-  \vspace{0.4cm}
-  \item Real human networks have a specific texture: we cluster with people
-        like us — \emphr{multidimensional homophily} \refn{1}.
-  \vspace{0.4cm}
-  \item So a natural question: how much of \emph{where} a behavior ends up is about
-        \emph{who people are}, and how much is about \emph{how they are wired together}?
+  \item Collective behaviors (innovations, mobilizations) spread as \emphr{adoption cascades} on social networks.
+  \vspace{0.2cm}
+  \item Most models use \emph{synthetic} topologies and treat agents as simple relays \refn{1}.
+  \vspace{0.2cm}
+  \item We cluster with people like us. Real networks are shaped by \emphr{multidimensional homophily} \refn{2}.
+  \vspace{0.2cm}
+  \item Individual \emph{preferences} to adopting behaviors \emphr{can be measured} in surveys.
+  \vspace{0.2cm}
+  \item Studies often uses peer influence as the only mechanism for adoption.
 \end{itemize}
-\end{frame}
-
-% ---------------------------------------------------------------- 3. THE GAP
-\begin{frame}{The gap}
-\begin{itemize}
-  \item Diffusion ABMs run on \emph{made-up} networks (small-world, scale-free) \refn{2}.
-  \vspace{0.25cm}
-  \item Rich surveys (ATP, GSS) measure \emph{propensities} but carry \emph{no} relational data.
-  \vspace{0.25cm}
-  \item Threshold models often assume \emph{all} adoption needs peer influence — and when
-        weak-interest groups still tip, the usual explanation is \emph{stochastic noise} that
-        spontaneously instigates a cascade \refn{8}.
-\end{itemize}
-\vspace{0.4cm}
-\begin{center}\small
-We ask whether \emphr{measured preference and real structure} — not noise, not synthetic
-graphs — can do that work.
-\end{center}
 \end{frame}
 
 % ---------------------------------------------------------------- 3b. WHERE WE GO
@@ -135,17 +120,15 @@ graphs — can do that work.
 \textbf{Two moves}
 \begin{itemize}
   \item \emphr{Impute} plausible whole-networks onto real survey respondents from
-        empirical homophily — going from McPherson \& Smith's latent ``context'' term \refn{4}
-        to \emphr{full simulable networks}.
-  \vspace{0.2cm}
-  \item \emphr{Measure} the causal premium of that structure on diffusion — and ask
-        \emph{what about the structure} actually matters.
+        empirical homophily.
+  \vspace{0.3cm}
+  \item \emphr{Measure} the causal premium of that structure on diffusion.
 \end{itemize}
-\vspace{0.4cm}
+\vspace{0.5cm}
 \begin{center}
 \fcolorbox{ndred}{white}{\parbox{0.92\textwidth}{\centering
-Holding individual propensities \emph{fixed}, does the \emphr{shape of the network alone} —
-not who its members are — decide \emph{how much} collective behavior spreads?}}
+Conditional on \emph{fixed individual characteristics}, does collective behavior depend on the
+network's \emphr{shape}, or on \emphr{who sits next to whom}?}}
 \end{center}
 \end{frame}
 
@@ -168,24 +151,20 @@ An agent adopts on its own iff\quad
 \begin{center}
 \includegraphics[width=0.95\textwidth]{graph-rational-choice.png}
 \end{center}
-\begin{center}\footnotesize
-This channel is \emphr{topology-blind} — it does not need the network at all.
-\end{center}
 \end{frame}
 
 % ---- 4. Selective social influence
 \begin{frame}{Adoption, part 2 — Selective Social Influence}
-Otherwise, an agent adopts by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{3}
-— but only peers who are socially \emph{close} \refn{6} count:
+Adopt by peer contagion if $\tau_i \le \tilde{E}_i$ \refn{5,6} 
+— but only those socially \emph{close} count:
 \vspace{0.05cm}
 \begin{equation*}
   \tilde{E}_i \equiv \frac{\sum_{j\neq i}\mathbf{X}_{ij}\,\tilde{a}_j}{\sum_{j\neq i}\mathbf{X}_{ij}},
   \qquad
   \tilde{a}_j = 1 \iff a_j = 1 \;\wedge\; U_{ij} \le \sigma\!\left(MSP - d_{ij}\right)
 \end{equation*}
-\begin{itemize}\small
-  \item $d_{ij}$: social (Blau-space) distance; \emphr{MSP} (Maximum Social Proximity)
-        sets how far across demographic lines influence can reach.
+\begin{itemize}
+  \item There is a Maximum Social Proximity \emphr{MSP} where the limit of influence sits \refn{7}. 
 \end{itemize}
 \vspace{0.05cm}
 \begin{center}
@@ -229,27 +208,48 @@ real survey answers (innovation, collective action).
 \end{columns}
 \end{frame}
 
+% ---- NEW (pt 2.1): the two counterfactual baselines ----
+\begin{frame}{Two ways to ``break'' the network}
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\footnotesize,align=center}, node distance=0.7cm]
+  \node[draw,rounded corners,fill=ndred!12,text width=3.3cm,minimum height=1.5cm] (gss)
+    {\textbf{GSS} (realistic)\\[2pt]\scriptsize homophilic ties,\\ real clustering};
+  \node[draw,rounded corners,fill=ndblue!12,text width=3.6cm,minimum height=1.5cm,right=3.0cm of gss] (sh)
+    {\textbf{GSS-SH}\\[2pt]\scriptsize same topology;\\ \emphr{homophily destroyed}};
+  \node[draw,rounded corners,fill=ndgreen!18,text width=3.6cm,minimum height=1.5cm,below=0.5cm of sh] (dp)
+    {\textbf{GSS-DP}\\[2pt]\scriptsize degree-preserving rewiring;\\ \emphr{homophily-topology destroyed}};
+  \draw[-{Latex},ndblue,line width=1pt] (gss.east) -- node[above,font=\scriptsize]{Shuffling attrs} (sh.west);
+  \draw[-{Latex},ndgreen,line width=1pt] (gss.east) -- node[below,font=\scriptsize,pos=0.55]{Rewiring\\ edges} (dp.west);
+\end{tikzpicture}
+\end{center}
+\vspace{0.1cm}
+\begin{center}\small
+\emph{GSS} vs \emph{GSS-SH} isolates \emphr{homophily}; \emph{GSS-SH} vs \emph{GSS-DP}
+ how much \emphr{topology} adds.
+\end{center}
+\end{frame}
+
 % ---- 6a. RESULT 2 moved up: higher-order topology (family B) ----
-\begin{frame}{What does ``breaking structure'' destroy? — topology}
+\begin{frame}{What is destroyed? — topology}
 \centering
-\includegraphics[height=0.72\textheight]{../../playground/checks-claude/plots/structural_diagnosis_B.pdf}\\[2pt]
-{\footnotesize 100 plausible (GSS) vs.\ 100 degree-preserving randomized (GSS-DP).
-Clustering $-31\%$, triangles $-31\%$, modularity $-47\%$ — yet path length barely moves,
-and degree/density/giant-component are identical. The topology degrades, but not uniformly.}
+\includegraphics[height=0.745\textheight]{../../playground/checks-claude/plots/structural_diagnosis_B.pdf}\\[2pt]
+{\footnotesize Topology statistics across 100 networks each. \emphr{GSS and GSS-SH} are
+identical; only \emphr{GSS-DP}
+degrades them: clustering $-31\%$, triangles $-31\%$, modularity $-47\%$.}
 \end{frame}
 
 % ---- 6b. RESULT 2: homophily (family C) ----
-\begin{frame}{What does ``breaking structure'' destroy? — homophily}
+\begin{frame}{What is destroyed? — homophily}
 \centering
-\includegraphics[width=0.82\textwidth]{../../playground/checks-claude/plots/structural_diagnosis_C.pdf}\\[6pt]
-{\footnotesize \emphr{Homophily is destroyed}: every Blau-axis assortativity collapses to
-$\approx 0$, and the social distance $d_{ij}$ rises \emphr{+42\%}.}
+\includegraphics[width=0.99\textwidth]{../../playground/checks-claude/plots/structural_diagnosis_C.pdf}\\[6pt]
+{\footnotesize \emphr{both GSS-SH and GSS-DP annihilate homophily.} \\ 
+So the shuffle destroys \emph{homophily only}, the rewiring destroys \emph{both}.}
 \end{frame}
 
-% ---- 6c. Simulation design (copied from CPIN deck) ----
+% ---- 6c. Simulation design ----
 \begin{frame}{Comprehensive simulation design}
-Hybrid social contagion via \texttt{netdiffuseR} \refn{7}, over plausible \emphr{GSS} vs.\
-degree-preserving randomized \emphr{GSS-DP} topologies.
+Hybrid social contagion via \texttt{netdiffuseR} \refn{7}, over plausible \emphr{GSS} vs. \\
+\emphr{GSS-DP} (degree-preserving) and \emphr{GSS-SH} (shuffled attributes) networks.
 \vspace{0.2cm}
 \begin{itemize}
   \item \textbf{IUL} ($\Gamma$): 41 levels $[0,1]$. \quad \textbf{MSP} ($h$): 13 levels $[0,1]$.
@@ -264,7 +264,7 @@ Total: $\;41\times13\times4\times4\times5\times \text{(runs)} \;\approx\; \emphr
 We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
 \begin{equation*}
   \mathrm{logit}\big[\mathbb{E}(\Phi)\big]=\beta_0+\mathbf{Z}\boldsymbol\beta
-  +\beta_{\text{DP}}\,\mathbb{I}_{\text{DP}}+s(\mathrm{IUL},\mathrm{MSP})
+  +\beta_{\text{DP}}\,\mathbb{I}_{\text{DP}}+\beta_{\text{SH}}\,\mathbb{I}_{\text{SH}}+s(\mathrm{IUL},\mathrm{MSP})
 \end{equation*}
 \end{frame}
 
@@ -275,74 +275,115 @@ We then fit \emph{Big Additive Models} (BAM) to isolate the structural effect:
 \begin{frame}{Result 1 — How adoption plays out}
 \centering
 % crop: keep only the TOP row (Total / Rational / Social adoption); drop the bottom row
-\includegraphics[trim={0 4.95cm 0 0.9cm}, clip, width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[4pt]
-{\footnotesize Mean adoption over the attractiveness (IUL) -- openness (MSP) plane.
-\emphr{Rational} adoption grows smoothly with attractiveness; \emphr{social} adoption is more
-complex, so total adoption stays high over a wide region — \emph{even when the behavior is
-barely attractive}, social influence alone carries it.}
+\includegraphics[trim={0 5.25cm 0 1.1cm}, clip, width=0.98\textwidth]{../abstract-sn26/figure1_5panels_GSS.pdf}\\[4pt]
+{\footnotesize Mean adoption over the attractiveness (IUL) -- openness (MSP) plane. \\
+\emphr{Rational} adoption grows with attractiveness; \emphr{social} adoption is more
+complex, so total adoption stays high over a wide region \emph{even when the behavior is
+barely attractive}.}
 \end{frame}
 
-% ---- 7b. RESULT 2: structural premium ----
-\begin{frame}{Result 2 — A structural premium}
+% ---- 7b. RESULT 2 (pt 3, slide 1): total adoption drops ----
+\begin{frame}{Result 2 — Breaking structure cuts adoption}
 \begin{columns}[c]
-\column{0.46\textwidth}
-A Big Additive Model isolates the marginal effect of destroying empirical structure:
-\vspace{0.2cm}
+\column{0.5\textwidth}
+How are the adoption results when we compare with the broken versions? 
 \begin{center}
-\fcolorbox{ndred}{white}{$\;\beta_{\text{DP}}=-0.850^{***}\;$ (OR $=0.43$)}\\[4pt]
-{\small $\rightarrow$ randomization cuts adoption odds by $\sim$\emphr{57\%}}
+\renewcommand{\arraystretch}{1.5}
+{\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{vs.\ GSS} & OR & odds drop \\
+\midrule
+\rowcolor{ndblue!12} GSS-SH (shuffle) & 0.465 & \emphr{$-53\%$} \\
+\rowcolor{ndgreen!12} GSS-DP (rewire) & 0.432 & \emphr{$-57\%$} \\
+\bottomrule
+\end{tabular}}
 \end{center}
-\vspace{0.2cm}
-\small Same people, same propensities — only the \emphr{wiring} changed.
-Homophilic clustering lets social reinforcement build inside local echo chambers.
-\column{0.54\textwidth}
+\vspace{0.3cm}
+\small Same individuals, same propensities, but adoption
+falls by more than half. \\
+\vspace{0.2cm} 
+In both the \emph{homophily is destroyed} - lack of \emphr{echo chambers}
+\column{0.5\textwidth}
 \centering
-\renewcommand{\arraystretch}{1.12}
+\renewcommand{\arraystretch}{1.1}
 {\scriptsize
 \begin{tabular}{@{}lcc@{}}
 \toprule
 \textbf{Total adoption (GSS)} & Estimate & OR \\
 \midrule
-(Intercept) & $6.534^{***}$ & --- \\
-$\tau_{\text{mean}}$ & $-6.944^{***}$ & --- \\
-$\tau_{\text{sd}}$ & $5.942^{***}$ & --- \\
+(Intercept) & $6.384^{***}$ & --- \\
+$\tau_{\text{mean}}$ & $-6.784^{***}$ & --- \\
+$\tau_{\text{sd}}$ & $5.820^{***}$ & --- \\
 \addlinespace
 \multicolumn{3}{@{}l}{\textit{Seeding (ref: Random)}}\\
-\quad Central & $0.120^{***}$ & 1.127 \\
-\quad Closeness & $0.119^{***}$ & 1.126 \\
-\quad Eigenvector & $0.118^{***}$ & 1.125 \\
-\quad Marginal & $-0.067^{***}$ & 0.935 \\
+\quad Central & $0.130^{***}$ & 1.139 \\
+\quad Closeness & $0.130^{***}$ & 1.138 \\
+\quad Eigenvector & $0.129^{***}$ & 1.138 \\
+\quad Marginal & $-0.073^{***}$ & 0.930 \\
 \addlinespace
-\multicolumn{3}{@{}l}{\textit{Topology (ref: Plausible)}}\\
-\quad Deg.-pres. random & $\mathbf{-0.850}^{***}$ & \textbf{0.427} \\
+\multicolumn{3}{@{}l}{\textit{Network (ref: GSS)}}\\
+\quad GSS-SH & $\mathbf{-0.766}^{***}$ & \textbf{0.465} \\
+\quad GSS-DP & $\mathbf{-0.840}^{***}$ & \textbf{0.432} \\
 \midrule
-\multicolumn{3}{@{}l}{Deviance explained: 82.2\%\quad $N=4{,}093{,}440$}\\
+\multicolumn{3}{@{}l}{Dev.\ expl.: 82.6\%\quad $N\approx5.1\times10^{6}$}\\
 \bottomrule
 \end{tabular}}
 \\[3pt]{\scriptsize $^{***}p<0.001$. OR $=\exp(\beta)$.}
 \end{columns}
 \end{frame}
 
+% ---- 7c. RESULT 2 (pt 3, slide 2): homophily alone reproduces most of the drop ----
+\begin{frame}{Result 2 — Homophily alone reproduces most of the drop}
+\begin{columns}[c]
+\column{0.52\textwidth}
+The two models compare like this:
+\vspace{0.25cm}
+\begin{center}
+\fcolorbox{ndred}{white}{\parbox{0.96\linewidth}{\centering
+\textcolor{ndblue}{GSS-SH \emph{$-53\%$}} \;\; homophily destroyed\\[4pt]
+\textcolor{ndgreen}{GSS-DP \emph{$-57\%$}} \; homophily \emph{and} topology}}
+\end{center}
+\vspace{0.3cm}
+Breaking \emph{only} homophily — keeping the topology — already recovers
+\emphr{$\sim$91\%} of the full drop.
+\vspace{0.4cm}
+
+$\Rightarrow$ \emphr{homophily is doing most of the work}.
+\column{0.45\textwidth}
+\centering
+% simple decomposition bar: homophily (SH) vs the small topology remainder
+\begin{tikzpicture}[font=\footnotesize]
+  \def\W{4.2}
+  \fill[ndblue!55] (0,0) rectangle (\W*0.913,0.8);
+  \fill[ndgreen!55] (\W*0.913,0) rectangle (\W,0.8);
+  \draw (0,0) rectangle (\W,0.8);
+  \node[white,font=\scriptsize\bfseries] at (\W*0.913/2,0.4) {homophily 91\%};
+  \node[font=\footnotesize] at (\W*0.957,1.15) {topology 9\%};
+  \draw[->] (\W*0.957,1.0) -- (\W*0.957,0.82);
+  \node[font=\footnotesize] at (\W/2,-0.45) {share of the total $-57\%$ penalty};
+\end{tikzpicture}
+\end{columns}
+\end{frame}
+
 % ================================================================ CLOSE
 % ---- conclusions ----
 \begin{frame}{Conclusions}
-\begin{center}{\large \emphr{Networks decide for us.}}\end{center}
-\vspace{0.25cm}
 \begin{enumerate}
-  \item \textbf{A method:} impute \emphr{simulable whole-networks} onto survey respondents
-        from empirical homophily — reusable wherever you have propensities but no ties.
+  \item \textbf{A method:} you can build \emphr{realistic}, simulable whole-networks for survey respondents out of \emphr{empirical homophily}.
   \vspace{0.1cm}
-  \item \textbf{A finding:} holding propensities fixed, empirical structure yields a
-        \emphr{$+57\%$ adoption premium}.
+  \item \textbf{Three findings:} \\
+  \hspace{0.5cm} 1. Social influence explains adoption even for non-attractive behaviors*. \\
+  \hspace{0.5cm} 2. Empirical structure yields a
+        \emphr{$+57\%$ adoption premium}. \\
+  \hspace{0.5cm} 3. In realistic social networks, topology it not all: \emphr{who sits next to whom} is critical.
   \vspace{0.1cm}
-  \item \textbf{A mechanism:} what ``breaking structure'' destroys is, above all,
-        \emphr{homophily} — neighbors stop being similar.
+  \item \textbf{A mechanism:} what's doing the work is \emphr{homophily}, not the abstract topology.
 \end{enumerate}
 \vspace{0.2cm}
 \begin{center}\small
-Unlike Macy \& Evtushenko \refn{8}, the idiosyncrasy that drives this is
-\emphr{measured preference}, not stochastic noise: \emph{the same agents, on a different
-topology, produce a different society.}
+\emph{Where a behavior ends up is not the sum of individual preferences}, \\
+but it's \emphr{governed by the structure of our real ties.}
 \end{center}
 \end{frame}
 
@@ -392,29 +433,50 @@ Beyond \emph{how much}, structure governs \emph{how} adoption tips.
   \Phi\sim|IUL-IUL_c|^{-\delta}
 \end{equation*}
 
-Near the tipping point the GSS networks show \emphr{mean-field universality}; the randomized
-ones do not \refn{9}.
-\vspace{0.25cm}
+And here the \emph{other} structural property does the work: \emphr{GSS-SH keeps
+universality ($\gamma\!\approx\!1$)} even though it has no homophily — only \emphr{GSS-DP},
+which destroys the \emph{topology}, loses it \refn{9}.
+\vspace{0.2cm}
 
 \renewcommand{\arraystretch}{1.15}
 {\footnotesize
-\begin{tabular}{@{}lcc@{}}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Critical exponents & \textbf{GSS} & \textbf{GSS-DP} \\
+Suscept. $\gamma$ & \textbf{GSS} & \textbf{GSS-SH} & \textbf{GSS-DP} \\
 \midrule
-Suscept. $\gamma$ & $\approx 0.91$ & $\approx 3.9$ \\
-Isotherm $\delta$ & $\approx 2.85$ & $\approx 2.91$ \\
-\midrule
-mean-field & $\gamma{=}1,\ \delta{=}3$ & --- \\
+mean & $\approx 0.91$ & $\approx 1.08$ & $\approx 3.9$ \\
 \bottomrule
-\end{tabular}}\\[3pt]
+\end{tabular}}\\[5pt]
+{\scriptsize \emphr{Double dissociation:} homophily $\to$ \emph{volume} (Result 2);
+topology $\to$ \emph{continuity} (here).}
 \column{0.5\textwidth}
 \centering
 \includegraphics[width=\linewidth]{../../playground/checks-claude/plots/camino_H_critical_isotherm.pdf}\\
-{\scriptsize Critical isotherms $\Phi(\mathrm{IUL})$ at $MSP{=}MSP_c$: \emph{both} topologies
-give $\delta\!\approx\!3$. The field axis does \emph{not} discriminate — only $\gamma$ (the
-temperature axis) does.}
+{\scriptsize Critical isotherms $\Phi(\mathrm{IUL})$ at $MSP{=}MSP_c$: along the field axis
+\emph{both} give $\delta\!\approx\!3$; only $\gamma$ (the openness axis) discriminates.}
 \end{columns}
+\end{frame}
+
+% ---- TECHNICAL DETAILS (backup) ----
+\begin{frame}{Technical details}
+\begin{itemize}
+  \item \textbf{Social distance} $d_{ij}\in[0,1]$ — Gower distance over the Blau-space
+        attributes (race, sex, religion, age, education):
+\end{itemize}
+\begin{equation*}
+  d_{ij} = \frac{1}{p}\sum_{k=1}^{p} \delta_{ij}^{k},
+  \qquad
+  \delta_{ij}^{k} =
+  \begin{cases}
+    \mathbb{1}\!\left[x_i^{k}\neq x_j^{k}\right] & \text{categorical } (\text{race, sex, religion})\\[4pt]
+    \dfrac{\big|x_i^{k}-x_j^{k}\big|}{\max_k - \min_k} & \text{numeric } (\text{age, education})
+  \end{cases}
+\end{equation*}
+\vspace{0.3cm}
+\footnotesize
+* The idiosyncrasy that drives this is
+\emphr{measured preference} and \emphr{realistic structure}, not stochastic noise
+(Macy \& Evtushenko \refn{8}).
 \end{frame}
 
 \end{document}

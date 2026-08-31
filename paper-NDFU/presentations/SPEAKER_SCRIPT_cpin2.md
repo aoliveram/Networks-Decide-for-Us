@@ -13,11 +13,13 @@
 
 ## Slide 2 — The question (0:40–1:40)
 
-> Here's the setup. Collective behaviors — adopting an innovation, joining a protest — spread person to person, like a contagion on a network.
+> Here's the setup. Collective behaviors — adopting an innovation, joining a protest — spread as adoption cascades on social networks, as complex contagion.
 >
-> The problem is that most models of this use *synthetic* networks, where people are simple relays that just pass things along. But real human networks have a very specific texture: we usually cluster with people like us. Same age, same education, same background. Real networks follow **multidimensional homophily**.
+> The problem is that most models use *synthetic* networks, where people are simple relays that just pass things along.
+> But real human networks have a very specific texture: we usually cluster with people like us. Same age, same education, same background. Real networks follow **multidimensional homophily**.
+> Also, individuals have different preferences to adopting behaviors, which can be measured in surveys.
 >
-> So the question is: conditional on *fixed individual characteristics*, can the **shape of more realistic networks alone** change the outcome? Can the structure itself be an autonomous force, deciding not just *how much* spreads, but *how* it spreads?"
+> So we can ask: conditional on *fixed individual characteristics*, can the **shape of more realistic networks alone** change the outcome? Can the structure itself be an autonomous force, deciding not just *how much* spreads, but *how* it spreads?"
 
 *(Technical anchor, optional: "We hold individual propensities constant and vary only the topology.")*
 
@@ -25,44 +27,41 @@
 
 ## Slide 3 — Model, part 1: Rational Choice (1:40–2:40)
 
-> The model presents two ways a person can adopt.
-> 1- The first is simple and selfish: if the thing is attractive enough to *me personally*, I adopt it on my own.
-> Following the literature, we call the attractiveness of the collective behavior *Intrinsic Utility Level* 'IUL', and has a value between 0 and 1.
-> And each person has a *Minimum Utility Requirement* 'MUR', representing their aversion to adopting the behaviour. 
+> The model presents two ways a person can adopt. The first is simple and selfish: if the thing is attractive enough to *me*, I will adopt it.
+> Following the literature, we say that each collective behavior has an *Intrinsic Utility Level* 'IUL', that is a number between 0 and 1.
+> And also each person has a *Minimum Utility Requirement* 'MUR', that represent their aversion to adopting.
 >
-> So, an agent will adopt if the collective behavior is attractive enough for his requirement.
-
-*(Point at the node diagram: black = adopted, white = not.)*
+> So, an agent will adopt if the collective behavior is attractive enough for his *requirement*.
 
 ---
 
 ## Slide 4 — Model, part 2: Selective Social Influence (2:40–4:00)
 
-> The second way is by social influence: several of my contacts already adopted, so the cost of joining is lower over the time, and I will eventually adopt, even if I didn't by the rational channel.
+> The second way is by social influence: when several of my contacts already adopted,  the cost of joining is lower over the time, and I will eventually adopt, even if it didn't reach my bare utility requirement.
 >
-> But a key ingredient in the model is that **I don't count everybody**, but there's a limit on how *socially different* a neighbor can be before I stop letting them influence me.
-> Following the literature, if the demographics are very different, they are socially too far. We call the limit of influence **Maximum Social Proximity** 'MSP'.
+> But a key ingredient of the model is that it is selective: **I don't count everybody** as effective influence. I'll listen only to those individuals closelly enogh to me in terms of *social distance* d_ij.
 >
-> So, when *MSP* is low, I only listen to people just like me — echo chambers. When *MSP* is high, I'm open to influence from very different people.
+> Following the literature, there is a **Maximum Social Proximity** 'MSP' where the limit of influence sits.
+> So, when *MSP* is low, I only listen to people just like me — *echo chambers*. When *MSP* is high, I'm open to be influenced from very different people.
 
 ---
 
 ## Slide 5 — Imputing a real network (4:00–5:00)
 
 > Now, where do the networks come from? 
-> We borrow the *homophily strengths* — that is how strongly people sort by demographics like age, education, or sex — from McPherson & Smith 2019 and use them to construct realistics, or *plausible*, networks that reproduce those homophilic tendencies using a Logit, and we finally attach real survey answers that give us an *aversion-to-innovation score* and a *collective-action propensity score* for each node.
+> We borrow the *homophily strengths* — that is how *strongly people sort* by demographics like age, education, or sex — from McPherson & Smith 2019 and use them to construct realistics networks using the data from survays to *feed a Logit that reproduce those homophilic tendencies*.
+> That data have items that allows us to construct an *aversion-to-innovation score* or a *collective-action propensity score* for each node.
 >
-> The resulting networks have clustering and degree distribution of real social networks — that's something the synthetic models simply don't reproduce.
+> Those networks have the right topology, just as the literature shows the real-social-networks topology are.
 
 ---
 
 ## Slide 6 — Simulation design (5:00–5:45)
 
-> Then we just run it — a lot. We sweep the attractiveness of the diffusion, the openness parameter MSP, the thresholds, different ways of seeding the first adopters... In total, we have around four million simulations.
+> Then we just run it — a lot. We sweep the attractiveness of the diffusion, the openness parameter, the thresholds, different ways of seeding the first adopters... 
+> In total, we have around four million simulations.
 >
-> And crucially, we compare each realistic network against a 'scrambled' version (where the number of connections of each person is the same, but the connections are random, and so the homophily is destroyed).
-
-*(Technical anchor: "The scramble is a degree-preserving randomization — GSS-DP.")*
+> And crucially, we compare each realistic network against a 'scrambled' version (where the number of connections of each person remains the same, but the connections are now random, and so the homophily is destroyed).
 
 ---
 
@@ -70,14 +69,14 @@
 
 > This model is, almost line for line, a *ferromagnetic Ising model*.
 >
-> A spin flipping up or down ↔ a person adopting or not. 
-> Magnetization (the order parameter) ↔ mean adoption. 
-> The external field ↔ the collective action's intrinsic attractiveness (external to the society). 
+> A spin up or down ↔ a person adopting or not. 
+> Magnetization ↔ mean adoption. 
+> The external field ↔ the collective behaviour's intrinsic attractiveness (external to the society). 
 > And temperature ↔ our openness parameter (internal to the society).
 >
-> Why is MSP the temperature? Because temperature is what melts order. When the social openness is low, the network is frozen into rigid little echo chambers, you're only influenced by very similar people; when high, you're 'melting' those social boundaries so influence can flow across the whole system.
+> Why is MSP the temperature? Because temperature is what melts order. When the social openness is low, you're only influenced by very similar people, so we have several little echo chambers; when high, you're 'melting' those social boundaries so influence can flow across the whole system.
 >
-> So the question becomes: does adoption have a genuine *critical point* — and if so, what kind of transition is it?
+> So the questions are: does adoption have a *critical point* — and if so, what kind of transition is it?
 
 ---
 
@@ -85,14 +84,14 @@
 
 > Just as in the ferromagnetic situation, you can test criticallity following two paths.
 >
-> One path — the green one — you fix the external field at zero and change the temperature. That gives you a *continuous 2nd order* transition. 
-> The other — the blue one — you fix the temperature below the critical point and change the field. That one can give you a *1st order* transition.
+> In one path — the blue one — you fix the temperature below a critical point and change the field (attractiveness in our case), and so you can compute the critical exponent δ.
+> In the other — the green one — you fix the external field and change the temperature to compute the critical exponent γ. 
 
 ---
 
 ## Slide 9 — Result 1: Adoption and criticality  (dynamics) (8:00–8:50)
 
-> First, the dynamics. These three plots map adoption over the attractiveness–openness plane, and you can see how *rational adoption* grows as the attractiveness grows, but *social adoption* is more complex, so can we have similar total adoption over a large region just because social adoption is relevant **even when the attractiveness is low**.
+> First, the dynamics. These three plots on the top map adoption over the attractiveness–openness plane, and you can see how *rational adoption* grows as the attractiveness grows, but *social adoption* is more complex, so we can have similar total adoption over a large region just because social adoption is relevant **even when the attractiveness is low**.
 > 
 > Look at the bottom left: there's a sharp ridge where the *variance* explodes... and on the right you have regions where the number of final steps varies a lot.
 
@@ -100,42 +99,43 @@
 
 ## Slide 10 — Result 2: Structural premium (8:50–9:35)
 
-> Second, the volume. If you scramble the network — destroying homophily but keeping everything else — adoption drops by about **57 percent**. Same people, same preferences, just a different wiring.
+> Second, the volume. If you scramble the network — destroying homophily but keeping everything else — adoption drops by about **57 percent**.
 >
-> Why? Because homophilic clusters are echo chambers, and echo chambers are actually *useful* here: they let social reinforcement build up safely in a corner until it's strong enough to ignite — even for non-attractive behaviors. So realistic networks help adoption.
+> Why? Because homophilic clusters are echo chambers that are *useful* for complex contegions: they have redundancy so they can grow safely in a corner until they are strong enough to ignite — even for non-attractive behaviors.
 
 ---
 
 ## Slide 11 — Result 3 (part 1): Field direction, δ ≈ 3 for both (9:35–10:15)
 
-> Now the critical exponents. There are two directions we can probe. First, the *field* direction: we sit right at the critical openness and turn up the attractiveness. Here both networks show exponent delta of about 3, close to a mean-field value. 
-> So both kind of networks look identical, and the structure makes no difference.
+> Now the critical exponents. If we sweep atractiveness at the critical openness, we will have an exponent delta of about 3 *in both topologies*.
+> This value is very close to a mean-field value.
 
 ---
 
 ## Slide 12 — Result 3 (part 2): Temperature direction, γ discriminates (10:15–10:55)
 
-> Now the *temperature* direction: we fix the attractiveness and turn up the social openness. 
-> On the realistic networks the susceptibility diverges as a clean power law with exponent gamma essentially equal to **1** — which is the classic mean-field value.
-> On the scrambled network gamma is about **4**, which is not a real critical exponent at all.
+> On the other direction (fixing attractiveness and moving openness), we will see that on realistic networks the susceptibility diverges as a clean *power law* where the exponent gamma essentially **1** — which is the classic mean-field value.
+> On the scrambled network gamma is about **4**. Not a real critical exponent.
 >
-> So the mean-field response appears *only* on the realistic homophily-built network. If you rewire the network, you will lose it.
->
-> And why does that matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents, so the substance, the lattice, the chemistry are all irrelevant. The logic here is that the aggregate doesn't care about the specific content of the behavior, or individual quirks — but only the structure. So, if we accept this model as a *stylized reality*, we can say that a handful of macro-structural parameters govern the phenomenon.
+> And why does this matter? In physics, *universality* means the microscopic details don't matter near the critical point: boiling water and a magnet losing its magnetism share the *same* exponents, regardless they different chemistry, structure, etc.
+> The logic here is that the aggregate realizations of diffusion doesn't care about the specific content of the behavior — only the structure. 
+> So, if we accept this model as a *stylized reality*, we can say that a couple of macro-structural parameters govern the phenomenon.
 
 ---
 
 ## Slide 13 — Conclusions (10:55–11:40)
 
-> So, to conclude — let me answer the two questions I opened with.
+> So, to draw some conclusions — let me answer the 2 questions I opened with.
+> 
 > Can the shape of the network *alone* change the outcome? 
-> Yes: empirical homophily gives a 57-percent premium in adoption general.
-> Also, when we have an attractive behaviour and an unattractive, we ended up with almost the same adoption — just because of social influence.
+> Yes: empirical homophily yields a structural premium (a 57% more adoption in general).
+> Also, there are cases when highly attractive and unattractive behaviors reach nearly the same adoption — just because of the social influence contribution.
 > 
 > Is the structure an autonomous force deciding *how* change spreads?
-> Yes: on a realistic network the aggregated pattern is continuous. Even when a single case of social change feels abrupt and surprising, the *aggregate* follows a familiar pattern. Even when there are particular cases when adoption is bimodal, we still use the usual Roger's S-curve to explain social diffusions so different as fax machines, hashtags, and protest waves.
+> Yes: Even if we feel that there are particular cases when adoption are bimodal, we still *CAN use the usual Roger's S-curve* to explain social diffusions so different as fax machines, hashtags, and protest waves. --> Universality.
 > 
-> The big message for this community: collective social change is not the sum of individual preferences. It’s governed by the structure of our real topology. Thank you.
+> The big message for this community: Macroscopic social change is not the sum of individual preferences. It’s governed by the structure of our real topology.
+> Thank you.
 
 ---
 

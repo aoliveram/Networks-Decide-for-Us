@@ -15,5 +15,21 @@
 !output/.gitkeep
 !plots/.gitkeep
 
-# Ignore playground
+# Ignore playground (scratch / exploratory work)
 playground/
+
+# Legacy engine (two-channel rule with exogenous tau) — kept locally only.
+# See legacy/README.md; the code is recoverable from git history.
+legacy/
+
+# LaTeX build artifacts
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.nav
+*.out
+*.snm
+*.synctex.gz
+*.toc
+*.blg
