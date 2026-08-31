@@ -31,8 +31,8 @@ NET_DIR  <- "data/02_GSS_network_ergm"
 PAT      <- "^GSS_net_sim_1000_\\d{3}\\.rds$"
 N_NETS   <- 100
 SWAP_FAC <- 20                 # same niter_factor as the diffusion sims
-PLOTS    <- "plots/08_structural_diagnosis"
-DATA_OUT <- "output/08_structural_diagnosis"
+PLOTS    <- "plots/07_structural_diagnosis"
+DATA_OUT <- "output/07_structural_diagnosis"
 dir.create(PLOTS, showWarnings = FALSE, recursive = TRUE)
 dir.create(DATA_OUT, showWarnings = FALSE, recursive = TRUE)
 

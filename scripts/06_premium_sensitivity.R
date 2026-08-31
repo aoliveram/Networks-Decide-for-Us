@@ -18,8 +18,8 @@
 # region where the logit link inflates differences. B-F tell these apart.
 #
 # Outputs:
-#   output/07_premium_sensitivity/premium_lambda_sensitivity.csv
-#   plots/07_premium_sensitivity/premium_lambda_sensitivity.pdf
+#   output/06_premium_sensitivity/premium_lambda_sensitivity.csv
+#   plots/06_premium_sensitivity/premium_lambda_sensitivity.pdf
 #
 # Runtime: ~1-2 min.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -28,9 +28,14 @@ suppressMessages({
   library(dplyr); library(tidyr); library(ggplot2); library(patchwork); library(mgcv)
 })
 
-DATA_OUT  <- "output/07_premium_sensitivity"
-PLOTS_OUT <- "plots/07_premium_sensitivity"
-RES_CSV   <- "output/05_unified_diffusion/unified_premium_results.csv"
+ARGS    <- commandArgs(trailingOnly = TRUE)
+SEEDING <- sub("^--seeding=", "", grep("^--seeding=", ARGS, value = TRUE))
+if (length(SEEDING) == 0) SEEDING <- "random"
+
+DATA_OUT  <- "output/06_premium_sensitivity"
+PLOTS_OUT <- "plots/06_premium_sensitivity"
+RES_CSV   <- file.path("output/05_unified_diffusion",
+                       paste0("unified_premium_results_", SEEDING, ".csv"))
 
 stopifnot(file.exists(RES_CSV))
 raw <- read.csv(RES_CSV)
@@ -108,7 +113,7 @@ sens <- betas |> left_join(diag, by = "lambda") |> left_join(tip, by = "lambda")
          d_beta_per_0.1 = c(NA, diff(beta_total)),
          d_gap_per_0.1  = c(NA, diff(mean_gap)))
 
-write.csv(sens, file.path(DATA_OUT, "premium_lambda_sensitivity.csv"), row.names = FALSE)
+write.csv(sens, file.path(DATA_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".csv")), row.names = FALSE)
 
 # ------------------------------- report ---------------------------------------
 line <- function(x) message(paste(rep(x, 78), collapse = ""))
@@ -161,7 +166,7 @@ p3 <- sens |> select(lambda, GSS = mean_phi_GSS, DP = mean_phi_DP) |>
   theme_minimal(base_size = 11) +
   theme(panel.grid.minor = element_blank(), legend.position = "bottom")
 
-cairo_pdf(file.path(PLOTS_OUT, "premium_lambda_sensitivity.pdf"),
+cairo_pdf(file.path(PLOTS_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".pdf")),
           width = 11, height = 3.6, onefile = TRUE)
 print(p1 + p2 + p3 + plot_layout(nrow = 1))
 
@@ -175,5 +180,5 @@ gp <- ggplot(wide, aes(G, h, fill = gap)) +
   theme_minimal(base_size = 10) + theme(panel.grid = element_blank())
 print(gp)
 dev.off()
-message("\nSaved ", file.path(DATA_OUT, "premium_lambda_sensitivity.csv"), " and ",
-        file.path(PLOTS_OUT, "premium_lambda_sensitivity.pdf"))
+message("\nSaved ", file.path(DATA_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".csv")), " and ",
+        file.path(PLOTS_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".pdf")))

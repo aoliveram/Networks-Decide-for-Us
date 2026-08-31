@@ -18,7 +18,7 @@ suppressMessages({
   library(psych)
 })
 
-OUT_DIR <- "output/09_cronbach_alpha/"
+OUT_DIR <- "output/08_cronbach_alpha/"
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)
 
 report_alpha <- function(label, item_df, note = "") {

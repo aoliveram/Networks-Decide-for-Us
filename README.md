@@ -55,13 +55,35 @@ Run from the repository root (`Rscript scripts/<file>`), in order:
 | `04_make_DP_networks.R` | **DP null model**: degree-preserving twins (`rewire(keeping_degseq)`) | `data/02_GSS_DP_network/`, `output/04_null_models/` |
 | `04b_make_SH_networks.R` | **SH null model**: topology byte-identical, node attributes permuted | `data/02_GSS_SH_network/`, `output/04_null_models/` |
 | `05_unified_diffusion_sweep.R` | **the engine**: unified-rule diffusion, GSS vs DP, + premium BAM | `output/05_unified_diffusion/`, `plots/05_*` |
-| `06_lambda_calibration.R` | λ sweep against the legacy surface (identifies λ ≈ 0.7) | `output/06_lambda_calibration/` |
-| `07_premium_sensitivity.R` | how the premium moves with λ (odds vs. probability scale) | `output/07_premium_sensitivity/` |
-| `08_structural_diagnosis.R` | what randomization destroys (clustering, assortativity, tie distance) | `output/08_structural_diagnosis/` |
-| `09_cronbach_alpha.R` | internal consistency of the propensity constructs | `output/09_cronbach_alpha/` |
+| `05_unified_diffusion_sweep_main.R` | runner: the engine across all five seeding strategies | (as above, one set per strategy) |
+| `06_premium_sensitivity.R` | how the premium moves with λ (odds vs. probability scale) | `output/06_premium_sensitivity/` |
+| `07_structural_diagnosis.R` | what randomization destroys (clustering, assortativity, tie distance) | `output/07_structural_diagnosis/` |
+| `08_cronbach_alpha.R` | internal consistency of the propensity constructs | `output/08_cronbach_alpha/` |
 
-`05` and `06` checkpoint per parameter combination, so they can be interrupted and
-relaunched: completed combinations are skipped.
+### Running the simulations
+
+The engine runs **one seeding strategy per invocation**, each writing to its own
+checkpoint directory and its own result files:
+
+```bash
+Rscript scripts/05_unified_diffusion_sweep.R                    # random (default)
+Rscript scripts/05_unified_diffusion_sweep.R --seeding=central
+Rscript scripts/05_unified_diffusion_sweep.R --test             # 30-second smoke run
+Rscript scripts/05_unified_diffusion_sweep_main.R               # all five, in sequence
+```
+
+Strategies: `random`, `central` (highest degree), `closeness`, `eigen`, `marginal`
+(bottom 10% by degree). One strategy is 1,180,800 simulations, ≈ 50 min on 8 cores.
+
+Everything **checkpoints per (topology, λ)**, so a run can be interrupted and relaunched:
+completed combinations are skipped. `--test` writes to its own sandbox and can never
+overwrite real results.
+
+### `tools/` — off-pipeline
+
+`tools/lambda_calibration.R` sweeps λ ∈ {0.3, …, 1.5} against the legacy engine's surface
+and is how λ ≈ 0.7 was identified. It is **not part of the study**: it is a one-off
+methodological calibration, and it only runs where `legacy/` is present.
 
 ### Requirements
 
@@ -99,6 +121,7 @@ the selective-influence gate reads.
 
 ```
 scripts/     active pipeline (see table above)
+tools/       off-pipeline utilities (lambda calibration)
 data/        survey inputs and imputed networks (ERGM output — expensive, tracked)
 output/      analysis results per pipeline stage
 plots/       figures per pipeline stage
@@ -122,5 +145,5 @@ current manuscript draft. It now lives in `legacy/` and is **not tracked by git*
   (see `docs/notes/HOMOPHILY_TOPOLOGY_INSEPARABILITY.md`).
 
 Everything there remains recoverable from git history (it was tracked until the
-`making-bottom-up` refactor). `06_lambda_calibration.R` reads one legacy file to calibrate
-λ against the old surface, so it only runs where `legacy/` is present.
+`making-bottom-up` refactor). `tools/lambda_calibration.R` reads one legacy file to
+calibrate λ against the old surface, so it only runs where `legacy/` is present.

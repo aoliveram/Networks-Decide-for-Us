@@ -23,10 +23,10 @@
 # can be killed and relaunched and will resume, skipping completed λ values.
 #
 # Outputs:
-#   output/06_lambda_calibration/unified_sweep/lambda_X.XX.rds   (checkpoints)
-#   output/06_lambda_calibration/unified_sweep_results.csv       (combined)
-#   output/06_lambda_calibration/unified_sweep_vs_current.csv    (fit table)
-#   plots/06_lambda_calibration/unified_sweep_heatmaps.pdf     (1 page per λ:
+#   output/lambda_calibration/unified_sweep/lambda_X.XX.rds   (checkpoints)
+#   output/lambda_calibration/unified_sweep_results.csv       (combined)
+#   output/lambda_calibration/unified_sweep_vs_current.csv    (fit table)
+#   plots/lambda_calibration/unified_sweep_heatmaps.pdf     (1 page per λ:
 #       total / rational / social triptych, engine-style; final comparison page)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -41,9 +41,9 @@ Sys.setenv(OMP_NUM_THREADS = "1")
 
 # ------------------------------- configuration -------------------------------
 NETWORKS_DIR <- "data/02_GSS_network_ergm/"
-DATA_OUT     <- "output/06_lambda_calibration"
+DATA_OUT     <- "output/lambda_calibration"
 CKPT_DIR     <- file.path(DATA_OUT, "checkpoints")
-PLOTS_OUT    <- "plots/06_lambda_calibration"
+PLOTS_OUT    <- "plots/lambda_calibration"
 CURRENT_RAW  <- "legacy/output/04_GSS_diffusion_sims/results_m03-06_sd0.12_random.rds"
 
 N_RUNS       <- 96                        # network instances 001..096, 1 run each

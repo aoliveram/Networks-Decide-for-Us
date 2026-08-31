@@ -16,22 +16,30 @@
 #                                               lambda = 1, the immunity boundary
 #                                               (q <= 1 => no immune agents)
 #   - Networks: GSS 001..096, one run each; DP twin per network
-#   - Seeding: RANDOM (1 primary + neighbor cluster ~ 0.40*degree)
+#   - Seeding: one strategy per invocation (--seeding=), 1 primary node +
+#     a neighbour cluster of ~ 0.40 * degree(primary):
+#       random    a uniformly drawn node
+#       central   the highest-degree node
+#       closeness the highest-closeness node
+#       eigen     the highest-eigenvector-centrality node
+#       marginal  a node drawn from the bottom 10% by degree
 #   - Gate: sigma((h - d_ij)/0.02), stochastic per step; denominator = degree
 #
-# Total: 2 topologies x 5 lambda x 41 x 25 x 96 = 984,000 simulations.
-# Runtime: ~35-45 min on 8 cores. Checkpoints per (topology, lambda) — safe to
+# Total per seeding: 2 topologies x 6 lambda x 41 x 25 x 96 = 1,180,800 sims.
+# Runtime: ~50 min on 8 cores. Checkpoints per (topology, lambda) — safe to
 # kill and relaunch; completed combos are skipped.
 #
-# Outputs:
-#   output/05_unified_diffusion/unified_premium/<topo>_lambda_X.XX.rds
-#   output/05_unified_diffusion/unified_premium_results.csv
-#   output/05_unified_diffusion/unified_premium_bam.csv   (beta_DP per lambda)
-#   plots/05_unified_diffusion/unified_premium_heatmaps.pdf
+# Outputs (<S> = the seeding strategy):
+#   output/05_unified_diffusion/checkpoints/<S>/<topo>_lambda_X.XX.rds
+#   output/05_unified_diffusion/unified_premium_results_<S>.csv
+#   output/05_unified_diffusion/unified_premium_bam_<S>.csv   (beta_DP per lambda)
+#   plots/05_unified_diffusion/unified_premium_heatmaps_<S>.pdf
 #
 # Usage:
-#   Rscript scripts/05_unified_diffusion_sweep.R          # full
-#   Rscript scripts/05_unified_diffusion_sweep.R --test   # smoke
+#   Rscript scripts/05_unified_diffusion_sweep.R                     # random
+#   Rscript scripts/05_unified_diffusion_sweep.R --seeding=central
+#   Rscript scripts/05_unified_diffusion_sweep.R --test              # smoke
+#   Rscript scripts/05_unified_diffusion_sweep_main.R                # all five
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 suppressMessages({
@@ -41,7 +49,13 @@ suppressMessages({
 })
 Sys.setenv(OMP_NUM_THREADS = "1")
 
-TEST_MODE <- "--test" %in% commandArgs(trailingOnly = TRUE)
+ARGS      <- commandArgs(trailingOnly = TRUE)
+TEST_MODE <- "--test" %in% ARGS
+
+# Seeding strategy: --seeding=<random|central|marginal|closeness|eigen>
+SEEDING <- sub("^--seeding=", "", grep("^--seeding=", ARGS, value = TRUE))
+if (length(SEEDING) == 0) SEEDING <- "random"
+stopifnot(SEEDING %in% c("random", "central", "marginal", "closeness", "eigen"))
 
 # ------------------------------- configuration -------------------------------
 NETWORKS_DIR <- "data/02_GSS_network_ergm/"
@@ -49,7 +63,10 @@ NETWORKS_DIR <- "data/02_GSS_network_ergm/"
 # smoke run can never overwrite or get skipped by the real sweep's results
 DATA_OUT     <- if (TEST_MODE) "output/05_unified_diffusion/_test" else "output/05_unified_diffusion"
 PLOTS_OUT    <- if (TEST_MODE) "output/05_unified_diffusion/_test" else "plots/05_unified_diffusion"
-CKPT_DIR     <- file.path(DATA_OUT, "checkpoints")
+# one checkpoint sub-directory and one set of result files per seeding strategy,
+# so strategies never overwrite each other and each can be resumed on its own
+CKPT_DIR     <- file.path(DATA_OUT, "checkpoints", SEEDING)
+SUFFIX       <- paste0("_", SEEDING)
 
 N_RUNS       <- if (TEST_MODE) 2 else 96
 N_CORES      <- if (TEST_MODE) 2 else 8
@@ -71,8 +88,14 @@ edge_arrays <- function(g, d_mat) {
   el <- as_edgelist(g, names = FALSE)
   src <- c(el[, 1], el[, 2]); dst <- c(el[, 2], el[, 1])
   deg <- degree(g)
-  list(g = g, src = src, dst = dst, edge_d = d_mat[cbind(src, dst)],
-       deg = pmax(deg, 1L), deg_raw = deg)
+  out <- list(g = g, src = src, dst = dst, edge_d = d_mat[cbind(src, dst)],
+              deg = pmax(deg, 1L), deg_raw = deg)
+  # position-based primary seeds: computed once per network and topology
+  # (only the one the current strategy needs — closeness/eigen are not free)
+  if (SEEDING == "central")   out$primary_central   <- which.max(deg)[1]
+  if (SEEDING == "closeness") out$primary_closeness <- which.max(closeness(g))[1]
+  if (SEEDING == "eigen")     out$primary_eigen     <- which.max(eigen_centrality(g)$vector)[1]
+  out
 }
 
 # ------------------- load GSS networks & build DP twins -----------------------
@@ -105,7 +128,16 @@ message(sprintf("Sanity — degree sequences preserved in %d/%d twins; mean tie 
 
 draw_seeds <- function(top, lam, run, topo) {
   set.seed(run * 2000 + round(lam * 100) + ifelse(topo == "DP", 777L, 0L))
-  primary <- sample.int(length(top$deg_raw), 1)
+  n <- length(top$deg_raw)
+  primary <- switch(SEEDING,
+    # deterministic, position-based strategies (precomputed at load time)
+    central   = top$primary_central,
+    closeness = top$primary_closeness,
+    eigen     = top$primary_eigen,
+    # stochastic strategies (seeded above, so reproducible per run/lambda/topology)
+    random    = sample.int(n, 1),
+    marginal  = as.integer(sample(
+                  order(top$deg_raw)[seq_len(ceiling(n * 0.1))], 1)))
   n_seeds <- max(1, min(round(TAU_REF_SEED * top$deg_raw[primary]),
                         top$deg_raw[primary] + 1))
   seeds <- primary
@@ -143,8 +175,9 @@ run_unified <- function(top, q, n, seeds, h, Gamma, lambda, sim_seed) {
 # --------------------------------- the sweep ----------------------------------
 sims_per_combo <- N_RUNS * length(H_SWEEP) * length(IUL_SWEEP)
 n_combos <- length(TOPOLOGIES) * length(LAMBDAS)
-message(format(Sys.time(), "%H:%M:%S"), "  Sweep: ", n_combos, " (topology, lambda) combos x ",
-        sims_per_combo, " sims = ", n_combos * sims_per_combo, " total simulations.")
+message(format(Sys.time(), "%H:%M:%S"), "  Seeding: ", toupper(SEEDING), " | Sweep: ",
+        n_combos, " (topology, lambda) combos x ", sims_per_combo, " sims = ",
+        n_combos * sims_per_combo, " total simulations.")
 t_all <- Sys.time()
 
 combos <- expand.grid(topo = TOPOLOGIES, lam = LAMBDAS, stringsAsFactors = FALSE)
@@ -189,7 +222,7 @@ for (ci in seq_len(nrow(combos))) {
 # ------------------------------ combine & save --------------------------------
 results <- bind_rows(lapply(
   file.path(CKPT_DIR, sprintf("%s_lambda_%.2f.rds", combos$topo, combos$lam)), readRDS))
-write.csv(results, file.path(DATA_OUT, "unified_premium_results.csv"), row.names = FALSE)
+write.csv(results, file.path(DATA_OUT, paste0("unified_premium_results", SUFFIX, ".csv")), row.names = FALSE)
 message(format(Sys.time(), "%H:%M:%S"), "  Combined results saved (", nrow(results),
         " rows; total ", round(as.numeric(difftime(Sys.time(), t_all, units = "mins")), 1),
         " min).")
@@ -220,7 +253,7 @@ message("Pooled (all lambdas): beta_DP = ", round(pooled$beta_DP, 3),
         "  odds drop = ", round(pooled$odds_drop_pct, 1), "%")
 write.csv(bind_rows(per_lambda |> mutate(lambda = as.character(lambda)),
                     pooled |> mutate(lambda = "pooled")),
-          file.path(DATA_OUT, "unified_premium_bam.csv"), row.names = FALSE)
+          file.path(DATA_OUT, paste0("unified_premium_bam", SUFFIX, ".csv")), row.names = FALSE)
 message("(legacy engine reference: beta_DP = -0.850, OR = 0.43, -57% odds)")
 
 # ---------------------------------- plots -------------------------------------
@@ -239,7 +272,7 @@ heat <- function(df, title) {
           plot.title = element_text(size = 10, face = "bold"))
 }
 
-cairo_pdf(file.path(PLOTS_OUT, "unified_premium_heatmaps.pdf"),
+cairo_pdf(file.path(PLOTS_OUT, paste0("unified_premium_heatmaps", SUFFIX, ".pdf")),
           width = 11, height = 4.2, onefile = TRUE)
 for (l in LAMBDAS) {
   print(
@@ -252,4 +285,4 @@ for (l in LAMBDAS) {
 }
 dev.off()
 message(format(Sys.time(), "%H:%M:%S"), "  Saved ",
-        file.path(PLOTS_OUT, "unified_premium_heatmaps.pdf"), " — DONE.")
+        file.path(PLOTS_OUT, paste0("unified_premium_heatmaps", SUFFIX, ".pdf")), " — DONE.")
