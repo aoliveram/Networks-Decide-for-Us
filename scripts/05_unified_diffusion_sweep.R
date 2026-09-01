@@ -126,15 +126,29 @@ md <- sapply(nets, function(x) c(mean(x$GSS$edge_d), mean(x$DP$edge_d)))
 message(sprintf("Sanity — degree sequences preserved in %d/%d twins; mean tie distance %.3f (GSS) vs %.3f (DP).",
                 sum(dg), length(dg), mean(md[1, ]), mean(md[2, ])))
 
-draw_seeds <- function(top, lam, run, topo) {
-  set.seed(run * 2000 + round(lam * 100) + ifelse(topo == "DP", 777L, 0L))
+draw_seeds <- function(top, run, topo) {
+  # (fix 2026-09-01) The seed draw is INDEPENDENT of lambda: within a strategy,
+  # every lambda value uses the same primary node and the same cluster, so the
+  # lambda-profiles are free of seed-lottery noise. (The previous formula
+  # included round(lambda*100) in the RNG seed, which silently redrew the
+  # starting point at every lambda and produced e.g. the spurious +0.48
+  # reversal of the marginal premium at lambda = 1.0.)
+  #
+  # The PRIMARY node is also shared between GSS and its DP twin: keeping_degseq
+  # preserves every node's degree, so the same primary implies an IDENTICAL
+  # seed budget (0.40 * degree) in both topologies — the GSS-vs-DP comparison
+  # is seed-matched by construction. Cluster MEMBERS necessarily differ (the
+  # neighborhoods differ), and are drawn from a topology-specific stream.
+  set.seed(run * 2000L)                    # shared across topologies AND lambdas
   n <- length(top$deg_raw)
   primary <- switch(SEEDING,
-    # deterministic, position-based strategies (precomputed at load time)
+    # deterministic, position-based strategies (precomputed at load time;
+    # central is node-identical in GSS and DP because degrees are preserved)
     central   = top$primary_central,
     closeness = top$primary_closeness,
     eigen     = top$primary_eigen,
-    # stochastic strategies (seeded above, so reproducible per run/lambda/topology)
+    # stochastic strategies: same draw in GSS and DP (identical n and degree
+    # sequence per node), reproducible per run
     random    = sample.int(n, 1),
     marginal  = as.integer(sample(
                   order(top$deg_raw)[seq_len(ceiling(n * 0.1))], 1)))
@@ -142,6 +156,7 @@ draw_seeds <- function(top, lam, run, topo) {
                         top$deg_raw[primary] + 1))
   seeds <- primary
   if (n_seeds > 1) {
+    set.seed(run * 2000L + 1L + ifelse(topo == "DP", 777L, 0L))  # members only
     nb <- as.integer(neighbors(top$g, primary))
     if (length(nb) > 0)
       seeds <- c(primary, sample(nb, min(length(nb), n_seeds - 1)))
@@ -192,7 +207,7 @@ for (ci in seq_len(nrow(combos))) {
   t_c <- Sys.time()
   per_run <- mclapply(seq_len(N_RUNS), function(run) {
     nt <- nets[[run]]; top <- nt[[topo]]
-    seeds <- draw_seeds(top, lam, run, topo)
+    seeds <- draw_seeds(top, run, topo)
     rows <- vector("list", length(H_SWEEP) * length(IUL_SWEEP)); ri <- 0L
     for (h in H_SWEEP) {
       for (Gamma in IUL_SWEEP) {
