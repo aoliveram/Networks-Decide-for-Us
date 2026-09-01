@@ -1,0 +1,836 @@
+% ============================================================================
+% Making NDFU bottom-up: the unified adoption rule and its two variants
+% Internal design note — NO changes to the engine have been made.
+% Companion scripts: scripts/06_lambda_calibration.R (lambda sweep, linear variant)
+%                    scripts/05_unified_diffusion_sweep.R (engine + structural premium)
+% (The former minimal-test script was removed 2026-08-31; its tau*
+%  diagnostic now lives in script 10.)
+% History: written 2026-08-11 (markdown); Tur's exact functional form
+%   u_t = u_0 (1/a_t)^gamma incorporated 2026-08-13; ported to LaTeX 2026-08-13;
+%   2026-08-31: former Options 2 (kernel) and 3 (percolation) removed to focus
+%   on the unified rule; new section "Pros and cons of the two
+%   operationalizations" added (Brock-Durlauf microfoundation, substitutes vs.
+%   complements, the status of gamma in Tur 2018/2024).
+% Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black]{hyperref}
+\usepackage{enumitem}
+\setlist{itemsep=2pt, topsep=4pt}
+
+\newcommand{\Ee}{\tilde{E}}                 % selective effective exposure
+\newcommand{\atil}{\tilde{a}}               % gated adoption indicator
+\newcommand{\Acount}{\tilde{A}}             % gated adopting COUNT
+\newcommand{\eff}{\mathrm{eff}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Making NDFU bottom-up:\\ the unified adoption rule and its two variants}
+\author{NDFU internal design note}
+\date{2026-08-11, updated 2026-08-31 \\[4pt]
+\normalsize Status: design document --- no changes to the engine have been made.\\
+\normalsize Companion scripts: \code{10\_unified\_model\_sweep.R}, \code{12\_unified\_premium\_sweep.R}}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+% ============================================================================
+\section{Why this document}
+
+The Social Networks special-issue rejection (Bianchi's follow-up email) said:
+
+\begin{quote}\itshape
+``the underdevelopment of the behavioural model assumed in your ABM. While it can certainly
+be considered an agent-based model, the behaviour of the agents is relatively abstract, and
+the experimental design appears to be governed by macro-level manipulation rather than
+bottom-up dynamics.''
+\end{quote}
+
+Two pieces of the current model are exposed to that critique:
+
+\begin{enumerate}
+  \item \textbf{The network threshold $\tau_i$ is exogenous.} It is drawn from
+    $\mathcal{N}(\tau_{\text{mean}}, \tau_{\text{sd}})$, truncated to $[0,1]$,
+    \emph{independently of the agent's own measured preference} $q_i$. The sweep over
+    $(\tau_{\text{mean}}, \tau_{\text{sd}})$ is exactly the ``macro-level manipulation''
+    Bianchi points at: a population-level dial with no micro-foundation in the survey data.
+  \item \textbf{The two channels are bolted together.} Rational adoption ($q_i \le \Gamma$)
+    and social adoption ($\tau_i \le \Ee_i$) are two separate rules joined by an OR. A
+    referee can ask why an agent runs two unrelated decision procedures.
+\end{enumerate}
+
+Tur, Zeppini \& Frenken (2024, \emph{Social Networks} 76:12--21) --- published in our
+target journal --- has a \emph{single} micro rule (a utility comparison, where social
+reinforcement enters the utility calculus), but \textbf{no social-distance sensitivity in
+influence}: every adopting neighbor reinforces equally. NDFU's distinctive ingredient is
+exactly that sensitivity (Centola 2011). The question is therefore:
+
+\begin{quote}
+Can we keep NDFU's selective (distance-sensitized) influence while adopting a Tur-style
+single utility-based decision rule --- making the model bottom-up without giving up its
+identity?
+\end{quote}
+
+Answer: yes. The instrument is a single \textbf{unified adoption rule}
+(\S\ref{sec:unified}), which admits two operationalizations --- a
+\emph{linear-fractional} variant and a \emph{multiplicative $\gamma$-variant} that nests
+Tur (2024) exactly. Their pros and cons are compared in detail in
+\S\ref{sec:proscons}.
+
+% ============================================================================
+\section{Notation and the current NDFU model (baseline)}
+\label{sec:notation}
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Meaning & Source \\
+\midrule
+$\Gamma \in [0,1]$ & Intrinsic Utility Level (IUL) of the behavior & swept \\
+$q_i \in [0,1]$ & Minimum Utility Requirement (MUR): intrinsic aversion & \textbf{empirical} (GSS/ATP items) \\
+$\tau_i \in [0,1]$ & network threshold (fraction of influential adopters needed) & \textbf{exogenous} $\mathcal{N}(\tau_{\text{mean}}, \tau_{\text{sd}})$ \\
+$d_{ij} \in [0,1]$ & Gower distance in Blau space (age, educ, race, relig, sex) & \textbf{empirical} \\
+$h \in [0,1]$ & Maximum Social Proximity (MSP): tolerance to dissimilarity & swept (macro) \\
+$a_j \in \{0,1\}$ & adoption state of $j$ & dynamic \\
+$X_{ij}$ & adjacency & imputed ERGM networks \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Current rules (as in the paper).}
+\begin{itemize}
+  \item Rational channel: adopt if $q_i \le \Gamma$ (Eq.~1 of the paper).
+  \item Social channel: adopt if $\tau_i \le \Ee_i$, with selective effective exposure
+\begin{equation}
+  \Ee_i \;=\; \frac{\sum_{j\neq i} X_{ij}\,\atil_j}{\sum_{j\neq i} X_{ij}},
+  \qquad
+  \atil_j = 1 \;\iff\; a_j = 1 \,\wedge\, U_{ij} \le \sigma(h - d_{ij}),
+  \label{eq:exposure}
+\end{equation}
+  where $U_{ij} \sim \mathrm{Unif}(0,1)$ is redrawn per step and
+  $\sigma(z) = \bigl(1 + e^{-z/T}\bigr)^{-1}$ with $T = 0.02$ in the implementation
+  (a near-hard gate at $d_{ij} = h$; see \code{scripts/04\_GSS\_diffusion\_sims.R},
+  line~304).
+\end{itemize}
+
+\paragraph{Implementation nuance worth knowing} (it matters for the comparison with Tur):
+in the code, the rational channel is implemented by setting the node's threshold to
+$10^{-6}$, so a rational agent still needs \textbf{one influential contact} (exposure
+$>0$) before adopting. The engine is therefore already a word-of-mouth model for
+\emph{awareness}: low-$q$ agents behave as simple contagion, not as spontaneous
+($\varphi = 0$) adopters. The paper's Eq.~1 (adoption at exposure $0$) is the
+idealization; the code is contact-gated.
+
+% ============================================================================
+\section{Tur (2024) mechanism, for reference}
+\label{sec:tur}
+
+\begin{itemize}
+  \item Word-of-mouth \textbf{percolation}: agents must be \emph{informed} through the
+    network before they can decide.
+  \item Single decision rule: adopt when the innovation's intrinsic utility $\xi$ meets
+    the agent's minimum utility requirement.
+  \item \textbf{Social reinforcement modifies the requirement} --- exact published form
+    (confirmed against both PDFs):
+\begin{equation}
+  u_t^i \;=\; u_0^i \cdot \left(\frac{1}{a_t^i}\right)^{\gamma},
+  \label{eq:turform}
+\end{equation}
+    where $u_0^i$ is the initial minimum utility requirement, $a_t^i \in \mathbb{N}$ the
+    number of \textbf{adopting neighbors} of $i$ at time $t$ (a state count, not received
+    recommendations; the rule is evaluated only once informed, so $a \ge 1$), and
+    $\gamma \ge 0$ the social-reinforcement strength. The lowering is
+    \textbf{multiplicative} (power-law): each doubling of adopting neighbors divides the
+    requirement by the same factor $2^{\gamma}$. With $\gamma = 0$ the model reduces to
+    pure social percolation. The threshold-like behavior emerges from this lowering, not
+    from a separate threshold parameter.
+  \item Homophily $\rho$ is purely \textbf{structural pre-wiring}: agents with similar
+    $u$ are placed together \emph{before} diffusion. Influence itself is
+    \textbf{distance-blind}: any adopting neighbor reinforces equally.
+  \item Preferences are artificial distributions ($\mathrm{Beta}(\alpha,\beta)$ family in
+    2018; uniform in 2024); networks are Watts--Strogatz with $N = 10{,}000$ and
+    $k = 4$ neighbors on average.
+\end{itemize}
+
+NDFU vs.\ Tur, in one line: \textbf{Tur has the single bottom-up rule but uniform
+influence; NDFU has selective influence but a two-channel rule with an exogenous
+$\tau$.} Each has what the other lacks.
+
+% ============================================================================
+\section{The unified additive-utility rule}
+\label{sec:unified}
+
+\subsection{The rule}
+
+Replace both channels by one utility comparison per agent per step:
+\begin{equation}
+  \text{adopt}_i(t) = 1 \;\iff\; \Gamma + \lambda \, \Ee_i(t) \;\ge\; q_i .
+  \label{eq:unified}
+\end{equation}
+
+\begin{itemize}
+  \item $\Ee_i(t)$ is \textbf{exactly the current selective effective exposure}
+    \eqref{eq:exposure}, unchanged. This is where social distance enters: only adopters
+    passing the stochastic proximity gate $\sigma(h - d_{ij})$ count.
+  \item $\lambda > 0$ is the \textbf{social-proof coupling}: how much situational utility
+    a fully-adopted, fully-similar neighborhood adds, in the same units as $\Gamma$ and
+    $q_i$.
+\end{itemize}
+
+\subsection{Two algebraically identical framings (choose the second)}
+\label{sec:framings}
+
+\begin{enumerate}
+  \item \textbf{Requirement-lowering (Tur's framing):}
+    $q_i^{\eff}(t) = q_i - \lambda \Ee_i(t)$; adopt when $\Gamma \ge q_i^{\eff}(t)$.
+    Preferences are \emph{modified} during diffusion.
+  \item \textbf{Situational-utility (recommended framing):}
+    $U_i(t) = \Gamma + \lambda \Ee_i(t)$; adopt when $U_i(t) \ge q_i$. The preference
+    $q_i$ \textbf{never changes}; what changes is the utility the situation offers (peers
+    add legitimacy, lower uncertainty, network externalities). This is literally
+    Granovetter's threshold as a \emph{situated cost--benefit crossing} (1978, p.~1422),
+    and it preserves NDFU's declared contrast with Tur (``preferences are not modified
+    during diffusion'', \code{theoretical\_reviewed.md}, entry~7).
+\end{enumerate}
+
+\subsection{The derived threshold --- the two old channels fall out as limit cases}
+\label{sec:derived}
+
+Rearranging \eqref{eq:unified}, adoption requires $\Ee_i(t) \ge \tau_i^{*}$ with the
+\textbf{derived threshold}
+\begin{equation}
+  \tau_i^{*} \;=\; \max\!\left\{0,\; \frac{q_i - \Gamma}{\lambda}\right\}.
+  \label{eq:taustar}
+\end{equation}
+
+\begin{itemize}
+  \item $q_i \le \Gamma \;\Rightarrow\; \tau_i^{*} = 0$: adopts at first influential
+    contact --- \textbf{the current rational channel} (Granovetter's low-threshold
+    ``instigator'', exactly as currently implemented with $\tau = 10^{-6}$).
+  \item $q_i > \Gamma \;\Rightarrow\; \tau_i^{*} > 0$: needs selective exposure
+    proportional to the \textbf{utility deficit} --- the social channel, now derived
+    instead of postulated.
+  \item $q_i > \Gamma + \lambda \;\Rightarrow\; \tau_i^{*} > 1$: \textbf{can never adopt}
+    ($\Ee \le 1$) --- a ``structurally immune'' agent. When exactly this occurs is worked
+    out in \S\ref{sec:immunity}.
+\end{itemize}
+
+\subsection{What this buys and what it costs}
+\label{sec:buys}
+
+\paragraph{Buys.}
+\begin{itemize}
+  \item \textbf{Bottom-up microfoundation.} One decision rule, all heterogeneity
+    empirical: $\tau_i^{*}$ is a deterministic function of the \emph{measured} $q_i$ and
+    the product $(\Gamma, \lambda)$. The arbitrary
+    $\mathcal{N}(\tau_{\text{mean}}, \tau_{\text{sd}})$ disappears. This is the direct
+    answer to Bianchi.
+  \item \textbf{Behavioral realism as a bonus:} resistance to peer influence is now
+    positively correlated with intrinsic aversion (the same latent trait drives both) ---
+    defensible, and testable in principle.
+  \item \textbf{Nesting.} Setting the gate to $w \equiv 1$ ($h \to \infty$,
+    distance-blind) removes the distance selectivity and leaves a Tur-style
+    (distance-blind) reinforcement model; setting $\lambda \to 0$ recovers a pure
+    percolation-of-awareness model. Tur (2024)'s \emph{exact} published form
+    \eqref{eq:turform} is recovered by the $\gamma$-variant of the rule --- see
+    \S\ref{sec:turnesting}. NDFU's selectivity remains the \emph{identified added
+    ingredient}, cleanly positioned against a paper published in the target journal.
+  \item \textbf{Implementability.} $\tau_i^{*}$ is static given $(\Gamma, \lambda)$, so
+    the existing \code{netdiffuseR} threshold machinery runs it as-is:
+    \code{threshold.dist = pmax(0, (q - $\Gamma$)/$\lambda$)} replaces the Normal draw
+    $+$ the $10^{-6}$ hack. No engine changes needed.
+\end{itemize}
+
+\paragraph{Costs / changes.}
+\begin{itemize}
+  \item The rational/social decomposition becomes \textbf{ex-post bookkeeping} (adopters
+    with $q_i \le \Gamma$ vs.\ $q_i > \Gamma$) rather than two mechanisms --- same tally
+    we already compute, but the interpretation shifts.
+  \item $\tau_{\text{sd}}$ disappears as a free dial; its large positive effect on
+    cascades (heterogeneity creates susceptible minorities) is now carried by the
+    \emph{empirical} dispersion of $q_i$, scaled by $1/\lambda$. $\lambda$ replaces
+    $(\tau_{\text{mean}}, \tau_{\text{sd}})$ --- the parameter space shrinks from 16
+    ($4\times4$) threshold configurations to a 1-D $\lambda$ sweep.
+  \item The (IUL $\times$ MSP) heatmaps will not be identical: thresholds now co-vary
+    with $q$. Whether the phase structure survives is an empirical question --- answered:
+    it does (see \S\ref{sec:calibration}).
+\end{itemize}
+
+\subsection{Where social distance enters (explicitly)}
+
+Only inside $\Ee_i$, via the per-contact stochastic gate:
+\begin{equation}
+  \Pr\bigl(\text{$j$'s adoption counts for $i$}\bigr) \;=\; \sigma\!\left(\frac{h - d_{ij}}{T}\right),
+  \qquad T = 0.02 .
+\end{equation}
+Identical to the current model. The unified rule changes the \emph{decision rule}, not
+the \emph{influence filter}.
+
+\subsection{Recovering Tur (2024) exactly --- the nesting, step by step}
+\label{sec:turnesting}
+
+\paragraph{Tur's published rule} (exact form, \S\ref{sec:tur}): an agent that has been
+\emph{informed} through the network adopts when the product's utility meets its
+\emph{current} requirement,
+\begin{equation}
+  \xi \;\ge\; u_t^i, \qquad u_t^i = u_0^i \cdot \left(\frac{1}{a_t^i}\right)^{\gamma},
+\end{equation}
+with $u_0^i$ the initial minimum utility requirement, $a_t^i \ge 1$ the number of adopting
+neighbors of $i$ at time $t$ (the rule is only evaluated once informed, so $a \ge 1$ and
+the expression is well-defined), and $\gamma \ge 0$ the social-reinforcement strength.
+$\gamma = 0$ gives $u_t = u_0$: pure social percolation (Solomon \& Weisbuch 2000), Tur's
+own baseline.
+
+\paragraph{Log-linearization --- Tur IS an additive requirement-lowering rule, in logs.}
+Taking logarithms (all quantities positive):
+\begin{equation}
+  \ln \xi \;\ge\; \ln u_0^i \;-\; \gamma \,\ln a_t^i .
+  \label{eq:logtur}
+\end{equation}
+So the published reinforcement is additive with the concave gain $g(a) = \ln a$. This
+dictates the right unified rule: it must be additive in \emph{log-utility}, i.e.\
+\textbf{multiplicative in levels}.
+
+\paragraph{The Tur-exact unified rule ($\gamma$-form).} Define the distance-sensitized
+adopting \emph{count}
+\begin{equation}
+  \Acount_i(t) \;=\; \sum_{j} X_{ij}\, \atil_j(t),
+  \qquad
+  \atil_j = 1 \;\iff\; a_j = 1 \,\wedge\, U_{ij} \le \sigma\!\left(\frac{h - d_{ij}}{T}\right),
+  \label{eq:count}
+\end{equation}
+and let social proof \emph{multiply} the situational utility:
+\begin{equation}
+  \boxed{\;\text{adopt}_i(t) \;\iff\; \Gamma \cdot \bigl(\Acount_i(t)\bigr)^{\gamma} \;\ge\; q_i\;}
+  \qquad \text{(evaluated when } \Acount_i \ge 1\text{)}.
+  \label{eq:gammaform}
+\end{equation}
+Equivalently, in Tur's own requirement-lowering form:
+$q_{i,t} = q_i \cdot (1/\Acount_i(t))^{\gamma}$, adopt when $\Gamma \ge q_{i,t}$. The
+preference $q_i$ is fixed; what the similar adopters change is the \emph{situational}
+requirement --- the same framing as \S\ref{sec:framings} (but see
+\S\ref{sec:preferences} for the substantive difference this form does carry).
+
+\paragraph{Recovery, in one step.} Switch off the proximity gate
+($h \ge 1 + 5T \Rightarrow \sigma \to 1 \Rightarrow \atil_j = a_j$, so
+$\Acount_i(t) = a_t^i$), and rule \eqref{eq:gammaform} reads
+\begin{equation}
+  \Gamma \cdot (a_t^i)^{\gamma} \ge q_i
+  \quad\iff\quad
+  \xi \;\ge\; u_0^i \cdot \left(\frac{1}{a_t^i}\right)^{\gamma}
+\end{equation}
+under the identification
+\begin{equation}
+  \boxed{\;\xi = \Gamma, \qquad u_0^i = q_i, \qquad \text{same } \gamma\;.}
+\end{equation}
+The recovery is \textbf{exact on any graph}: Tur's reinforcement is a pure count, and the
+$\gamma$-form uses the count directly --- no degree normalization is involved, so no
+degree-regularity caveat is needed (unlike the linear-fractional variant, which
+normalizes by degree and matches Tur's count reading only on degree-regular substrates).
+
+\paragraph{Awareness / percolation layer} (unchanged): the engine's contact-gating (the
+$\tau = 10^{-6}$ device, \S\ref{sec:notation}) means the rule is only evaluated at
+$\Acount_i \ge 1$ --- precisely Tur's ``informed'' condition with per-contact
+transmission probability~1; a probability $p < 1$ is emulated by a constant-acceptance
+gate ($\sigma \equiv p$).
+
+\paragraph{Derived threshold (count form).} Rearranging \eqref{eq:gammaform}:
+\begin{equation}
+  \text{adopt}_i \;\iff\; \Acount_i(t) \;\ge\; c_i^{*},
+  \qquad
+  c_i^{*} = \left(\frac{q_i}{\Gamma}\right)^{1/\gamma}.
+  \label{eq:cstar}
+\end{equation}
+
+\begin{itemize}
+  \item $q_i \le \Gamma \Rightarrow c_i^{*} \le 1$: adopts at the first influential
+    contact --- the rational channel, exactly as in the linear variant
+    (\S\ref{sec:derived}).
+  \item $q_i > \Gamma \Rightarrow$ needs $c_i^{*}$ similar adopters; heterogeneity 100\%
+    empirical (from $q_i$), with $\gamma$ as the single coupling.
+  \item \textbf{Degree-dependent immunity}: agent $i$ is out of reach whenever
+    $c_i^{*} > k_i$ (its degree) --- high-aversion, \emph{low-degree} agents can never be
+    socially converted (see \S\ref{sec:immunity}).
+\end{itemize}
+
+\paragraph{What does NOT nest (honesty box).}
+\begin{itemize}
+  \item Tur's homophily $\rho$ sorts agents by the requirement $u$ \emph{itself}; NDFU's
+    imputation sorts by demographics, and $q_i$ correlates with demographics only
+    partially. The imputed networks are therefore an \emph{empirically disciplined,
+    weaker} version of Tur's preference-sorting. The nesting claim concerns the
+    \textbf{adoption rule}; the network is an exogenous input in both models.
+\end{itemize}
+
+\paragraph{One-line summary.} With the proximity gate switched off, the $\gamma$-form
+\textbf{is} Tur (2024) --- same functional form, same $\gamma$, with $\xi = \Gamma$ and
+$u_0 = q$ --- on any topology; NDFU's added ingredient is exactly one: the distance gate
+deciding \emph{which} adopters count in $\Acount_i$.
+
+% ============================================================================
+\section{Pros and cons of the two operationalizations}
+\label{sec:proscons}
+
+We now have two members of one family on the table:
+\begin{align}
+  \text{\textbf{Linear-fractional:}} \qquad & \Gamma + \lambda\, \Ee_i(t) \;\ge\; q_i
+  && \text{(additive in the adopted \emph{fraction})}
+  \label{eq:linvar}\\[2pt]
+  \text{\textbf{$\gamma$-form (Tur-exact):}} \qquad & \Gamma \cdot \Acount_i(t)^{\gamma} \;\ge\; q_i
+  && \text{(multiplicative in the adopted \emph{count})}
+  \label{eq:gamvar}
+\end{align}
+This section works through the five questions that decide between them, pedagogically
+and one at a time, and closes with a verdict table.
+
+% ----------------------------------------------------------------------------
+\subsection{When can an agent never adopt? (immunity, made precise)}
+\label{sec:immunity}
+
+In the linear variant, immunity is $\tau_i^{*} > 1$, i.e.
+\begin{equation}
+  q_i \;>\; \Gamma + \lambda .
+\end{equation}
+Since $q_i \le 1$, this region is \textbf{non-empty only when} $\lambda < 1 - \Gamma$:
+with $\lambda \ge 1$ immunity is impossible (a fully-adopted similar neighborhood can
+compensate any deficit). So the intuition ``$q_i, \Gamma \in [0,1]$ makes this very
+unlikely'' is correct \emph{at large $\lambda$} but not in general. Empirically, on the
+GSS $q$ distribution (diagnostic printed by \code{10\_unified\_model\_sweep.R}):
+
+\begin{center}
+\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$\lambda$ & $\Gamma$ & immunity condition & share immune \\
+\midrule
+0.5 & 0.20 & $q_i > 0.70$ & $10.9\%$ \\
+0.5 & 0.30 & $q_i > 0.80$ & $3.8\%$ \\
+1.0--2.0 & any & $q_i > \Gamma + \lambda \ge 1$ & $0\%$ \\
+0.7 (best fit) & 0.20 & $q_i > 0.90$ & small tail \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The visible fingerprint: the adoption \textbf{ceiling} $\Phi \approx 0.75$ at low IUL in
+the $\lambda = 0.5$ heatmaps --- the $\approx\!11\%$ immune tail (plus isolates) caps the
+ordered phase below~1. This is a prediction, not a bug: \emph{when social proof is weak,
+its reach is bounded}. The current engine cannot produce this ceiling because $\tau$ is
+truncated to $[0,1]$ by construction.
+
+In the $\gamma$-form, immunity is instead $c_i^{*} > k_i$, i.e.
+\begin{equation}
+  \left(\frac{q_i}{\Gamma}\right)^{1/\gamma} > k_i
+  \quad\iff\quad
+  q_i \;>\; \Gamma \, k_i^{\gamma},
+\end{equation}
+which depends on the agent's \textbf{degree}: the out-of-reach agents are those both
+highly averse \emph{and} poorly connected. Arguably more realistic --- and a distinctive,
+testable difference between the two variants.
+
+% ----------------------------------------------------------------------------
+\subsection{The log-space bridge: $\ln a$ vs.\ $\Ee$}
+\label{sec:logbridge}
+
+In log space, Tur's reinforcement variable is $\ln a$ --- the log of the gated
+\emph{count}. Is that ``just'' our normalized exposure? Almost: with
+$\Ee_i = \Acount_i / k_i$,
+\begin{equation}
+  \ln \Acount_i \;=\; \ln \Ee_i \;+\; \ln k_i .
+  \label{eq:logdecomp}
+\end{equation}
+On \textbf{degree-regular substrates} --- and Tur's Watts--Strogatz networks are
+degree-homogeneous with $k = 4$ --- the term $\ln k_i$ is one global constant, absorbable
+into $\Gamma$ (or $u_0$): identifying the reinforcement with $\ln \Ee$ is then exact up
+to recalibration. On NDFU's \textbf{heterogeneous} networks (degrees roughly 1--80), the
+two differ by the agent-specific offset $\gamma \ln k_i$:
+\begin{itemize}
+  \item using $\Ee$ says ``reinforcement is a \emph{share of your attention}'';
+  \item using $\Acount$ says ``every endorsement adds the same, whether you have 4
+    neighbors or 40'' --- at the same adopted \emph{fraction}, a hub receives more
+    reinforcement.
+\end{itemize}
+This is the count-vs-fraction fork of \S\ref{sec:turnesting}, seen from the logarithm:
+the analogy $\ln a \leftrightarrow \Ee$ is complete \emph{modulo degree}, and the choice
+between the two variants is precisely the choice of what to do with $\ln k_i$.
+
+% ----------------------------------------------------------------------------
+\subsection{What $\gamma$ is --- and is not --- in Tur 2018 and Tur 2024}
+\label{sec:gammastatus}
+
+Read against both PDFs, the epistemic status of $\gamma$ is the following.
+
+\paragraph{What their justification does have.}
+\begin{itemize}
+  \item An \textbf{axiomatic characterization} (2018, p.~3; restated in 2024): the
+    updated requirement $f(q; a, \gamma) = q \cdot (1/a)^{\gamma}$ must satisfy
+    (a) decreasing in $a$ for $\gamma > 0$; (b) decreasing in $\gamma$ for $a > 1$;
+    (c) $\gamma = 0$ replicates the percolation benchmark; (d) $a = 1$ gives $f = q$
+    (the \emph{first} adopting neighbor only informs; reinforcement starts with the
+    second --- a clean echo of complex contagion's ``more than one source'').
+  \item A \textbf{concavity argument} for the restriction $\gamma \le 1$: ``assuming
+    that the marginal effect of each additional neighbor on the total social influence
+    cannot be increasing'' (2018), with the reductio that a very large $\gamma$
+    trivializes diffusion \emph{on their degree-4 lattices}.
+  \item An interpretable \textbf{marginal effect} (2018, Eq.~2):
+    $\Delta q_t^i = -\, q_0^i \gamma \,/\, (a_t^i)^{\gamma+1} \cdot \Delta a$ --- the
+    first adopting friends produce the large drops, and the drop is \emph{proportional
+    to the agent's own requirement} (more averse agents receive larger absolute
+    reductions). This proportionality is the seed of the complementarity discussed in
+    \S\ref{sec:preferences}.
+\end{itemize}
+
+\paragraph{What it does not have.}
+\begin{itemize}
+  \item \textbf{No empirical calibration.} In both papers $\gamma$ is a free
+    ``intensity'' parameter, introduced with one sentence (2024: ``for some innovations,
+    social reinforcement may be more intense than for others \dots\ so we introduce
+    social reinforcement as a parameter'') and \emph{swept}: $\gamma \in [0,1]$
+    continuously in the 2018 phase maps and the 2024 heat maps, with focal values
+    $\{0, 0.5, 1\}$ in 2024's Fig.~5 (``$\gamma = 1$ is maximum social reinforcement'').
+    There are no units, no measurement strategy, no experimental anchor --- not even a
+    link to Centola's dose--response evidence, which would have been the natural one.
+  \item \textbf{No transportability across degree scales.} All Tur simulations live on
+    $k = 4$ neighborhoods, so $a \in \{1, \dots, 4\}$ in practice and the reinforcement
+    spans at most a factor $4^{\gamma} \le 4$. On NDFU's imputed networks (mean degree
+    $\approx 29$, hubs beyond 60), the same $\gamma$ produces reductions up to
+    $29^{\gamma}$: at $\gamma = 1$ a saturated average neighborhood divides the
+    requirement by $\approx 29$, a force of a different order of magnitude. Even their
+    $\gamma \le 1$ bound is reasoned \emph{for} $k = 4$. \textbf{Borrowing Tur's
+    $\gamma$ values would inherit the symbol, not the calibration.}
+\end{itemize}
+
+\paragraph{Verdict.} Adopting the $\gamma$-form buys (i) exact formal nesting, (ii) the
+published axioms and the concavity argument for free, and (iii) a citation in the target
+journal. It does \emph{not} buy empirical values for $\gamma$, nor freedom from arguing
+the coupling's magnitude --- if the $\gamma$-form is used, $\gamma$ must be calibrated
+for \emph{our} degree distribution (e.g.\ with the same fit-to-current-model procedure
+used for $\lambda$). Epistemically, $\gamma$ and $\lambda$ are in the same place: free
+couplings --- with the difference that $\lambda$ has the stronger microeconomic backing
+(\S\ref{sec:brockdurlauf}).
+
+% ----------------------------------------------------------------------------
+\subsection{Exposure traditions: the power form is wedded to counts}
+\label{sec:exposuretrad}
+
+The $\gamma$-form cannot be written with normalized exposure, and the reason is
+structural, not stylistic: the multiplier $\Acount^{\gamma}$ amplifies only because
+$\Acount \ge 1$. Substituting the fraction $\Ee \in [0,1]$ gives
+$\Ee^{\gamma} \le 1$ --- social proof would \emph{reduce} situational utility. There is
+no natural ``fractional $\gamma$-form''.
+
+Consequences:
+\begin{itemize}
+  \item Choosing the $\gamma$-form moves the model from the fractional-threshold
+    tradition (Granovetter 1978; Valente 1996; Watts 2002) --- the tradition NDFU and
+    \code{netdiffuseR} live in --- to the absolute-count tradition (Centola \& Macy
+    2007). For a \emph{Social Networks} audience this is not neutral.
+  \item \textbf{Mitigation 1 (mechanism $\ne$ measurement):} even if the decision rule
+    runs on counts, Valente-style exposure-at-adoption can still be computed and
+    reported \emph{ex post} as a descriptive statistic (measured thresholds). Nothing
+    forbids reporting $\Ee_i$ at the moment of adoption.
+  \item \textbf{Mitigation 2 (tooling):} \code{netdiffuseR} supports non-normalized
+    exposure (\code{exposure()} with \code{normalized = FALSE}), so the count threshold
+    $\lceil (q_i/\Gamma)^{1/\gamma} \rceil$ runs on the same machinery. The loss is
+    conceptual continuity, not implementation.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{Are preferences modified? Composition, not units}
+\label{sec:preferences}
+
+Formally, the $\gamma$-form does \emph{not} force the ``preferences change'' reading:
+$\Gamma \cdot \Acount^{\gamma} \ge q_i$ is symmetric, and the factor
+$\Acount^{\gamma}$ can be booked on either side ---
+\begin{equation}
+  \underbrace{\;U_i(t) = \Gamma \cdot \Acount_i^{\gamma} \ge q_i\;}_{\text{situational
+  utility multiplied; preference fixed}}
+  \qquad\iff\qquad
+  \underbrace{\;\Gamma \ge q_i \cdot \Acount_i^{-\gamma} = q_{i,t}\;}_{\text{requirement
+  lowered (Tur's framing)}}
+\end{equation}
+with identical behavior. In logs the first reading is a Cobb--Douglas-style utility in
+two ``goods'' (product quality, social proof): $\ln U_i = \ln \Gamma + \gamma \ln
+\Acount_i$. Both sides live on the same $[0,1]$ utility scale as $q_i$, so the real
+distinction is not one of \emph{units} but of \textbf{composition}: additive vs.\
+multiplicative.
+
+And the composition carries substance. Compare the marginal value of social proof:
+\begin{align}
+  \text{linear:}\qquad
+  & U_i = \Gamma + \lambda \Ee_i,
+  & \frac{\partial U_i}{\partial \Ee_i} &= \lambda,
+  & \frac{\partial^2 U_i}{\partial \Gamma\, \partial \Ee_i} &= 0
+  && \text{(\textbf{substitutes})},\\[4pt]
+  \text{$\gamma$-form:}\qquad
+  & U_i = \Gamma \cdot \Acount_i^{\gamma},
+  & \frac{\partial U_i}{\partial \Acount_i} &= \gamma\, \Gamma\, \Acount_i^{\gamma - 1},
+  & \frac{\partial^2 U_i}{\partial \Gamma\, \partial \Acount_i} &= \gamma \Acount_i^{\gamma-1} > 0
+  && \text{(\textbf{complements})}.
+\end{align}
+In the linear form, a given (similar) adopting neighborhood contributes the same
+$\lambda \Ee$ regardless of how good the product is: quality and social proof are
+\emph{substitutes} (additively separable), and the social contribution needed to convert
+agent $i$ compensates the utility deficit one-for-one, $\lambda \Ee_i \ge q_i - \Gamma$,
+independently of $\Gamma$'s level. In the $\gamma$-form the cross-partial is strictly
+positive (complementarity in the Edgeworth--Pareto sense): \emph{the same adopting
+neighborhood is worth more for better products}. The mirror statement on the requirement
+side is Tur 2018's own Eq.~2, where the drop is proportional to $q_0^i$. The required
+social proof falls steeply with quality,
+\begin{equation}
+  \ln c_i^{*} \;=\; \frac{\ln q_i - \ln \Gamma}{\gamma},
+  \qquad
+  \frac{d \ln c_i^{*}}{d \ln \Gamma} \;=\; -\frac{1}{\gamma},
+\end{equation}
+an elasticity of $-1/\gamma$ --- e.g.\ at $\gamma = 0.5$, doubling the product's quality
+divides the required count of similar adopters by four.
+
+So the honest summary of the user's point: it \emph{can} be framed as
+preferences-fixed either way, but the multiplicative interaction is a substantive
+behavioral commitment (quality--social-proof complementarity), not just bookkeeping ---
+and since Tur themselves present the form as requirement-lowering, adopting their exact
+form and citation invites the ``preferences change'' reading unless a paragraph defends
+the other bookkeeping.
+
+% ----------------------------------------------------------------------------
+\subsection{The Brock--Durlauf microfoundation of the linear form}
+\label{sec:brockdurlauf}
+
+The linear variant is not ad hoc: it is the deterministic limit of the canonical
+discrete-choice-with-social-interactions model of Brock \& Durlauf (2001,
+\emph{Review of Economic Studies} 68(2):235--260). In their setup, agent $i$ chooses a
+binary action and derives utility
+\begin{equation}
+  V_i(\omega_i) \;=\;
+  \underbrace{h_i(\omega_i)}_{\text{private utility}}
+  \;+\;
+  \underbrace{J\, \omega_i\, \bar{m}_i^{e}}_{\text{social utility (conformity)}}
+  \;+\;
+  \underbrace{\varepsilon_i(\omega_i)}_{\text{random shock}},
+  \label{eq:bd}
+\end{equation}
+where $\bar{m}_i^{e}$ is the expected mean choice of $i$'s \emph{reference group} and
+$J \ge 0$ is the social-interaction (conformity) coefficient. Three points of contact:
+
+\begin{enumerate}
+  \item \textbf{Additive separability of private and social utility is the standard
+    assumption} of that literature --- exactly the structure of the linear rule. Mapping:
+    the private net utility of adopting is $\Gamma - q_i$; the social term is
+    $\lambda \Ee_i$, with $\Ee_i$ playing $\bar{m}_i^{e}$ (the adoption rate of the
+    reference group) and $\lambda$ playing $J$. Adoption when total utility is
+    non-negative:
+    $\;\Gamma - q_i + \lambda \Ee_i \ge 0\;$ is \eqref{eq:unified} rearranged.
+  \item \textbf{NDFU's additions are well-defined deviations, not violations:} the
+    reference group is not exogenous but \emph{similarity-gated} (the $\sigma(h -
+    d_{ij})$ filter selects who belongs to $i$'s effective reference group --- our
+    contribution), and the shock is degenerate ($\varepsilon \to 0$), turning
+    Brock--Durlauf's logit choice probabilities into a deterministic threshold rule.
+    Reintroducing a small $\varepsilon$ would give a smooth (logit) adoption rule --- a
+    natural robustness variant.
+  \item \textbf{$J$ has an econometric life that $\gamma$ lacks.} The Brock--Durlauf
+    coefficient underpins the social-multiplier / social-interactions estimation
+    literature (see Blume, Brock, Durlauf \& Ioannides 2011, \emph{Handbook of Social
+    Economics}, for identification), so $\lambda$ inherits a path toward empirical
+    anchoring. As a bonus, Brock \& Durlauf themselves develop the mean-field
+    correspondence of \eqref{eq:bd} with the Ising model --- which connects this
+    microfoundation directly to NDFU's criticality analysis.
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\subsection{Verdict table and recommendation}
+\label{sec:verdict}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+ & \textbf{Linear-fractional} --- $\Gamma + \lambda \Ee_i \ge q_i$ & \textbf{$\gamma$-form (count)} --- $\Gamma \cdot \Acount_i^{\gamma} \ge q_i$ \\
+\midrule
+Answer to Bianchi & \checkmark\ equally bottom-up (threshold derived from measured $q$) & \checkmark\ equally bottom-up \\
+Backing of the coupling & $\lambda$ with Brock--Durlauf microfoundation (additive private $+$ social utility; \S\ref{sec:brockdurlauf}); its magnitude still needs arguing & $\gamma$ with Tur precedent (axioms $+$ concavity), but \textbf{no empirical calibration and no transportability} across degree scales (\S\ref{sec:gammastatus}) \\
+Nesting in Tur 2024 & only qualitative & \textbf{exact, on any graph} (gate off; $\xi{=}\Gamma$, $u_0{=}q$, same $\gamma$) \\
+Exposure tradition & \checkmark\ Valente/Granovetter fractional; \code{netdiffuseR} native & counts (Centola--Macy/Watts); Valente exposure only as ex-post reporting (\S\ref{sec:exposuretrad}) \\
+Preferences-fixed framing & \checkmark\ clean (``situational utility rises''; Brock--Durlauf) & defensible, but against the grain of the very citation it borrows (\S\ref{sec:preferences}) \\
+Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$) --- strong assumption, but interesting and testable \\
+Immunity & $q_i > \Gamma + \lambda$, degree-independent (\S\ref{sec:immunity}) & $q_i > \Gamma k_i^{\gamma}$, \textbf{degree-dependent} (averse $+$ poorly connected) --- arguably more realistic \\
+Empirical status & \checkmark\ \textbf{already validated}: replicates the current model's heatmaps; $\lambda \approx 0.7$ identified unimodally & not yet run; $\gamma$ to be calibrated with the same procedure \\
+Hub behavior & bounded ($\Ee \le 1$) & at high $\gamma$, a saturated hub receives reinforcement $\sim k^{\gamma}$ --- may over-fire on dense networks \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\paragraph{Recommendation.} Use the \textbf{linear-fractional variant as the primary
+operationalization} (validated, Valente-compatible, microeconomically clean, $\lambda$
+identified from the legacy data), and the \textbf{$\gamma$-form as the formal bridge to
+Tur and as a robustness check}: present the exact nesting (\S\ref{sec:turnesting}) in the
+text, and run a short $\gamma$ sweep --- calibrated with our own fit procedure, never by
+borrowing Tur's numbers --- to show that the conclusions do not hinge on the
+additive-vs-multiplicative composition. This keeps the best of both: the tradition and
+the validation of the linear form, and the exact nesting as an argument, without
+inheriting $\gamma$'s transportability trap.
+
+% ============================================================================
+\section{Side-by-side with the current model and Tur}
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}X@{}}
+\toprule
+ & NDFU current & Tur 2024 & \textbf{Unified rule (both variants)} \\
+\midrule
+Decision rule & two channels (OR) & single utility rule & \textbf{single utility rule} \\
+Threshold source & exogenous $\mathcal{N}(\tau_{\text{mean}}, \tau_{\text{sd}})$ & emerges from reinforcement & \textbf{derived from measured $q_i$}: $(q_i - \Gamma)/\lambda$ or $(q_i/\Gamma)^{1/\gamma}$ \\
+Preferences modified during diffusion? & no & yes ($u$ lowered) & \textbf{no} under the situational-utility framing (\S\ref{sec:framings}, \S\ref{sec:preferences}) \\
+Distance enters via & stochastic gate in $\Ee$ & --- (absent) & \textbf{same stochastic gate}, in $\Ee$ or in $\Acount$ \\
+Heterogeneity source & $q$ empirical $+$ $\tau$ artificial & $u$ artificial & \textbf{$q$ empirical only} \\
+Free params (beyond $\Gamma$, $h$) & $\tau_{\text{mean}}$, $\tau_{\text{sd}}$ & $\gamma$ & $\lambda$ (linear) or $\gamma$ ($\gamma$-form) \\
+Nests Tur 2024? & no & --- & \textbf{exactly via the $\gamma$-form} (\S\ref{sec:turnesting}); linear form only qualitatively \\
+\code{netdiffuseR} as-is? & yes & no & \textbf{yes} (fractional or count \code{threshold.dist}) \\
+Main risk & Bianchi critique & distance-blind & heatmaps shift with the $\tau$--$q$ coupling (checked: they don't, \S\ref{sec:calibration}) \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ============================================================================
+\section{Calibration notes and empirical status}
+\label{sec:calibration}
+
+\begin{itemize}
+  \item Comparability anchor: the main-text configuration of the current engine is
+    $\tau \sim \mathcal{N}(0.40, 0.12)$. Under the linear-fractional variant,
+    $\tau_i^{*} = \max\{0, (q_i - \Gamma)/\lambda\}$, so the implied threshold
+    distribution \emph{depends on $\Gamma$ and the empirical $q$ distribution}. The
+    sweep script reports, per $(\lambda, \Gamma)$: mean and SD of $\tau^{*}$, share of
+    instigators ($\tau^{*} = 0$), and share of immunes ($\tau^{*} > 1$).
+  \item \textbf{Empirical status (linear variant).} An initial minimal test (12 networks,
+    coarse grid; script since removed) showed the qualitative phase structure survives.
+    The extended sweep (\code{10\_unified\_model\_sweep.R}: 96 GSS networks, the engine's
+    full $41 \times 13$ grid, $\lambda \in \{0.3, 0.4, \dots, 1.5\}$, random seeding,
+    665{,}184 simulations) found a clean \textbf{unimodal best fit to the current model
+    at $\lambda \approx 0.7$} ($r = 0.94$ total, $0.98$ rational, $0.93$ social against
+    the $\tau \sim \mathcal{N}(0.40, 0.12)$ surface; $\lambda \in [0.6, 0.9]$ all
+    $r > 0.91$). Known differences: tipping one MSP-grid step earlier, and the immunity
+    ceiling at low $\lambda$ (\S\ref{sec:immunity}).
+  \item On the $\lambda$ range: $\{0.3, \dots, 1.5\}$ was a pragmatic bracketing (the
+    minimal test showed 0.5 and 1.0 straddling the current model and 2.0 clearly too
+    strong); the sweep's unimodal peak with degradation at \emph{both} flanks justifies
+    the endpoints ex post. Theoretical landmark: $\lambda = 1$ is the \textbf{immunity
+    boundary} --- since $q \le 1$, $\lambda \ge 1$ implies zero structurally-immune
+    agents at every $\Gamma > 0$, while $\lambda < 1$ leaves an immune share
+    $\Pr(q > \Gamma + \lambda)$. There is no theoretical bound at $\lambda = 1$
+    ($\lambda$ is a utility contribution, like Brock--Durlauf's unbounded $J$);
+    production runs use the calibrated band $[0.5, 0.9]$.
+  \item Still pending: the mirror $\gamma$-form sweep (count threshold
+    $\lceil (q_i/\Gamma)^{1/\gamma} \rceil$ on the same machinery, $\gamma$ calibrated by
+    the same fit procedure), the remaining seeding strategies, and the ATP/innovation
+    system.
+\end{itemize}
+
+\subsection{The structural premium survives the unified rule}
+\label{sec:premiumresult}
+
+Run by \code{scripts/05\_unified\_diffusion\_sweep.R}: GSS vs.\ genuine
+degree-preserving twins (\code{igraph::rewire(keeping\_degseq)}, built fresh and
+persisted by \code{scripts/04\_make\_DP\_networks.R}), $\lambda \in \{0.5, \dots, 1.0\}$,
+41 IUL levels $\times$ a denser \textbf{25-level MSP grid} (step $1/24$, nesting the
+legacy 13-level grid), 96 networks, random seeding: 1{,}180{,}800 simulations.
+Analysis in \code{scripts/07\_premium\_sensitivity.R}.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+$\lambda$ & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 1.0 \\
+\midrule
+$\beta_{\text{DP}}$ (odds)      & $-0.642$ & $\mathbf{-0.859}$ & $-0.960$ & $-1.227$ & $-1.251$ & $-1.261$ \\
+odds drop                        & $-47\%$ & $\mathbf{-58\%}$ & $-62\%$ & $-71\%$ & $-71\%$ & $-72\%$ \\
+$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$ (pp) & 4.8 & 5.5 & 5.7 & 7.7 & 6.9 & 7.9 \\
+\% of plane with gap $>0.10$     & 18.9 & 21.1 & 21.9 & 25.6 & 23.4 & 23.8 \\
+mean gap inside that band (pp)   & 17.8 & 19.8 & 20.6 & 23.0 & 24.6 & 26.5 \\
+$MSP_c$ shift (DP $-$ GSS)       & 0.061 & 0.068 & 0.069 & 0.072 & 0.065 & 0.071 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Reading.} \textbf{The premium survives}, and at the calibrated coupling it
+reproduces the legacy engine almost exactly: $\lambda = 0.6$ gives
+$\beta_{\text{DP}} = -0.859$ against the legacy $-0.850$.
+
+But the $\lambda$-dependence must be read with care, because the two scales disagree:
+\begin{itemize}
+  \item On the \textbf{odds} scale the premium nearly doubles ($-0.64 \to -1.26$) and
+    then \emph{plateaus} from $\lambda \approx 0.8$ (steps per decile: $-0.217$,
+    $-0.100$, $-0.267$, $-0.024$, $-0.011$).
+  \item On the \textbf{probability} scale it is roughly flat and non-monotonic
+    (4.8--7.9 pp).
+\end{itemize}
+The gap between the two is a link artifact: as $\lambda$ grows, both topologies push more
+of the plane into saturation (the share of cells with $\Phi > 0.95$ rises from 51\% to
+72\% for GSS), and in the saturated regime the logit converts a fixed probability gap
+into an ever larger log-odds gap. \textbf{The growth of $\beta_{\text{DP}}$ with
+$\lambda$ therefore measures saturation, not extra structural separation.}
+
+\paragraph{The $\lambda$-robust statements} (recommended for the paper):
+\begin{enumerate}
+  \item \textbf{Where it lives.} The premium is concentrated in an L-shaped band along
+    the tipping frontier: 19--26\% of the (IUL, MSP) plane, where GSS gains 18--27
+    percentage points. Outside that band the two topologies agree (both dead, or both
+    saturated). Structure decides where the system is undecided.
+  \item \textbf{Tipping shift.} DP needs about \emph{twice} the social openness to tip
+    ($MSP_c \approx 0.065$--$0.077$ for GSS vs.\ $0.13$--$0.145$ for DP), and the shift
+    varies by only $\pm 8\%$ across the whole $\lambda$ band --- the most stable way to
+    state the premium. It echoes the legacy contrast ($MSP_c = 0.25$ vs.\ $0.417$).
+  \item \textbf{Channel split.} The rational channel is flat in $\lambda$
+    ($\beta \approx -0.22$) while the social channel carries the growth
+    ($-0.21 \to -0.37$). Note that here the rational channel is \emph{not}
+    topology-blind: its adopters still need one gate-passing contact, and DP ties are
+    socially more distant (mean Gower $0.229 \to 0.325$), so the gate rejects more often.
+    In the legacy engine the analogous coefficient was a second-order accounting
+    artifact; here it is a mechanism.
+\end{enumerate}
+
+\paragraph{A reverse-premium corner (worth reporting honestly).} At $\lambda = 0.5$, with
+high openness ($h \ge 0.75$) and moderate attractiveness ($\Gamma \in [0.20, 0.275]$),
+\textbf{DP beats GSS} by up to 5.7 pp (3.4\% of the plane); the effect vanishes for
+$\lambda \ge 0.7$. The mechanism is Tur (2024)'s own: with the gate wide open, homophily
+\emph{isolates the resistant among the resistant}, whereas random mixing seats early
+adopters next to reluctant agents and converts them. That the new engine reproduces a
+published theoretical mechanism it was not built to produce is a validity check --- and
+it makes the premium claim properly conditional rather than universal.
+
+% ============================================================================
+\section{To verify before writing any of this into the paper}
+\label{sec:verify}
+
+\begin{itemize}
+  \item[$\boxtimes$] Exact reinforcement functional form in Tur 2024:
+    $u_t = u_0 \cdot (1/a_t)^{\gamma}$ (multiplicative, power-law).
+    \emph{Resolved against both PDFs (2026-08-31):} Tur 2018 (PRE), Eq.~(1), uses the
+    \textbf{same} form (there called MQR, $q_t^i = q_0^i (1/a_t^i)^{\gamma}$);
+    $a_t^i \in \mathbb{N}$ is explicitly the number of \textbf{adopting neighbors}
+    (a state count, not received recommendations), with the rule evaluated only once
+    informed ($a \ge 1$). Both papers restrict $\gamma \in [0,1]$ --- justified in 2018
+    by non-increasing marginal social influence (concavity), with the reductio that
+    large $\gamma$ trivializes diffusion on their $k = 4$ lattices --- and sweep
+    $\gamma$ as a free ``intensity'' parameter (2024, Fig.~5: $\gamma \in \{0, 0.5,
+    1\}$; heatmaps over $[0,1]$). \textbf{No empirical calibration of $\gamma$ exists in
+    either paper}; see the transportability caveat in \S\ref{sec:gammastatus}.
+  \item[$\square$] Whether Tur 2024's homophily-rewiring $\rho$ has a formal analogue we
+    should cite when claiming nesting (their $\rho$ $\approx$ our imputation; not
+    identical constructs).
+  \item[$\square$] The random-utility framing sentence for IUL (already drafted in
+    \code{JOURNAL\_FIT\_ANALYSIS.md}, \S 4d) composes cleanly with the
+    situational-utility framing: $U_i(t) = \Gamma + \lambda \Ee_i$ is a private valuation
+    plus a social term --- this is Brock \& Durlauf (2001)'s decomposition
+    (\S\ref{sec:brockdurlauf}), worth citing.
+\end{itemize}
+
+\end{document}

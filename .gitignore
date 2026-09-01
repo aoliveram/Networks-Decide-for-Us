@@ -15,6 +15,17 @@
 !output/.gitkeep
 !plots/.gitkeep
 
+# Derived artifacts: exactly and cheaply reproducible from a tracked script, so
+# they are kept out of git. The ERGM-imputed source networks
+# (data/02_GSS_network_ergm, data/02_ATP_network_ergm) ARE tracked: those are
+# expensive to refit.
+#   data/02_GSS_DP_network/  <- scripts/04_make_DP_networks.R   (~3 min, seeded)
+#   data/02_GSS_SH_network/  <- scripts/04b_make_SH_networks.R  (~1 min, seeded)
+#   output/**/checkpoints/   <- simulation checkpoints          (~50 min, seeded)
+data/02_GSS_DP_network/
+data/02_GSS_SH_network/
+output/**/checkpoints/
+
 # Ignore playground (scratch / exploratory work)
 playground/
 
