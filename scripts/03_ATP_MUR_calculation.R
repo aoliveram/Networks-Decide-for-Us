@@ -1,19 +1,30 @@
 # ------------------------------------------------------------------------------
-# Calcula y asigna el índice de propensión a la innovación (MUR Score) a nodos
-# de redes simuladas 'ATP'.
+# Calcula y asigna, a los nodos de las redes simuladas 'ATP', el índice de
+# PROPENSIÓN A LA INNOVACIÓN y el requisito mínimo de utilidad (MUR) que usa el
+# modelo.
+#
+# Teoría: la regla de adopción es  Gamma + lambda * E_i >= q_i,  donde q_i es un
+# REQUISITO MÍNIMO de utilidad: q alto = más difícil de convencer (aversión).
+# Los 6 ítems METECH miden lo contrario (propensión: alto = más dispuesto), así
+# que
+#   propensity_score = promedio de los 6 ítems (anti-innovación invertidos) [0, 1]
+#   mur_score        = 1 - propensity_score                                 [0, 1]
+# El motor (scripts/05) lee SOLO 'mur_score'. 'propensity_score' se guarda tal
+# como se construye, para que el score siga siendo transparente respecto a los
+# datos (corr(mur_score, propensity_score) = -1 exactamente).
 #
 # Objetivo:
 #   1. Leer las redes simuladas existentes en 'data/02_ATP_network_ergm/'.
-#   2. Calcular el 'mur_score' (Minimum Utility Requirement) basado en 6 variables METECH.
-#   3. Actualizar las redes existentes añadiendo este atributo a los nodos.
+#   2. Calcular 'propensity_score' (6 variables METECH) y 'mur_score' = 1 - propensity_score.
+#   3. Actualizar las redes existentes añadiendo ambos atributos a los nodos.
 #   4. Generar gráficos de diagnóstico.
 #
 # Entradas:
 #   - data/02_ATP_network_ergm/ATP_net_sim_1000_XXX.rds
 # Salidas:
-#   - data/02_ATP_network_ergm/ATP_net_sim_1000_XXX.rds (Sobreescrito con nuevo atributo)
-#   - plots/03_ATP_MUR_calculation/metech_distribution_ATP.pdf
-#   - plots/03_ATP_MUR_calculation/mur_score_distribution_ATP.pdf
+#   - data/02_ATP_network_ergm/ATP_net_sim_1000_XXX.rds (Sobreescrito con los atributos)
+#   - plots/03_MUR_calculation/ATP_metech_vars_distribution.pdf
+#   (el gráfico de la distribución MUR de GSS y ATP lo hace 03_MUR_distribution_plot.R)
 # ------------------------------------------------------------------------------
 
 library(network)
@@ -24,7 +35,7 @@ library(psych)
 
 # --- Configuración ---
 networks_dir <- "data/02_ATP_network_ergm/"
-plots_dir    <- "plots/03_ATP_MUR_calculation/"
+plots_dir    <- "plots/03_MUR_calculation/"
 N_networks   <- 100
 
 # Crear directorio de plots si no existe
@@ -63,7 +74,7 @@ for (col_name in metech_vars) {
     p <- ggplot(freq_table, aes(x = Respuesta, y = Frecuencia, fill = Respuesta)) +
       geom_bar(stat = "identity") +
       scale_fill_manual(values = c("0" = "skyblue", "1" = "coral")) +
-      labs(title = paste("Var:", col_name), x = "(0=No, 1=Sí)", y = "Frecuencia") +
+      labs(title = col_name, x = "(0 = No, 1 = Yes)", y = "Count") +
       theme_minimal() +
       theme(legend.position = "none")
     
@@ -71,18 +82,19 @@ for (col_name in metech_vars) {
   }
 }
 
-pdf(file.path(plots_dir, "metech_distribution_ATP.pdf"), width = 10, height = 7)
+pdf(file.path(plots_dir, "ATP_metech_vars_distribution.pdf"), width = 10, height = 7)
 do.call(grid.arrange, c(plots_metech, ncol = 3))
 invisible(dev.off())
 
-# --- B) Cálculo y Distribución del MUR Score (Muestra) ---
-# Lógica de cálculo:
+# --- B) Cálculo y distribución de propensity_score y mur_score (Muestra) ---
+# Lógica de cálculo ("marque todas las que apliquen", 1 = aplica):
 # a. Usually try new products before others do (METECH_A): 1 = pro-innovación
 # b. Prefer my tried and trusted brands (METECH_B): 1 = ANTI-innovación (invertir)
 # c. Like being able to tell others about new brands (METECH_C): 1 = pro-innovación
 # d. Like the variety of trying new products (METECH_D): 1 = pro-innovación
 # e. Feel more comfortable using familiar brands (METECH_E): 1 = ANTI-innovación (invertir)
 # f. Wait until I hear about others' experiences (METECH_F): 1 = ANTI-innovación (invertir)
+# propensity_score = promedio de los 6 ítems;  mur_score = 1 - propensity_score
 
 df_attr <- df_attr %>%
   mutate(
@@ -95,38 +107,28 @@ df_attr <- df_attr %>%
   ) %>%
   mutate(
     raw_sum = rowSums(select(., starts_with("score_"))),
-    mur_score = raw_sum / 6  # Normalizar a [0, 1]
+    propensity_score = raw_sum / 6,        # Propensión [0, 1]
+    mur_score = 1 - propensity_score       # Requisito mínimo de utilidad (aversión) [0, 1]
   )
 
-# Gráfico de distribución del MUR Score
-df_attr <- df_attr %>% 
-  mutate(mur_factor = factor(mur_score, levels = seq(0, 1, by = 1/6), labels = round(seq(0, 1, by = 1/6), 3)))
-
-p_mur <- ggplot(df_attr, aes(x = mur_factor)) +
-  geom_bar(fill = "green", color = "black", stat = "count") +
-  labs(title = "Distribución del MUR Score (Propensión a la Innovación)",
-       subtitle = "Promedio de 6 items METECH (recodificados)",
-       x = "MUR Score", y = "Frecuencia") +
-  theme_minimal()
-
-ggsave(file.path(plots_dir, "mur_score_distribution_ATP.pdf"), plot = p_mur, width = 8, height = 6)
 
 # ==============================================================================
-# Cronbach α: Internal Consistency of MUR Construct (ATP Innovation Propensity)
+# Cronbach α: Internal Consistency of the propensity construct (mur_score = 1 - it)
 # ==============================================================================
 
-# Extract original binary items (before recoding)
+# Items recodificados en la misma dirección (anti-innovación invertidos); sobre
+# los binarios crudos, con ítems en sentidos opuestos, el alpha no tiene sentido.
 binary_items <- df_attr %>%
-  select(all_of(metech_vars))
+  select(starts_with("score_"))
 
 # Remove any rows with missing values for alpha calculation
 binary_items_complete <- binary_items[complete.cases(binary_items), ]
 
 # Calculate Cronbach's alpha
 # Note: For binary items, alpha is still valid and useful
-cronbach_result_atp <- cronbach(binary_items_complete)
+cronbach_result_atp <- psych::alpha(binary_items_complete, warnings = FALSE)$total$raw_alpha
 cat("\n========== CRONBACH'S ALPHA INTERNAL CONSISTENCY ==========\n")
-cat("Construct: ATP Innovation Propensity (MUR)\n")
+cat("Construct: ATP Innovation Propensity (propensity_score)\n")
 cat("Items: metech_a, metech_b, metech_c, metech_d, metech_e, metech_f (6 binary items)\n")
 cat("Cronbach's α =", sprintf("%.4f\n", cronbach_result_atp))
 cat("Sample size (complete cases) = ", nrow(binary_items_complete), "\n")
@@ -149,8 +151,7 @@ for (i in 1:N_networks) {
   full_path <- file.path(networks_dir, filename)
   
   if (!file.exists(full_path)) {
-    warning("Archivo no encontrado: ", full_path)
-    next
+    stop("Archivo no encontrado: ", full_path)
   }
   
   # Cargar red
@@ -169,12 +170,7 @@ for (i in 1:N_networks) {
   vals_e <- get.vertex.attribute(net, "metech_e")
   vals_f <- get.vertex.attribute(net, "metech_f")
   
-  # Cálculo vectorizado
-  # Manejo de NAs implícito en operaciones aritméticas de R (NA + 1 = NA)
-  # Pero necesitamos rowSums con na.rm=FALSE para propagar NAs si queremos ser estrictos,
-  # o usar la lógica anterior.
-  
-  # Replicamos lógica exacta del dataframe pero con vectores
+  # Cálculo vectorizado (NA se propaga: NA + 1 = NA)
   s_a <- vals_a
   s_b <- 1 - vals_b
   s_c <- vals_c
@@ -182,12 +178,11 @@ for (i in 1:N_networks) {
   s_e <- 1 - vals_e
   s_f <- 1 - vals_f
   
-  # Suma
-  raw_sum <- s_a + s_b + s_c + s_d + s_e + s_f
-  mur_vals <- raw_sum / 6
+  propensity_vals <- (s_a + s_b + s_c + s_d + s_e + s_f) / 6
   
-  # Asignar atributo
-  set.vertex.attribute(net, "mur_score", mur_vals)
+  # Asignar atributos: propensión (construcción) y MUR = 1 - propensión (modelo)
+  set.vertex.attribute(net, "propensity_score", propensity_vals)
+  set.vertex.attribute(net, "mur_score", 1 - propensity_vals)
   
   # Guardar (Sobreescribir)
   saveRDS(net, full_path)

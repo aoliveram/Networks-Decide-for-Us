@@ -1,19 +1,29 @@
 # ------------------------------------------------------------------------------
-# Calcula y asigna el índice de propensión a la innovación (MUR Score) a nodos
-# de redes simuladas 'GSS'.
+# Calcula y asigna, a los nodos de las redes simuladas 'GSS', el índice de
+# PROPENSIÓN A LA ACCIÓN COLECTIVA y el requisito mínimo de utilidad (MUR) que
+# usa el modelo.
+#
+# Teoría: la regla de adopción es  Gamma + lambda * E_i >= q_i,  donde q_i es un
+# REQUISITO MÍNIMO de utilidad: q alto = más difícil de convencer (aversión).
+# Los 9 ítems GSS miden lo contrario (propensión: alto = más dispuesto), así que
+#   propensity_score = suma de los 9 ítems recodificados (4 - x) / 27   [0, 1]
+#   mur_score        = 1 - propensity_score                             [0, 1]
+# El motor (scripts/05) lee SOLO 'mur_score'. 'propensity_score' se guarda tal
+# como se construye, para que el score siga siendo transparente respecto a los
+# datos (corr(mur_score, propensity_score) = -1 exactamente).
 #
 # Objetivo:
 #   1. Leer las redes simuladas existentes en 'data/02_GSS_network_ergm/'.
-#   2. Calcular el 'mur_score' (Minimum Utility Requirement) basado en 9 variables.
-#   3. Actualizar las redes existentes añadiendo este atributo a los nodos.
+#   2. Calcular 'propensity_score' (9 ítems) y 'mur_score' = 1 - propensity_score.
+#   3. Actualizar las redes existentes añadiendo ambos atributos a los nodos.
 #   4. Generar gráficos de diagnóstico.
 #
 # Entradas:
-#   - data/02_GSS_network_ergm/GSS_network_simulated_1000_XXX.rds
+#   - data/02_GSS_network_ergm/GSS_net_sim_1000_XXX.rds
 # Salidas:
-#   - data/02_GSS_network_ergm/GSS_network_simulated_1000_XXX.rds (Sobreescrito con nuevo atributo)
-#   - plots/03_GSS_MUR_calculation/gss_propensity_vars_distribution.pdf
-#   - plots/03_GSS_MUR_calculation/mur_score_distribution_GSS.pdf
+#   - data/02_GSS_network_ergm/GSS_net_sim_1000_XXX.rds (Sobreescrito con los atributos)
+#   - plots/03_MUR_calculation/GSS_propensity_vars_distribution.pdf
+#   (el gráfico de la distribución MUR de GSS y ATP lo hace 03_MUR_distribution_plot.R)
 # ------------------------------------------------------------------------------
 
 library(network)
@@ -24,7 +34,7 @@ library(psych)
 
 # --- Configuración ---
 networks_dir <- "data/02_GSS_network_ergm/"
-plots_dir    <- "plots/03_GSS_MUR_calculation/"
+plots_dir    <- "plots/03_MUR_calculation/"
 N_networks   <- 100
 
 # Crear directorio de plots si no existe
@@ -38,7 +48,7 @@ propensity_ingredient_vars <- c("signdpet", "avoidbuy", "joindem", "attrally",
 # 1. Diagnóstico y Visualización (Usando la primera red como muestra)
 # ==============================================================================
 
-sample_net_path <- file.path(networks_dir, "GSS_network_simulated_1000_001.rds")
+sample_net_path <- file.path(networks_dir, "GSS_net_sim_1000_001.rds")
 sample_net <- readRDS(sample_net_path)
 
 # Extraer atributos a un dataframe
@@ -66,7 +76,7 @@ for (p_var in propensity_ingredient_vars) {
     p <- ggplot(freq_table, aes(x = Respuesta, y = Frecuencia, fill = Respuesta)) +
       geom_bar(stat = "identity") +
       scale_x_discrete(drop = FALSE) +
-      labs(title = paste("Var:", p_var), x = "Respuesta (1-4)", y = "Frecuencia") +
+      labs(title = p_var, x = "Response (1-4)", y = "Count") +
       theme_minimal() +
       theme(legend.position = "none")
     
@@ -74,46 +84,31 @@ for (p_var in propensity_ingredient_vars) {
   }
 }
 
-pdf(file.path(plots_dir, "gss_propensity_vars_distribution.pdf"), width = 12, height = 9)
+pdf(file.path(plots_dir, "GSS_propensity_vars_distribution.pdf"), width = 12, height = 9)
 do.call(grid.arrange, c(plots_propensity, ncol = 3))
 invisible(dev.off())
 
-# --- B) Cálculo y Distribución del MUR Score (Muestra) ---
-# Lógica de recodificación:
-# 1 (hecho reciente/muy probable) -> 3
-# 2 -> 2
-# 3 -> 1
-# 4 (nunca/nada probable) -> 0
+# --- B) Cálculo y distribución de propensity_score y mur_score (Muestra) ---
+# Codificación original GSS: 1 = "lo hice el último año" ... 4 = "nunca lo haría".
+# Recodificación a propensión (alto = más dispuesto): 4 - x
+#   1 -> 3, 2 -> 2, 3 -> 1, 4 -> 0
+# propensity_score = suma / 27 (max posible = 9 * 3);  mur_score = 1 - propensity_score
 
 df_attr <- df_attr %>%
   mutate(
     across(all_of(propensity_ingredient_vars), 
-           ~ case_when(
-             . == 1 ~ 3,
-             . == 2 ~ 2,
-             . == 3 ~ 1,
-             . == 4 ~ 0,
-             TRUE ~ NA_real_
-           ),
+           ~ 4 - .,
            .names = "recod_{.col}")
   ) %>%
   mutate(
     raw_sum = rowSums(select(., starts_with("recod_"))),
-    mur_score = raw_sum / 27  # Normalizar a [0, 1] (max score posible = 9 * 3 = 27)
+    propensity_score = raw_sum / 27,       # Propensión [0, 1]
+    mur_score = 1 - propensity_score       # Requisito mínimo de utilidad (aversión) [0, 1]
   )
 
-# Gráfico de distribución del MUR Score
-hist_score <- ggplot(df_attr, aes(x = mur_score)) +
-  geom_histogram(bins = 28, fill = "skyblue", color = "black") + # 28 bins para 0..27
-  labs(title = "Distribución del MUR Score (GSS)",
-       subtitle = "Propensión a la Acción Colectiva (Normalizado 0-1)",
-       x = "MUR Score", y = "Frecuencia") +
-  theme_minimal()
-
-ggsave(file.path(plots_dir, "mur_score_distribution_GSS.pdf"), plot = hist_score, width = 8, height = 6)
 
 # ==============================================================================
-# Cronbach α: Internal Consistency of MUR Construct
+# Cronbach α: Internal Consistency of the propensity construct (mur_score = 1 - it)
 # ==============================================================================
 
 # Extract recoded values for all 9 items
@@ -125,9 +120,9 @@ recoded_items <- df_attr %>%
 recoded_items_complete <- recoded_items[complete.cases(recoded_items), ]
 
 # Calculate Cronbach's alpha
-cronbach_result <- cronbach(recoded_items_complete)
+cronbach_result <- psych::alpha(recoded_items_complete, warnings = FALSE)$total$raw_alpha
 cat("\n========== CRONBACH'S ALPHA INTERNAL CONSISTENCY ==========\n")
-cat("Construct: GSS Collective Action Propensity (MUR)\n")
+cat("Construct: GSS Collective Action Propensity (propensity_score)\n")
 cat("Items: signdpet, avoidbuy, joindem, attrally, cntctgov, polfunds, usemedia, interpol, actlaw (9 items)\n")
 cat("Cronbach's α =", sprintf("%.4f\n", cronbach_result))
 cat("Sample size (complete cases) = ", nrow(recoded_items_complete), "\n")
@@ -144,65 +139,28 @@ cat("===========================================================\n\n")
 # ==============================================================================
 
 for (i in 1:N_networks) {
-  filename <- sprintf("GSS_network_simulated_1000_%03d.rds", i)
+  filename <- sprintf("GSS_net_sim_1000_%03d.rds", i)
   full_path <- file.path(networks_dir, filename)
   
   if (!file.exists(full_path)) {
-    warning("Archivo no encontrado: ", full_path)
-    next
+    stop("Archivo no encontrado: ", full_path)
   }
   
   # Cargar red
   net <- readRDS(full_path)
   
-  # Extraer atributos a un dataframe temporal para cálculo seguro
-  # (Aunque es más lento que vectorizado puro, es más seguro con case_when complejo)
-  df_temp <- data.frame(vertex_id = 1:network.size(net))
-  for (var in propensity_ingredient_vars) {
-    df_temp[[var]] <- get.vertex.attribute(net, var)
-  }
-  
-  # Calcular MUR Score
-  df_temp <- df_temp %>%
-    mutate(
-      across(all_of(propensity_ingredient_vars), 
-             ~ case_when(
-               . == 1 ~ 3,
-               . == 2 ~ 2,
-               . == 3 ~ 1,
-               . == 4 ~ 0,
-               TRUE ~ NA_real_
-             ))
-    ) %>%
-    mutate(
-      raw_sum = rowSums(select(., all_of(propensity_ingredient_vars))), # Ya están recodificadas in-place o en nuevas cols?
-      # Ah, cuidado con el mutate anterior. Si uso across sin .names, sobreescribe.
-      # Vamos a hacerlo explícito para evitar errores.
-      mur_score = raw_sum / 27
-    )
-  
-  # Corrección de lógica en el loop para asegurar cálculo correcto:
-  # Recodificamos y sumamos en un paso limpio
-  
-  # Extraer matriz de valores
+  # Extraer matriz de valores originales (1-4), una columna por ítem
   vals_matrix <- matrix(NA, nrow = network.size(net), ncol = length(propensity_ingredient_vars))
   for (k in seq_along(propensity_ingredient_vars)) {
     vals_matrix[, k] <- get.vertex.attribute(net, propensity_ingredient_vars[k])
   }
   
-  # Recodificar matriz (vectorizado)
-  # 1->3, 2->2, 3->1, 4->0
-  # Formula: 4 - x  (si x=1 -> 3, x=2 -> 2, x=3 -> 1, x=4 -> 0)
-  # Verificamos: 4-1=3, 4-2=2, 4-3=1, 4-4=0. Funciona perfecto para 1,2,3,4.
-  recod_matrix <- 4 - vals_matrix
+  # Recodificar a propensión: 4 - x  (1 -> 3, 2 -> 2, 3 -> 1, 4 -> 0)
+  propensity_vals <- rowSums(4 - vals_matrix) / 27
   
-  # Manejar NAs si los valores originales no eran 1-4 (aunque el script original asumía 1-4)
-  # Si hay valores fuera de rango, esto daría resultados raros, pero asumimos limpieza previa.
-  
-  mur_vals <- rowSums(recod_matrix) / 27
-  
-  # Asignar atributo
-  set.vertex.attribute(net, "mur_score", mur_vals)
+  # Asignar atributos: propensión (construcción) y MUR = 1 - propensión (modelo)
+  set.vertex.attribute(net, "propensity_score", propensity_vals)
+  set.vertex.attribute(net, "mur_score", 1 - propensity_vals)
   
   # Guardar (Sobreescribir)
   saveRDS(net, full_path)

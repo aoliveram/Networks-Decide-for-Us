@@ -35,7 +35,7 @@ dir.create(PLOTS,    showWarnings = FALSE, recursive = TRUE)
 
 # attributes to permute together (one common permutation keeps each person's
 # full profile intact, only moving the WHOLE person to another node slot)
-SHUFFLE_ATTRS <- c("age", "educ_num", "race", "relig", "sex", "mur_score",
+SHUFFLE_ATTRS <- c("age", "educ_num", "race", "relig", "sex", "mur_score", "propensity_score",
                    "signdpet","avoidbuy","joindem","attrally","cntctgov",
                    "polfunds","usemedia","interpol","actlaw")
 BLAU_CAT <- c("race","sex","relig"); BLAU_NUM <- c("age","educ_num")
