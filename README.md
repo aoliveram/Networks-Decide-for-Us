@@ -27,7 +27,7 @@ adopt_i(t)   <=>   Γ + λ · Ẽ_i(t)  ≥  q_i
 | `q_i` (MUR) | the agent's aversion / minimum utility requirement | **empirical** (GSS/ATP items) |
 | `Ẽ_i` | selective effective exposure: only adopters that pass the social-proximity gate count | dynamic |
 | `h` (MSP) | maximum social proximity — the population's openness | swept, 25 levels |
-| `λ` | social-proof coupling: what a fully adopted, fully similar neighborhood is worth | calibrated, ≈ 0.6–0.7 |
+| `λ` | social-proof coupling: what a fully adopted, fully similar neighborhood is worth | swept, 0.5–1.0 |
 
 The network threshold is **derived**, not postulated: `τ*_i = max(0, (q_i − Γ)/λ)`. Agents
 with `q_i ≤ Γ` adopt at the first influential contact (the old "rational" channel);
@@ -79,11 +79,19 @@ Everything **checkpoints per (topology, λ)**, so a run can be interrupted and r
 completed combinations are skipped. `--test` writes to its own sandbox and can never
 overwrite real results.
 
-### `tools/` — off-pipeline
+### λ calibration (not part of the study)
 
-`tools/lambda_calibration.R` sweeps λ ∈ {0.3, …, 1.5} against the legacy engine's surface
-and is how λ ≈ 0.7 was identified. It is **not part of the study**: it is a one-off
-methodological calibration, and it only runs where `legacy/` is present.
+A one-off sweep, λ ∈ {0.3, …, 1.5} against the legacy engine's surface, showed that
+λ ≈ 0.7 reproduces it. It is a bridge to past results, not a step of the study, so the
+script lives in `playground/lambda_calibration/` (untracked) and only runs where
+`legacy/` is present.
+
+### Raw survey data
+
+The raw surveys live outside the repository, in the thesis folder:
+
+- ATP 2014: `../A - Proyecto de Tesis/A - Trabajo 1/B - Surveys Data/ATP 2014`
+- GSS 2004: `../A - Proyecto de Tesis/A - Trabajo 1/B - Surveys Data/GSS 2004`
 
 ### Requirements
 
@@ -121,7 +129,6 @@ the selective-influence gate reads.
 
 ```
 scripts/     active pipeline (see table above)
-tools/       off-pipeline utilities (lambda calibration)
 data/        survey inputs and imputed networks (ERGM output — expensive, tracked)
 output/      analysis results per pipeline stage
 plots/       figures per pipeline stage
@@ -145,5 +152,17 @@ current manuscript draft. It now lives in `legacy/` and is **not tracked by git*
   (see `docs/notes/HOMOPHILY_TOPOLOGY_INSEPARABILITY.md`).
 
 Everything there remains recoverable from git history (it was tracked until the
-`making-bottom-up` refactor). `tools/lambda_calibration.R` reads one legacy file to
-calibrate λ against the old surface, so it only runs where `legacy/` is present.
+`making-bottom-up` refactor). The λ calibration script (in `playground/`) reads one legacy file.
+
+## Revisión bajo el lente similitud/diversidad
+
+*Nota de revisión (septiembre 2026), a partir del capítulo "Complex contagions" de Centola (2022, §7) y de State & Adamic (2015).*
+
+El modelo tiene **una sola compuerta** para la influencia social: la exposición efectiva $\tilde{E}_i$ solo cuenta pares dentro de la proximidad social ($MSP$ sobre la distancia en el espacio de Blau). Eso operacionaliza exactamente el régimen de **similitud** de Centola, que según su argumento es el mecanismo correcto cuando la barrera a la adopción es **credibilidad** o **excitación emocional**, pero no cuando es **legitimidad** — donde lo que convence son **fuentes diversas** (State & Adamic 2015: la gente cambió su foto de perfil cuando vio adoptantes de círculos sociales distintos). Esto deja los dos *outcomes* en posiciones distintas:
+
+- **Apertura a la innovación (ATP)**: barrera dominante = credibilidad → la compuerta de similitud está bien justificada (Centola 2011, *Science*). La "prima estructural" de la homofilia es teóricamente coherente aquí.
+- **Acción colectiva (GSS 2004, MUR)**: mezcla emoción (→ similitud, OK) con **legitimidad** (→ diversidad). La compuerta actual, por construcción, *no puede* capturar refuerzo por diversidad: descuenta justamente las exposiciones que vienen de lejos en Blau. Riesgo: sobreestimar la prima de la homofilia, o mal especificar el mecanismo, para este outcome.
+
+**Extensión testeable**: agregar un segundo término de exposición **por diversidad** — número de grupos/componentes distintos entre los alters adoptantes, à la Ugander et al. (2012, PNAS, *structural diversity*) — y comparar qué compuerta ajusta mejor por outcome. Predicción: similitud gana en ATP; diversidad pesa en GSS. Microfundamento del término de diversidad: el *multiple source effect* de Harkins & Petty (1981, 1987) y la independencia de fuentes de Wilder (1977) — solo cuentan las fuentes independientes.
+
+**Otras dos notas**: (1) el hallazgo "cascadas rodantes vs. *tipping points* súbitos al romper la homofilia" es una transición de primer orden en el sentido de la física estadística; conviene nombrarlo así. (2) Inconsistencia interna a resolver: la carpeta y `PROJECT_MAP` dicen ATP 2014 (W3–W4, que son olas de 2014); el abstract SN26 dice ATP 2016. → **Resuelto (oct 2026): los datos ATP son de 2014**; hay que corregir "2016" donde aparezca al reescribir el manuscrito.
