@@ -737,12 +737,32 @@ Main risk & Bianchi critique & distance-blind & heatmaps shift with the $\tau$--
 \subsection{The structural premium survives the unified rule}
 \label{sec:premiumresult}
 
+\begin{center}
+\fbox{\parbox{0.94\textwidth}{\small\textbf{Warning (2026-10-05): every number in this
+subsection was computed with an inverted $q_i$.} Both propensity scores (GSS collective
+action, ATP innovation) are built so that a \emph{high} value means \emph{more} willing
+to act, but the engine reads them as the minimum utility requirement, where a high value
+means \emph{harder} to convince. The correct input is $q_i = 1 - \text{propensity}_i$
+(mean 0.585 instead of 0.415 for GSS). The same inversion affected the legacy engine.
+All results below are to be recomputed; they are kept as the record of the
+inverted-$q$ runs.}}
+\end{center}
+
 Run by \code{scripts/05\_unified\_diffusion\_sweep.R}: GSS vs.\ genuine
 degree-preserving twins (\code{igraph::rewire(keeping\_degseq)}, built fresh and
 persisted by \code{scripts/04\_make\_DP\_networks.R}), $\lambda \in \{0.5, \dots, 1.0\}$,
-41 IUL levels $\times$ a denser \textbf{25-level MSP grid} (step $1/24$, nesting the
-legacy 13-level grid), 96 networks, random seeding: 1{,}180{,}800 simulations.
-Analysis in \code{scripts/07\_premium\_sensitivity.R}.
+41 IUL levels $\times$ a 25-level MSP grid (step $1/24$, nesting the legacy 13-level grid),
+96 networks, five seeding strategies (1{,}180{,}800 simulations each).
+Analysis in \code{scripts/06\_premium\_sensitivity.R}.
+
+\paragraph{Seed matching (fix of 2026-09-01).} The primary seed is drawn once per run,
+independently of $\lambda$, and is \emph{shared} between a GSS network and its DP twin.
+Because \code{keeping\_degseq} preserves every node's degree, the seed budget
+($0.40 \times$ degree of the primary) is identical in both topologies by construction.
+An earlier version redrew the primary at every $\lambda$ and independently per topology;
+that injected seed-lottery noise into the $\lambda$-profiles (including a spurious
+reversal of the marginal premium at $\lambda = 1$). All numbers below come from the
+seed-matched code; the \emph{random} strategy is the reference.
 
 \begin{center}
 \small
@@ -750,61 +770,71 @@ Analysis in \code{scripts/07\_premium\_sensitivity.R}.
 \toprule
 $\lambda$ & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 1.0 \\
 \midrule
-$\beta_{\text{DP}}$ (odds)      & $-0.642$ & $\mathbf{-0.859}$ & $-0.960$ & $-1.227$ & $-1.251$ & $-1.261$ \\
-odds drop                        & $-47\%$ & $\mathbf{-58\%}$ & $-62\%$ & $-71\%$ & $-71\%$ & $-72\%$ \\
-$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$ (pp) & 4.8 & 5.5 & 5.7 & 7.7 & 6.9 & 7.9 \\
-\% of plane with gap $>0.10$     & 18.9 & 21.1 & 21.9 & 25.6 & 23.4 & 23.8 \\
-mean gap inside that band (pp)   & 17.8 & 19.8 & 20.6 & 23.0 & 24.6 & 26.5 \\
-$MSP_c$ shift (DP $-$ GSS)       & 0.061 & 0.068 & 0.069 & 0.072 & 0.065 & 0.071 \\
+$\beta_{\text{DP}}$ (odds)      & $-0.611$ & $-0.709$ & $-0.793$ & $-0.849$ & $-0.921$ & $-0.962$ \\
+odds drop                        & $-46\%$ & $-51\%$ & $-55\%$ & $-57\%$ & $-60\%$ & $-62\%$ \\
+$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$ (pp) & 5.0 & 5.4 & 5.9 & 6.2 & 6.7 & 7.0 \\
+\% of plane with gap $>0.10$     & 21.6 & 21.6 & 22.9 & 23.5 & 23.7 & 23.3 \\
+mean gap inside that band (pp)   & 17.2 & 19.1 & 20.3 & 21.7 & 23.6 & 25.0 \\
+$MSP_c$: GSS $\to$ DP            & .072$\to$.139 & .081$\to$.149 & .075$\to$.146 & .072$\to$.146 & .066$\to$.134 & .065$\to$.136 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\paragraph{Reading.} \textbf{The premium survives}, and at the calibrated coupling it
-reproduces the legacy engine almost exactly: $\lambda = 0.6$ gives
-$\beta_{\text{DP}} = -0.859$ against the legacy $-0.850$.
+\paragraph{Reading.} \textbf{The premium survives the bottom-up engine across the whole
+$\lambda$ band}: rewiring the ties lowers the odds of adoption by 46--62\%, bracketing
+the legacy engine's $-57\%$ ($\beta = -0.850$), which it matches at $\lambda \approx 0.8$.
+The premium grows smoothly and monotonically with $\lambda$ (steps per decile $-0.098$,
+$-0.084$, $-0.056$, $-0.072$, $-0.041$): the stronger social proof is, the more the real
+fabric matters.
 
-But the $\lambda$-dependence must be read with care, because the two scales disagree:
+$\lambda$ is a free coupling, not a calibrated constant (the calibration in
+\code{playground/lambda\_calibration/} (untracked) only showed that $\lambda \approx 0.7$ reproduces the
+legacy \emph{surface}); the paper should therefore report results as functions of
+$\lambda$. Two scales must be read together:
 \begin{itemize}
-  \item On the \textbf{odds} scale the premium nearly doubles ($-0.64 \to -1.26$) and
-    then \emph{plateaus} from $\lambda \approx 0.8$ (steps per decile: $-0.217$,
-    $-0.100$, $-0.267$, $-0.024$, $-0.011$).
-  \item On the \textbf{probability} scale it is roughly flat and non-monotonic
-    (4.8--7.9 pp).
+  \item on the \textbf{odds} scale the premium grows by $+57\%$ over the band
+    ($-0.61 \to -0.96$);
+  \item on the \textbf{probability} scale it grows by $+40\%$ (5.0 $\to$ 7.0 pp).
 \end{itemize}
-The gap between the two is a link artifact: as $\lambda$ grows, both topologies push more
-of the plane into saturation (the share of cells with $\Phi > 0.95$ rises from 51\% to
-72\% for GSS), and in the saturated regime the logit converts a fixed probability gap
-into an ever larger log-odds gap. \textbf{The growth of $\beta_{\text{DP}}$ with
-$\lambda$ therefore measures saturation, not extra structural separation.}
+The difference is partly a link effect: saturation rises (cells with $\Phi > 0.95$ go
+from 48\% to 62\% of the plane for GSS) and the logit inflates a given probability gap
+in that regime. Most of the growth, however, is genuine structural separation.
 
 \paragraph{The $\lambda$-robust statements} (recommended for the paper):
 \begin{enumerate}
   \item \textbf{Where it lives.} The premium is concentrated in an L-shaped band along
-    the tipping frontier: 19--26\% of the (IUL, MSP) plane, where GSS gains 18--27
+    the tipping frontier: 22--24\% of the (IUL, MSP) plane, where GSS gains 17--25
     percentage points. Outside that band the two topologies agree (both dead, or both
     saturated). Structure decides where the system is undecided.
   \item \textbf{Tipping shift.} DP needs about \emph{twice} the social openness to tip
-    ($MSP_c \approx 0.065$--$0.077$ for GSS vs.\ $0.13$--$0.145$ for DP), and the shift
-    varies by only $\pm 8\%$ across the whole $\lambda$ band --- the most stable way to
-    state the premium. It echoes the legacy contrast ($MSP_c = 0.25$ vs.\ $0.417$).
+    ($MSP_c \approx 0.065$--$0.081$ for GSS vs.\ $0.134$--$0.149$ for DP; shift
+    0.067--0.074, i.e.\ $\pm 5\%$ across the band) --- the most stable way to state the
+    premium. It echoes the legacy contrast ($MSP_c = 0.25$ vs.\ $0.417$).
   \item \textbf{Channel split.} The rational channel is flat in $\lambda$
     ($\beta \approx -0.22$) while the social channel carries the growth
-    ($-0.21 \to -0.37$). Note that here the rational channel is \emph{not}
-    topology-blind: its adopters still need one gate-passing contact, and DP ties are
-    socially more distant (mean Gower $0.229 \to 0.325$), so the gate rejects more often.
-    In the legacy engine the analogous coefficient was a second-order accounting
-    artifact; here it is a mechanism.
+    ($-0.21 \to -0.32$). The rational channel is \emph{not} topology-blind here: its
+    adopters still need one gate-passing contact, and DP ties are socially more distant
+    (mean Gower $0.229 \to 0.325$), so the gate rejects more often.
 \end{enumerate}
 
-\paragraph{A reverse-premium corner (worth reporting honestly).} At $\lambda = 0.5$, with
-high openness ($h \ge 0.75$) and moderate attractiveness ($\Gamma \in [0.20, 0.275]$),
-\textbf{DP beats GSS} by up to 5.7 pp (3.4\% of the plane); the effect vanishes for
-$\lambda \ge 0.7$. The mechanism is Tur (2024)'s own: with the gate wide open, homophily
-\emph{isolates the resistant among the resistant}, whereas random mixing seats early
-adopters next to reluctant agents and converts them. That the new engine reproduces a
-published theoretical mechanism it was not built to produce is a validity check --- and
-it makes the premium claim properly conditional rather than universal.
+\paragraph{A reverse-premium corner (worth reporting honestly).} In a small region
+--- high openness ($h \gtrsim 0.6$, median 0.83) and low-to-moderate attractiveness
+($\Gamma \approx 0.10$--$0.275$, drifting down as $\lambda$ grows) --- \textbf{DP beats
+GSS} by up to 3--6 pp, in 2.7--4.7\% of the plane, at \emph{every} $\lambda$ (the
+pre-fix analysis wrongly reported it vanishing for $\lambda \ge 0.7$). The mechanism is
+Tur (2024)'s own: when the gate is wide open, homophily \emph{isolates the resistant
+among the resistant}, whereas random mixing seats adopters next to reluctant agents and
+converts them. Note the link with the similarity-vs-diversity question: once influence
+stops being similarity-gated, the sign of the structural effect can flip. That the new
+engine reproduces a published mechanism it was not built to produce is a validity check,
+and it makes the premium claim properly conditional rather than universal.
+
+\paragraph{Still open.} The three hub strategies (central, closeness, eigen) were run
+before the seed fix (pooled $\beta_{\text{DP}} \approx -0.92$ vs.\ $-0.75$ for the
+seed-matched random and marginal); they are being re-run under the fixed code. The BAM
+standard errors ($\sim 5 \times 10^{-4}$) treat every cell as independent and are far too
+optimistic: the effective unit of replication is the run (96 seed draws per topology),
+so uncertainty on $\beta_{\text{DP}}$ must come from a run-level bootstrap.
 
 % ============================================================================
 \section{To verify before writing any of this into the paper}
