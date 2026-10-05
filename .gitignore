@@ -44,3 +44,12 @@ legacy/
 *.synctex.gz
 *.toc
 *.blg
+
+# Run logs (written with: Rscript ... 2>&1 | tee logs/<name>.log)
+logs/
+
+# Pre-fix results kept locally for before/after comparison
+output/**/_prefix/
+
+# Local Claude Code context (not shared)
+CLAUDE.md
