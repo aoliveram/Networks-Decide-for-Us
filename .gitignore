@@ -51,5 +51,8 @@ logs/
 # Pre-fix results kept locally for before/after comparison
 output/**/_prefix/
 
+# Results produced while q was fed as propensity instead of aversion (pre-fix 2026-10-05)
+output/**/_qinverted/
+
 # Local Claude Code context (not shared)
 CLAUDE.md
