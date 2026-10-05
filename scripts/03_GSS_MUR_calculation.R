@@ -76,7 +76,7 @@ for (p_var in propensity_ingredient_vars) {
 
 pdf(file.path(plots_dir, "gss_propensity_vars_distribution.pdf"), width = 12, height = 9)
 do.call(grid.arrange, c(plots_propensity, ncol = 3))
-dev.off()
+invisible(dev.off())
 
 # --- B) Cálculo y Distribución del MUR Score (Muestra) ---
 # Lógica de recodificación:

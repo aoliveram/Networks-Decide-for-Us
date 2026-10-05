@@ -138,11 +138,11 @@ summary(ATP_W3_W4$age)
 
 pdf(file = "plots/01_ATP_GSS_imputation/age_distribution_GSS.pdf", width = 6, height = 5)
 hist(gss_egos$age, main = "Edades en GSS (EGO)", xlab = "Edad", ylab = "Frecuencia")
-dev.off()
+invisible(dev.off())
 
 pdf(file = "plots/01_ATP_GSS_imputation/age_distribution_ATP.pdf", width = 6, height = 5)
 hist(ATP_W3_W4$age, main = "Edades Imputadas en ATP", xlab = "Edad", ylab = "Frecuencia")
-dev.off()
+invisible(dev.off())
 
 # ------------------------------------------------------------------------------
 # EDUCACIÓN
@@ -228,11 +228,11 @@ summary(ATP_W3_W4$educ_num)
 
 pdf(file = "plots/01_ATP_GSS_imputation/educ_distribution_GSS.pdf", width = 6, height = 5)
 hist(gss_egos$educ_num, main = "Años de educación en GSS (EGO)", xlab = "Edad", ylab = "Frecuencia")
-dev.off()
+invisible(dev.off())
 
 pdf(file = "plots/01_ATP_GSS_imputation/educ_distribution_ATP.pdf", width = 6, height = 5)
 hist(ATP_W3_W4$educ_num, main = "Años de educación imputados en ATP", xlab = "Edad", ylab = "Frecuencia")
-dev.off()
+invisible(dev.off())
 
 # ------------------------------------------------------------------------------
 # Raza
@@ -339,11 +339,11 @@ ATP_W3_W4$race <- factor(ATP_W3_W4$race,
 
 pdf(file = "plots/01_ATP_GSS_imputation/race_distribution_GSS.pdf", width = 6, height = 5)
 plot(gss_egos$race, main = "Raza en GSS (EGO)", xlab = "Raza", ylab = "Frecuencia")
-dev.off()
+invisible(dev.off())
 
 pdf(file = "plots/01_ATP_GSS_imputation/race_distribution_ATP.pdf", width = 6, height = 5)
 plot(ATP_W3_W4$race, main = "Raza imputada en ATP", xlab = "Raza", ylab = "Frecuencia")
-dev.off()
+invisible(dev.off())
 
 # ------------------------------------------------------------------------------
 # Relig

@@ -18,10 +18,10 @@
 #   - plots/04_null_models/shuffle_verification.pdf
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-suppressMessages({
+suppressWarnings(suppressMessages({
   library(network); library(igraph); library(intergraph); library(cluster)
   library(dplyr); library(tidyr); library(ggplot2)
-})
+}))
 
 set.seed(20260620)
 SRC_DIR  <- "data/02_GSS_network_ergm"

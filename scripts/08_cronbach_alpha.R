@@ -13,10 +13,10 @@
 # alpha is invariant to a uniform linear recoding (the GSS case).
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-suppressMessages({
+suppressWarnings(suppressMessages({
   library(haven)
   library(psych)
-})
+}))
 
 OUT_DIR <- "output/08_cronbach_alpha/"
 dir.create(OUT_DIR, showWarnings = FALSE, recursive = TRUE)

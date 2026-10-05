@@ -23,10 +23,10 @@
 # Runtime: ~2-4 min single-threaded (safe to run alongside the sweep).
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-suppressMessages({
+suppressWarnings(suppressMessages({
   library(igraph); library(network); library(intergraph); library(cluster)
   library(dplyr)
-})
+}))
 
 SRC_DIR  <- "data/02_GSS_network_ergm"
 OUT_DIR  <- "data/02_GSS_DP_network"

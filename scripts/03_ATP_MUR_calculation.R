@@ -73,7 +73,7 @@ for (col_name in metech_vars) {
 
 pdf(file.path(plots_dir, "metech_distribution_ATP.pdf"), width = 10, height = 7)
 do.call(grid.arrange, c(plots_metech, ncol = 3))
-dev.off()
+invisible(dev.off())
 
 # --- B) Cálculo y Distribución del MUR Score (Muestra) ---
 # Lógica de cálculo:

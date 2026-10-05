@@ -42,11 +42,11 @@
 #   Rscript scripts/05_unified_diffusion_sweep_main.R                # all five
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-suppressMessages({
+suppressWarnings(suppressMessages({
   library(igraph); library(intergraph); library(cluster)
   library(dplyr); library(tidyr); library(ggplot2); library(patchwork)
   library(parallel); library(mgcv)
-})
+}))
 Sys.setenv(OMP_NUM_THREADS = "1")
 
 ARGS      <- commandArgs(trailingOnly = TRUE)
@@ -250,7 +250,7 @@ results <- results |>
 fit_one <- function(df, kk = if (TEST_MODE) 4 else 10) {
   m <- bam(cbind(num_adopters, fail) ~ s(innovation_iul_Gamma, social_distance_h, k = kk)
            + topology,
-           family = binomial(), data = df, discrete = TRUE, nthreads = N_CORES)
+           family = binomial(), data = df, discrete = TRUE)
   co <- summary(m)$p.table["topologyDP", ]
   data.frame(beta_DP = co[1], se = co[2], OR = exp(co[1]),
              odds_drop_pct = 100 * (exp(co[1]) - 1),
@@ -298,6 +298,6 @@ for (l in LAMBDAS) {
     plot_layout(nrow = 1, guides = "collect")
   )
 }
-dev.off()
+invisible(dev.off())
 message(format(Sys.time(), "%H:%M:%S"), "  Saved ",
         file.path(PLOTS_OUT, paste0("unified_premium_heatmaps", SUFFIX, ".pdf")), " — DONE.")

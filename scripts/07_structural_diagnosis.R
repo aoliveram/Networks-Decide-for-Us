@@ -21,10 +21,10 @@
 #   - plots/structural_diagnosis_C.pdf  (1x2: per-axis assortativity + Gower dist)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-suppressMessages({
+suppressWarnings(suppressMessages({
   library(network); library(igraph); library(cluster)   # cluster::daisy for Gower
   library(dplyr); library(tidyr); library(ggplot2); library(patchwork)
-})
+}))
 
 set.seed(20260619)
 NET_DIR  <- "data/02_GSS_network_ergm"

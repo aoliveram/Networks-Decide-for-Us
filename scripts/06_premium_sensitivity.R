@@ -24,9 +24,9 @@
 # Runtime: ~1-2 min.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-suppressMessages({
+suppressWarnings(suppressMessages({
   library(dplyr); library(tidyr); library(ggplot2); library(patchwork); library(mgcv)
-})
+}))
 
 ARGS    <- commandArgs(trailingOnly = TRUE)
 SEEDING <- sub("^--seeding=", "", grep("^--seeding=", ARGS, value = TRUE))
@@ -179,6 +179,6 @@ gp <- ggplot(wide, aes(G, h, fill = gap)) +
   labs(title = "Where the structural premium lives", x = "IUL (Γ)", y = "MSP (h)") +
   theme_minimal(base_size = 10) + theme(panel.grid = element_blank())
 print(gp)
-dev.off()
+invisible(dev.off())
 message("\nSaved ", file.path(DATA_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".csv")), " and ",
         file.path(PLOTS_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".pdf")))
