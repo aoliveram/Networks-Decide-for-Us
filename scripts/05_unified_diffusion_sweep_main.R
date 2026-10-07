@@ -17,12 +17,16 @@
 # Usage:
 #   Rscript scripts/05_unified_diffusion_sweep_main.R                  # all five
 #   Rscript scripts/05_unified_diffusion_sweep_main.R central marginal # a subset
+#   Rscript scripts/05_unified_diffusion_sweep_main.R --budget=hub random marginal
+#     (hub budget: every strategy seeds 0.40 x the network's max degree; see 05)
 #   NDFU_SKIP_SENSITIVITY=1 Rscript scripts/05_unified_diffusion_sweep_main.R
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ALL_SEEDINGS <- c("random", "central", "marginal", "closeness", "eigen")
 
 args     <- commandArgs(trailingOnly = TRUE)
+budget   <- grep("^--budget=", args, value = TRUE)          # passed through to 05/06
+args     <- setdiff(args, budget)
 seedings <- if (length(args) > 0) args else ALL_SEEDINGS
 unknown  <- setdiff(seedings, ALL_SEEDINGS)
 if (length(unknown) > 0)
@@ -40,16 +44,16 @@ banner  <- function(...) {
 
 t_all <- Sys.time()
 for (s in seedings) {
-  banner("SEEDING: ", toupper(s), "   (", match(s, seedings), "/", length(seedings), ")")
+  banner("SEEDING: ", toupper(s), if (length(budget)) paste0(" [", budget, "]"), "   (", match(s, seedings), "/", length(seedings), ")")
 
   st <- system2(rscript, c("scripts/05_unified_diffusion_sweep.R",
-                           paste0("--seeding=", s)))
+                           paste0("--seeding=", s), budget))
   if (st != 0) stop("Sweep failed for seeding '", s, "' (exit ", st, ")")
 
   if (RUN_SENSITIVITY) {
     message("\n--- lambda sensitivity for seeding '", s, "' ---")
     st <- system2(rscript, c("scripts/06_premium_sensitivity.R",
-                             paste0("--seeding=", s)))
+                             paste0("--seeding=", s), budget))
     if (st != 0) warning("Sensitivity analysis failed for seeding '", s,
                          "' (exit ", st, ") — the sweep results are still saved.")
   }

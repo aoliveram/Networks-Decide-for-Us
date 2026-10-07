@@ -31,6 +31,8 @@ suppressWarnings(suppressMessages({
 ARGS    <- commandArgs(trailingOnly = TRUE)
 SEEDING <- sub("^--seeding=", "", grep("^--seeding=", ARGS, value = TRUE))
 if (length(SEEDING) == 0) SEEDING <- "random"
+# --budget=hub reads the hub-budget run of the same strategy (see script 05)
+if ("--budget=hub" %in% ARGS) SEEDING <- paste0(SEEDING, "_hubbudget")
 
 DATA_OUT  <- "output/06_premium_sensitivity"
 PLOTS_OUT <- "plots/06_premium_sensitivity"
