@@ -404,28 +404,42 @@ In the linear variant, immunity is $\tau_i^{*} > 1$, i.e.
 Since $q_i \le 1$, this region is \textbf{non-empty only when} $\lambda < 1 - \Gamma$:
 with $\lambda \ge 1$ immunity is impossible (a fully-adopted similar neighborhood can
 compensate any deficit). So the intuition ``$q_i, \Gamma \in [0,1]$ makes this very
-unlikely'' is correct \emph{at large $\lambda$} but not in general. Empirically, on the
-GSS $q$ distribution (diagnostic printed by \code{10\_unified\_model\_sweep.R}):
+unlikely'' is correct \emph{at large $\lambda$} but not in general. Empirically, computed
+directly from $q_i = \code{mur\_score}$ on the 96 GSS networks (the same 1000 agents in
+every network, so the shares do not vary across networks; GSS mean $q = 0.585$; isolates
+0.11\%), share of agents with $q_i > \Gamma + \lambda$:
 
 \begin{center}
 \small
-\begin{tabular}{@{}cccc@{}}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-$\lambda$ & $\Gamma$ & immunity condition & share immune \\
+$\lambda$ & $\Gamma = 0$ & $0.1$ & $0.2$ & $0.3$ & $0.4$ & average over the IUL grid \\
 \midrule
-0.5 & 0.20 & $q_i > 0.70$ & $10.9\%$ \\
-0.5 & 0.30 & $q_i > 0.80$ & $3.8\%$ \\
-1.0--2.0 & any & $q_i > \Gamma + \lambda \ge 1$ & $0\%$ \\
-0.7 (best fit) & 0.20 & $q_i > 0.90$ & small tail \\
+0.5 & 66.4\% & 46.5\% & 32.2\% & 16.1\% & 6.2\% & 14.0\% \\
+0.6 & 46.5\% & 32.2\% & 16.1\% & 6.2\% & 0 & 8.1\% \\
+0.7 & 32.2\% & 16.1\% & 6.2\% & 0 & 0 & 4.1\% \\
+0.8 & 16.1\% & 6.2\% & 0 & 0 & 0 & 1.7\% \\
+0.9 & 6.2\% & 0 & 0 & 0 & 0 & 0.4\% \\
+1.0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The visible fingerprint: the adoption \textbf{ceiling} $\Phi \approx 0.75$ at low IUL in
-the $\lambda = 0.5$ heatmaps --- the $\approx\!11\%$ immune tail (plus isolates) caps the
-ordered phase below~1. This is a prediction, not a bug: \emph{when social proof is weak,
-its reach is bounded}. The current engine cannot produce this ceiling because $\tau$ is
-truncated to $[0,1]$ by construction.
+\noindent The share depends only on $\Gamma + \lambda$: 66.4, 46.5, 32.2, 16.1 and 6.2\% for
+$\Gamma + \lambda = 0.5, \dots, 0.9$, and zero from $1$ on.
+
+The immune share is only an \textbf{upper bound} on adoption, $\Phi \le 1 - \Pr(q_i >
+\Gamma + \lambda) - \text{isolates}$, and with the correct $q$ the dynamics stay far below
+it at low IUL. At $\lambda = 0.5$ (random seeding) the highest adoption anywhere on the MSP
+axis is 3--4\% for $\Gamma \le 0.1$ (the seed cluster plus a few), 8\% at $\Gamma = 0.2$
+(bound 68\%) and 27\% at $\Gamma = 0.3$ (bound 84\%), and jumps to 85--88\% at
+$\Gamma = 0.4$ (bound 94\%): most non-immune agents still need a large adopting share of
+their neighborhood ($\tau_i^{*} = (q_i - \Gamma)/\lambda$ close to~1), and the cascade
+stalls before the immune tail binds. The bound is a prediction, not a bug: \emph{when
+social proof is weak, its reach is bounded}. The current engine cannot produce it because
+$\tau$ is truncated to $[0,1]$ by construction. (Under the inverted $q$ the immune tail was
+10.9\% at $\lambda = 0.5$, $\Gamma = 0.2$, and showed as a visible ceiling
+$\Phi \approx 0.75$.)
 
 In the $\gamma$-form, immunity is instead $c_i^{*} > k_i$, i.e.
 \begin{equation}
