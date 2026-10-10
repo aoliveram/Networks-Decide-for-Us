@@ -57,6 +57,7 @@ Run from the repository root (`Rscript scripts/<file>`), in order:
 | `05_unified_diffusion_sweep.R` | **the engine**: unified-rule diffusion, GSS vs DP, + premium BAM | `output/05_unified_diffusion/`, `plots/05_*` |
 | `05_unified_diffusion_sweep_main.R` | runner: the engine across all five seeding strategies | (as above, one set per strategy) |
 | `06_premium_sensitivity.R` | how the premium moves with λ (odds vs. probability scale) | `output/06_premium_sensitivity/` |
+| `06b_premium_bootstrap.R` | joint BAM of all strategies + run-level bootstrap: CIs for β_DP, the gap and the strategy contrasts; robust vs. noise DP wins | `output/06b_premium_bootstrap/`, `plots/06b_*` |
 | `07_structural_diagnosis.R` | what randomization destroys (clustering, assortativity, tie distance) | `output/07_structural_diagnosis/` |
 | `08_cronbach_alpha.R` | internal consistency of the propensity constructs | `output/08_cronbach_alpha/` |
 
