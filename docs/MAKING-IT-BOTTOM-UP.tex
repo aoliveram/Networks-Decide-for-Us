@@ -751,11 +751,10 @@ Analysis in \code{scripts/06\_premium\_sensitivity.R}.
 
 \paragraph{Seed matching.} The primary seed is drawn once per run, independently of
 $\lambda$. For \emph{random}, \emph{marginal} and \emph{central} it is the \emph{same node}
-in a GSS network and its DP twin; since \code{keeping\_degseq} preserves every node's
-degree, the seed budget ($0.40 \times$ degree of the primary) is identical in both
-topologies. \emph{Closeness} and \emph{eigen} instead use each topology's own most central
-node (the cluster size differs between GSS and DP in 47 and 42 of the 96 runs,
-respectively). The \emph{random} strategy is the reference.
+in a GSS network and its DP twin; \emph{closeness} and \emph{eigen} use each topology's
+own most central node. The seed cluster is the primary plus its nearest nodes,
+$0.40 \times$ the network's maximum degree in total ($\approx 28$ seeds), so strategies
+differ only in where they seed. The \emph{random} strategy is the reference.
 
 \begin{center}
 \small
@@ -764,44 +763,44 @@ respectively). The \emph{random} strategy is the reference.
 \toprule
 $\lambda$ & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 1.0 \\
 \midrule
-$\beta_{\text{DP}}$ (odds)      & $-0.496$ & $-0.586$ & $-0.703$ & $-0.792$ & $-0.851$ & $-0.912$ \\
-odds drop                        & $-39\%$ & $-44\%$ & $-50\%$ & $-55\%$ & $-57\%$ & $-60\%$ \\
-$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$ (pp) & 3.9 & 4.4 & 5.1 & 5.6 & 6.0 & 6.4 \\
-\% of plane with gap $>0.10$     & 17.7 & 19.0 & 20.1 & 20.9 & 21.7 & 21.3 \\
-mean gap inside that band (pp)   & 15.1 & 16.5 & 18.7 & 20.6 & 22.1 & 24.0 \\
-$MSP_c$: GSS $\to$ DP            & .099$\to$.164 & .103$\to$.170 & .094$\to$.162 & .091$\to$.160 & .091$\to$.160 & .081$\to$.147 \\
+$\beta_{\text{DP}}$ (odds)      & $-0.482$ & $-0.589$ & $-0.753$ & $-0.851$ & $-0.922$ & $-0.980$ \\
+odds drop                        & $-38\%$ & $-45\%$ & $-53\%$ & $-57\%$ & $-60\%$ & $-62\%$ \\
+$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$ (pp) & 4.0 & 4.5 & 5.5 & 6.0 & 6.3 & 6.6 \\
+\% of plane with gap $>0.10$     & 18.1 & 20.3 & 20.8 & 20.8 & 21.2 & 21.5 \\
+mean gap inside that band (pp)   & 16.5 & 17.6 & 21.3 & 23.4 & 24.6 & 25.8 \\
+$MSP_c$: GSS $\to$ DP            & .085$\to$.156 & .088$\to$.157 & .082$\to$.153 & .079$\to$.151 & .078$\to$.147 & .077$\to$.148 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \paragraph{Reading.} \textbf{The premium survives the bottom-up engine across the whole
 $\lambda$ band and for all five seeding strategies}: rewiring the ties lowers the odds of
-adoption by 39--60\% under random seeding (pooled $\beta_{\text{DP}} = -0.664$,
-$-49\%$). It grows smoothly and monotonically with $\lambda$ (steps per decile $-0.090$,
-$-0.117$, $-0.090$, $-0.059$, $-0.061$): the stronger social proof is, the more the real
+adoption by 38--62\% under random seeding (pooled $\beta_{\text{DP}} = -0.684$,
+$-50\%$). It grows smoothly and monotonically with $\lambda$ (steps per decile $-0.107$,
+$-0.164$, $-0.098$, $-0.071$, $-0.058$): the stronger social proof is, the more the real
 fabric matters.
 
 $\lambda$ is a free coupling, not a calibrated constant, so the paper should report
 results as functions of $\lambda$. Two scales must be read together:
 \begin{itemize}
-  \item on the \textbf{odds} scale the premium grows by $+84\%$ over the band
-    ($-0.50 \to -0.91$);
-  \item on the \textbf{probability} scale it grows by $+64\%$ (3.9 $\to$ 6.4 pp).
+  \item on the \textbf{odds} scale the premium roughly doubles over the band
+    ($-0.48 \to -0.98$);
+  \item on the \textbf{probability} scale it grows by $+65\%$ (4.0 $\to$ 6.6 pp).
 \end{itemize}
-Part of the difference is a link effect (cells with $\Phi > 0.95$ go from 36\% to 50\% of
-the plane for GSS, from 28\% to 41\% for DP, and the logit inflates a given probability gap
+Part of the difference is a link effect (cells with $\Phi > 0.95$ go from 40\% to 61\% of
+the plane for GSS, from 32\% to 48\% for DP, and the logit inflates a given probability gap
 there), but most of the growth is genuine structural separation.
 
 \paragraph{The $\lambda$-robust statements} (recommended for the paper):
 \begin{enumerate}
   \item \textbf{Where it lives.} The premium is concentrated in an L-shaped band along
-    the tipping frontier: 18--22\% of the (IUL, MSP) plane, where GSS gains 15--24
+    the tipping frontier: 18--22\% of the (IUL, MSP) plane, where GSS gains 16--26
     percentage points. Outside that band the two topologies agree (both dead, or both
     saturated). Structure decides where the system is undecided.
-  \item \textbf{Tipping shift.} DP needs 1.6--1.8 times the social openness to tip
-    ($MSP_c \approx 0.081$--$0.103$ for GSS vs.\ $0.147$--$0.170$ for DP). The absolute
-    shift is the most stable way to state the premium: 0.065--0.069 across the band
-    under random seeding ($\pm 3\%$), and 0.055--0.076 across all five strategies.
+  \item \textbf{Tipping shift.} DP needs 1.8--1.9 times the social openness to tip
+    ($MSP_c \approx 0.077$--$0.088$ for GSS vs.\ $0.147$--$0.157$ for DP). The absolute
+    shift is the most stable way to state the premium: 0.069--0.071 across the band
+    under random seeding ($\pm 2\%$), and 0.060--0.076 across all five strategies.
   \item \textbf{Channel split.} The rational channel is flat in $\lambda$
     ($\beta \approx -0.146$) while the social channel carries the growth
     ($-0.21 \to -0.37$). The rational channel is \emph{not} topology-blind: its
@@ -822,8 +821,8 @@ strategy & pooled $\beta_{\text{DP}}$ & $\beta_{\text{DP}}$, $\lambda = 0.5$ & $
 central (28.7)   & $-0.758$ & $-0.517$ & $-1.179$ & 4.0--6.9 & .060--.068 \\
 closeness (28.0) & $-0.757$ & $-0.520$ & $-1.175$ & 4.0--6.8 & .062--.076 \\
 eigen (28.0)     & $-0.747$ & $-0.509$ & $-1.169$ & 4.0--6.8 & .066--.073 \\
-random (11.6)    & $-0.664$ & $-0.496$ & $-0.912$ & 3.9--6.4 & .065--.069 \\
-marginal (2.8)   & $-0.578$ & $-0.473$ & $-0.671$ & 3.7--5.2 & .055--.064 \\
+random (28.4)    & $-0.684$ & $-0.482$ & $-0.980$ & 4.0--6.6 & .069--.071 \\
+marginal (28.4)  & $-0.685$ & $-0.490$ & $-0.955$ & 4.0--6.4 & .068--.074 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -832,15 +831,12 @@ marginal (2.8)   & $-0.578$ & $-0.473$ & $-0.671$ & 3.7--5.2 & .055--.064 \\
   \item The three \textbf{hub strategies are interchangeable} (per-$\lambda$
     differences $\le 0.02$), even though closeness and eigen are not node-matched between
     GSS and DP: the hub premium is not an artefact of unequal seed budgets.
-  \item The \textbf{hub--random gap} is real but moderate (pooled $-0.76$ vs.\ $-0.66$) and
-    is a $\lambda$ interaction: at $\lambda = 0.5$ all five strategies lie within
-    $-0.47$ to $-0.52$, and the gap opens with $\lambda$ (at $\lambda = 1$: hubs
-    $-1.18$, random $-0.91$, marginal $-0.67$). Note that the ordering
-    hubs $>$ random $>$ marginal follows seed-cluster size; strategy and cluster size are
-    confounded by design.
-  \item \textbf{Marginal} has the smallest and flattest premium; it plateaus at
-    $\lambda \ge 0.8$ and dips slightly at $\lambda = 1$ ($-0.694 \to -0.671$), which is
-    within the noise of a 2.8-node seed cluster (see the run-level caveat below).
+  \item \textbf{Random and marginal coincide} (pooled $-0.684$ vs.\ $-0.685$; run-level
+    gap 5.46 vs.\ 5.44 pp): with an equal budget, a typical and a peripheral primary
+    seed equally well.
+  \item The \textbf{hubs add a small premium} (pooled $-0.76$ vs.\ $-0.68$) that grows with
+    $\lambda$ (at $\lambda = 1$: $-1.18$ vs.\ $-0.97$); run-level central $-$ random
+    $= 0.15$ pp, 95\% CI $[0.02, 0.28]$.
 \end{itemize}
 
 \paragraph{A reverse-premium corner (conditional, not universal).} In a small region ---
@@ -848,23 +844,16 @@ high openness ($h \gtrsim 0.6$, median 0.83) and moderate attractiveness
 ($\Gamma \approx 0.275$--$0.45$) --- \textbf{DP beats GSS}. Counting cells where the gap is
 below $-2$ pp:
 \begin{itemize}
-  \item \emph{random}: only at $\lambda = 0.5$ and $0.6$ (3.6\% and 2.4\% of the plane, up
-    to 8.2 and 4.2 pp; run-level $z = -7.5$ and $-3.5$). For $\lambda \ge 0.7$ the most
-    negative cell is $\le 1.3$ pp with $|z| \le 1$: indistinguishable from zero;
-  \item \emph{hub strategies}: at $\lambda = 0.5$--$0.7$ (3.3--3.4\%, 2.6\%, 0.8\% of the
-    plane, up to $\approx$7.0, 5.7, 3.0 pp; tightly estimated because the primary node is fixed),
-    gone at $\lambda \ge 0.8$;
-  \item \emph{marginal}: at every $\lambda$ (1.0--4.5\% of the plane, up to 9.6 pp at
-    $\lambda = 0.5$ and 14.7 pp at $\lambda = 1$), but noisy ($z$ between $-1.1$ and
-    $-3.0$ for $\lambda \ge 0.6$).
+  \item the same in every strategy: at $\lambda = 0.5$--$0.7$ (2.6--3.4\%, 2.4--2.6\% and
+    0.8\% of the plane, up to $\approx$7, 5.5 and 3 pp), gone at $\lambda \ge 0.8$
+    ($\le 0.3$ pp).
 \end{itemize}
 The mechanism is Tur (2024)'s own: when the gate is wide open, homophily \emph{isolates
 the resistant among the resistant}, whereas random mixing seats adopters next to reluctant
 agents and converts them. Once influence stops being similarity-gated, the sign of the
-structural effect can flip (the similarity-vs-diversity question). For random and hub
-seeding the corner appears only where $\Gamma + \lambda \lesssim 1$, i.e.\ where a structurally
+structural effect can flip (the similarity-vs-diversity question). The corner appears only where $\Gamma + \lambda \lesssim 1$, i.e.\ where a structurally
 immune tail exists; this is a lead, not an established mechanism (it did not hold under
-the inverted $q$, and marginal seeding is an exception). The corner keeps the premium
+the inverted $q$). The corner keeps the premium
 claim properly conditional, but it is a weak-coupling feature and should not be presented
 as present at every $\lambda$.
 
@@ -872,7 +861,7 @@ as present at every $\lambda$.
 adopt. At $\Gamma = 0$ they are 66, 47, 32, 16, 6 and 0\% of agents for
 $\lambda = 0.5, \dots, 1.0$; averaged over the IUL grid, 14.0, 8.1, 4.1, 1.7, 0.4 and 0\%.
 Mean adoption over the plane is correspondingly lower (random seeding:
-$\bar\Phi_{\text{GSS}} = 0.58$--$0.71$, $\bar\Phi_{\text{DP}} = 0.54$--$0.65$).
+$\bar\Phi_{\text{GSS}} = 0.61$--$0.74$, $\bar\Phi_{\text{DP}} = 0.57$--$0.68$).
 
 \paragraph{What changed with respect to the inverted $q$.} Until 2026-10-05 the engine read
 the propensity score itself as $q_i$ (high = \emph{more} willing), the opposite of its role
@@ -880,11 +869,9 @@ as a minimum utility requirement (GSS mean 0.415 instead of 0.585); the same inv
 affected the legacy engine. With the correct $q$: (i) the premium survives in every
 strategy and keeps its shape (L-shaped band, flat rational channel, stable tipping shift
 of $\approx 0.065$--$0.07$); (ii) it is smaller on the odds scale (random pooled
-$-0.750 \to -0.664$; hubs $\approx -0.93 \to -0.75$; marginal $-0.752 \to -0.578$) but
-steeper in $\lambda$ (random $-0.61 \to -0.96$ became $-0.50 \to -0.91$); (iii) the
-hub--random gap halves (0.18 $\to$ 0.09 pooled) and marginal separates from random (they
-were equal); (iv) the reverse corner moves to higher $\Gamma$ (from $0.10$--$0.275$, by
-about the 0.17 shift in mean $q$) and is no longer present at every $\lambda$; (v) the
+$-0.750 \to -0.684$; hubs $\approx -0.93 \to -0.75$) but steeper in $\lambda$ (random
+$-0.61 \to -0.96$ became $-0.48 \to -0.98$); (iii) the reverse corner moves to higher $\Gamma$ (from $0.10$--$0.275$, by
+about the 0.17 shift in mean $q$) and is no longer present at every $\lambda$; (iv) the
 immune share rises 2.7-fold or more (IUL-grid average 5.2 $\to$ 14.0\% at $\lambda = 0.5$).
 The inverted-$q$ outputs are archived in \code{output/**/\_qinverted/} (closeness and eigen
 references: the pre-seed-fix runs in \code{\_prefix/}, which match the seed-matched code
