@@ -22,13 +22,8 @@
 #       closeness the highest-closeness node
 #       eigen     the highest-eigenvector-centrality node
 #       marginal  a node drawn from the bottom 10% by degree
-#     and the seed cluster is the primary plus its nearest nodes, 0.40 * k in
-#     total, with k set by --budget=:
-#       own  (default) k = degree of the primary: the budget follows the
-#            strategy (hubs ~29 seeds, random ~12, marginal ~3)
-#       hub  k = the network's maximum degree, i.e. the budget central seeding
-#            gets in that same network: every strategy seeds ~29 nodes and
-#            differs only in WHERE it seeds
+#     and the seed cluster is the primary plus its nearest nodes,
+#     0.40 * (the network's maximum degree) in total
 #   - Gate: sigma((h - d_ij)/0.02), stochastic per step; denominator = degree
 #
 # Total per seeding: 2 topologies x 6 lambda x 41 x 25 x 96 = 1,180,800 sims.
@@ -36,7 +31,6 @@
 # kill and relaunch; completed combos are skipped.
 #
 # Outputs (<S> = the seeding strategy):
-#   (<S> = <seeding>, or <seeding>_hubbudget with --budget=hub)
 #   output/05_unified_diffusion/checkpoints/<S>/<topo>_lambda_X.XX.rds
 #   output/05_unified_diffusion/unified_premium_results_<S>.csv
 #   output/05_unified_diffusion/unified_premium_bam_<S>.csv   (beta_DP per lambda)
@@ -45,7 +39,6 @@
 # Usage:
 #   Rscript scripts/05_unified_diffusion_sweep.R                     # random
 #   Rscript scripts/05_unified_diffusion_sweep.R --seeding=central
-#   Rscript scripts/05_unified_diffusion_sweep.R --seeding=marginal --budget=hub
 #   Rscript scripts/05_unified_diffusion_sweep.R --test              # smoke
 #   Rscript scripts/05_unified_diffusion_sweep_main.R                # all five
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,12 +58,6 @@ SEEDING <- sub("^--seeding=", "", grep("^--seeding=", ARGS, value = TRUE))
 if (length(SEEDING) == 0) SEEDING <- "random"
 stopifnot(SEEDING %in% c("random", "central", "marginal", "closeness", "eigen"))
 
-# Seed budget: --budget=<own|hub> (see the header)
-SEED_BUDGET <- sub("^--budget=", "", grep("^--budget=", ARGS, value = TRUE))
-if (length(SEED_BUDGET) == 0) SEED_BUDGET <- "own"
-stopifnot(SEED_BUDGET %in% c("own", "hub"))
-RUN_LABEL <- if (SEED_BUDGET == "own") SEEDING else paste0(SEEDING, "_hubbudget")
-
 # ------------------------------- configuration -------------------------------
 NETWORKS_DIR <- "data/02_GSS_network_ergm/"
 # --test writes everything (checkpoints, CSVs, plots) into its own sandbox, so a
@@ -79,8 +66,8 @@ DATA_OUT     <- if (TEST_MODE) "output/05_unified_diffusion/_test" else "output/
 PLOTS_OUT    <- if (TEST_MODE) "output/05_unified_diffusion/_test" else "plots/05_unified_diffusion"
 # one checkpoint sub-directory and one set of result files per seeding strategy,
 # so strategies never overwrite each other and each can be resumed on its own
-CKPT_DIR     <- file.path(DATA_OUT, "checkpoints", RUN_LABEL)
-SUFFIX       <- paste0("_", RUN_LABEL)
+CKPT_DIR     <- file.path(DATA_OUT, "checkpoints", SEEDING)
+SUFFIX       <- paste0("_", SEEDING)
 
 N_RUNS       <- if (TEST_MODE) 2 else 96
 N_CORES      <- if (TEST_MODE) 2 else 8
@@ -150,7 +137,7 @@ draw_seeds <- function(top, run, topo) {
   #
   # The PRIMARY node is also shared between GSS and its DP twin: keeping_degseq
   # preserves every node's degree, so the same primary implies an IDENTICAL
-  # seed budget (0.40 * degree) in both topologies — the GSS-vs-DP comparison
+  # seed budget in both topologies — the GSS-vs-DP comparison
   # is seed-matched by construction. Cluster MEMBERS necessarily differ (the
   # neighborhoods differ), and are drawn from a topology-specific stream.
   set.seed(run * 2000L)                    # shared across topologies AND lambdas
@@ -167,22 +154,17 @@ draw_seeds <- function(top, run, topo) {
     marginal  = as.integer(sample(
                   order(top$deg_raw)[seq_len(ceiling(n * 0.1))], 1)))
   set.seed(run * 2000L + 1L + ifelse(topo == "DP", 777L, 0L))  # members only
-  grow_cluster(top$g, primary, seed_budget(top, primary))
+  grow_cluster(top$g, primary, seed_budget(top))
 }
 
-# Cluster size, primary included: 0.40 x the degree of the primary (own) or of
-# the network's top hub (hub). Degree sequences are preserved, so the budget is
-# identical in GSS and its DP twin under both rules.
-seed_budget <- function(top, primary) {
-  k <- if (SEED_BUDGET == "hub") max(top$deg_raw) else top$deg_raw[primary]
+seed_budget <- function(top) {
+  k <- max(top$deg_raw)
   max(1, min(round(TAU_REF_SEED * k), k + 1))
 }
 
 # The primary plus its nearest nodes, filled shell by shell (every node at
 # distance 1, then 2, ...) and sampled within the shell that overflows the
-# budget. Under the own budget the cluster never leaves the first shell, so
-# this is exactly the original neighbour draw; under the hub budget a
-# low-degree primary reaches into its second neighbourhood.
+# budget.
 grow_cluster <- function(g, primary, n_seeds) {
   seeds <- primary
   if (n_seeds <= 1) return(seeds)
@@ -224,7 +206,7 @@ run_unified <- function(top, q, n, seeds, h, Gamma, lambda, sim_seed) {
 sims_per_combo <- N_RUNS * length(H_SWEEP) * length(IUL_SWEEP)
 n_combos <- length(TOPOLOGIES) * length(LAMBDAS)
 message(format(Sys.time(), "%H:%M:%S"), "  Seeding: ", toupper(SEEDING),
-        " (", SEED_BUDGET, " budget) | Sweep: ",
+        " | Sweep: ",
         n_combos, " (topology, lambda) combos x ", sims_per_combo, " sims = ",
         n_combos * sims_per_combo, " total simulations.")
 t_all <- Sys.time()
