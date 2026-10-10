@@ -13,6 +13,10 @@
 %   complements, the status of gamma in Tur 2018/2024).
 %   2026-10-05: premium subsection recomputed with q = mur_score = 1 - propensity
 %   (inverted-q warning box removed; note on what changed added).
+%   2026-10-10: premium subsection with run-bootstrap intervals from
+%   scripts/06b_premium_bootstrap.R (joint BAM, te(12,12) surface per strategy,
+%   strategy contrasts, robust vs. noise reverse corner); immunity table of
+%   sec:immunity recomputed from mur_score.
 % Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
@@ -32,10 +36,13 @@
 \newcommand{\Acount}{\tilde{A}}             % gated adopting COUNT
 \newcommand{\eff}{\mathrm{eff}}
 \newcommand{\code}[1]{\texttt{#1}}
+% estimate over its 95% interval, in one table cell
+\newcommand{\ci}[3]{\begin{tabular}[t]{@{}c@{}}$#1$\\[-2pt]{\scriptsize$[#2, #3]$}\end{tabular}}
+\newcommand{\hd}[2]{\begin{tabular}[b]{@{}c@{}}#1\\#2\end{tabular}}   % two-line header
 
 \title{Making NDFU bottom-up:\\ the unified adoption rule and its two variants}
 \author{NDFU internal design note}
-\date{2026-08-11, updated 2026-10-05 \\[4pt]
+\date{2026-08-11, updated 2026-10-10 \\[4pt]
 \normalsize Status: design document --- no changes to the engine have been made.\\
 \normalsize Companion scripts: \code{10\_unified\_model\_sweep.R}, \code{12\_unified\_premium\_sweep.R}}
 
@@ -760,7 +767,9 @@ recipe of \code{scripts/04\_make\_DP\_networks.R}), $\lambda \in \{0.5, \dots, 1
 41 IUL levels $\times$ a 25-level MSP grid (step $1/24$, nesting the legacy 13-level grid),
 96 networks, five seeding strategies (1{,}180{,}800 simulations each), with
 $q_i = \code{mur\_score} = 1 - \text{propensity}_i$ (GSS mean 0.585).
-Analysis in \code{scripts/06\_premium\_sensitivity.R}.
+Analysis in \code{scripts/06\_premium\_sensitivity.R} ($\lambda$ profile, link-free
+diagnostics) and \code{scripts/06b\_premium\_bootstrap.R} (joint BAM of the strategies and
+run-level bootstrap; all intervals below).
 \end{sloppypar}
 
 \paragraph{Seed matching.} The primary seed is drawn once per run, independently of
@@ -769,37 +778,88 @@ in a GSS network and its DP twin; \emph{closeness} and \emph{eigen} use each top
 own most central node. The seed cluster is the primary plus its nearest nodes,
 $0.40 \times$ the network's maximum degree in total ($\approx 28$ seeds), so strategies
 differ only in where they seed. The \emph{random} strategy is the reference.
+\emph{Caveat:} closeness and eigen were run (2026-10-05) under the former rule,
+$0.40 \times$ the degree of their own primary. Their primaries are near-hubs (28.0 seeds on
+average vs.\ 28.7 for central), but since they are not node-matched, the GSS and DP budgets
+differ by about one seed in $\approx 45\%$ of runs. Rerun pending.
+
+\paragraph{Uncertainty: the run is the unit.} The 1025 cells of a run share the GSS
+network, its DP twin and the primary draw, so they are not independent observations:
+the unit of replication is the \textbf{run} (96 per topology). Run $k$ also uses the same
+network, twin and primary draw in every strategy, so contrasts between strategies are
+\textbf{paired}. All intervals come from a run-level bootstrap: resample \code{run\_id}
+(1..96) with replacement, with one set of weights shared by GSS, DP and every strategy,
+and refit ($B = 1000$; 95\% percentile intervals). The model, per $\lambda$, is a joint BAM
+\begin{equation*}
+  \operatorname{logit} \Phi \;=\; \alpha_s + \beta_{\text{DP},s}\,\mathbf{1}_{\text{DP}}
+  + f_s(\Gamma, h), \qquad f_s = \code{te}(\Gamma, h, k = 12 \times 12)\ \text{per strategy } s,
+\end{equation*}
+fitted on run-aggregated counts (exact: the model has no run term). Three choices,
+decided by checking them against the data:
+\begin{itemize}
+  \item \textbf{The surface varies by strategy.} With one shared surface, each strategy's
+    misfit leaks into the strategy~$\times$~topology terms and flattens the contrasts (at
+    $\lambda = 1$, central $-$ random shrinks from $-0.20$ to $-0.07$). With
+    strategy-specific surfaces the joint model factorizes and reproduces the separate
+    per-strategy fits exactly; what it adds is the paired bootstrap of the contrasts.
+  \item \textbf{It does not vary by topology.} $\beta_{\text{DP}}$ is \emph{defined} as
+    the constant logit shift between GSS and DP. A topology-specific surface would absorb
+    the premium itself. The premium is really a shift of the tipping frontier, and its
+    shape is described by the link-free gap and the $MSP_c$ shift, not by the BAM.
+  \item \textbf{Basis $12 \times 12$, not $k = 10$.} The $s(\Gamma, h, k = 10)$ surface of
+    05/06 is too stiff for the sharp frontier (deviance explained 0.94--0.99). $\beta_{\text{DP}}$
+    converges at a $12 \times 12$ tensor basis; $k = 10$ understates $|\beta|$ by
+    3--13\%, more at high $\lambda$. Contrasts between strategies barely move. $k = 10$
+    values are kept for continuity.
+\end{itemize}
+The pooled premium is the unweighted mean of the six per-$\lambda$ estimates
+(``$\lambda$-mean''); the former pooled fit of 05 put one surface under all $\lambda$ and is
+attenuated (random: $-0.684$ vs.\ $-0.763$ with the same $k = 10$ basis).
 
 \begin{center}
 \small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lcccccc@{}}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}ccccccc@{}}
 \toprule
-$\lambda$ & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 1.0 \\
+$\lambda$ & \hd{$\beta_{\text{DP}}$ (odds)}{te $12 \times 12$} & odds drop
+  & \hd{$\beta_{\text{DP}}$, $k = 10$}{(as in 05)}
+  & \hd{$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$}{(pp)}
+  & \hd{\% of plane}{with gap $> 0.10$} & \hd{mean gap in}{that band (pp)} \\
 \midrule
-$\beta_{\text{DP}}$ (odds)      & $-0.482$ & $-0.589$ & $-0.753$ & $-0.851$ & $-0.922$ & $-0.980$ \\
-odds drop                        & $-38\%$ & $-45\%$ & $-53\%$ & $-57\%$ & $-60\%$ & $-62\%$ \\
-$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$ (pp) & 4.0 & 4.5 & 5.5 & 6.0 & 6.3 & 6.6 \\
-\% of plane with gap $>0.10$     & 18.1 & 20.3 & 20.8 & 20.8 & 21.2 & 21.5 \\
-mean gap inside that band (pp)   & 16.5 & 17.6 & 21.3 & 23.4 & 24.6 & 25.8 \\
-$MSP_c$: GSS $\to$ DP            & .085$\to$.156 & .088$\to$.157 & .082$\to$.153 & .079$\to$.151 & .078$\to$.147 & .077$\to$.148 \\
+0.5 & \ci{-0.499}{-0.540}{-0.434} & $-39\%$ & $-0.482$ & \ci{3.98}{3.86}{4.05} & 18.1 & 16.5 \\
+0.6 & \ci{-0.630}{-0.692}{-0.536} & $-47\%$ & $-0.589$ & \ci{4.52}{4.39}{4.60} & 20.3 & 17.6 \\
+0.7 & \ci{-0.834}{-0.934}{-0.689} & $-57\%$ & $-0.753$ & \ci{5.46}{5.29}{5.58} & 20.8 & 21.3 \\
+0.8 & \ci{-0.971}{-1.101}{-0.787} & $-62\%$ & $-0.851$ & \ci{5.95}{5.78}{6.08} & 20.8 & 23.4 \\
+0.9 & \ci{-1.054}{-1.216}{-0.837} & $-65\%$ & $-0.922$ & \ci{6.30}{6.11}{6.44} & 21.2 & 24.6 \\
+1.0 & \ci{-1.118}{-1.306}{-0.881} & $-67\%$ & $-0.980$ & \ci{6.57}{6.37}{6.72} & 21.5 & 25.8 \\
+\midrule
+mean & \ci{-0.851}{-0.963}{-0.697} & $-57\%$ & $-0.763$ & \ci{5.46}{5.30}{5.57} & & \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+\noindent Random seeding; 95\% run-bootstrap intervals below each estimate. The last two
+columns come from 06 and have no intervals yet. $MSP_c$, GSS $\to$ DP: .085$\to$.156,
+.088$\to$.157, .082$\to$.153, .079$\to$.151, .078$\to$.147 and .077$\to$.148 for
+$\lambda = 0.5, \dots, 1.0$.
+
 \paragraph{Reading.} \textbf{The premium survives the bottom-up engine across the whole
-$\lambda$ band and for all five seeding strategies}: rewiring the ties lowers the odds of
-adoption by 38--62\% under random seeding (pooled $\beta_{\text{DP}} = -0.684$,
-$-50\%$). It grows smoothly and monotonically with $\lambda$ (steps per decile $-0.107$,
-$-0.164$, $-0.098$, $-0.071$, $-0.058$): the stronger social proof is, the more the real
-fabric matters.
+$\lambda$ band and for all five seeding strategies, and no interval comes near zero}:
+rewiring the ties lowers the odds of adoption by 39--67\% under random seeding
+($\lambda$-mean $\beta_{\text{DP}} = -0.851$ $[-0.963, -0.697]$, $-57\%$; probability
+scale 5.46 pp $[5.30, 5.57]$). It grows smoothly and monotonically with $\lambda$ (steps
+per decile $-0.131$, $-0.203$, $-0.137$, $-0.083$, $-0.063$): the stronger social proof is,
+the more the real fabric matters. The honest intervals are 7--17 times the naive BAM
+standard errors for the hub strategies and 64--235 times for random and marginal, whose
+primary seed is a lottery.
 
 $\lambda$ is a free coupling, not a calibrated constant, so the paper should report
 results as functions of $\lambda$. Two scales must be read together:
 \begin{itemize}
-  \item on the \textbf{odds} scale the premium roughly doubles over the band
-    ($-0.48 \to -0.98$);
-  \item on the \textbf{probability} scale it grows by $+65\%$ (4.0 $\to$ 6.6 pp).
+  \item on the \textbf{odds} scale the premium more than doubles over the band
+    ($-0.50 \to -1.12$; $-0.48 \to -0.98$ with the $k = 10$ surface);
+  \item on the \textbf{probability} scale it grows by $+65\%$ (4.0 $\to$ 6.6 pp), with
+    much tighter intervals and no dependence on the surface basis.
 \end{itemize}
 Part of the difference is a link effect (cells with $\Phi > 0.95$ go from 40\% to 61\% of
 the plane for GSS, from 32\% to 48\% for DP, and the logit inflates a given probability gap
@@ -815,61 +875,141 @@ there), but most of the growth is genuine structural separation.
     ($MSP_c \approx 0.077$--$0.088$ for GSS vs.\ $0.147$--$0.157$ for DP). The absolute
     shift is the most stable way to state the premium: 0.069--0.071 across the band
     under random seeding ($\pm 2\%$), and 0.060--0.076 across all five strategies.
-  \item \textbf{Channel split.} The rational channel is flat in $\lambda$
-    ($\beta \approx -0.146$) while the social channel carries the growth
+  \item \textbf{Channel split} (06, $k = 10$ surface). The rational channel is flat in
+    $\lambda$ ($\beta \approx -0.146$) while the social channel carries the growth
     ($-0.21 \to -0.37$). The rational channel is \emph{not} topology-blind: its
     adopters still need one gate-passing contact, and DP ties are socially more distant
     (mean Gower $0.229 \to 0.325$), so the gate rejects more often.
 \end{enumerate}
 
-\paragraph{Seeding strategies.} Pooled and endpoint $\beta_{\text{DP}}$, the
-probability-scale gap and the tipping shift, by strategy (mean seed-cluster size in
-parentheses):
+\paragraph{Seeding strategies.} $\lambda$-mean and endpoint $\beta_{\text{DP}}$
+(te $12 \times 12$), the $\lambda$-mean probability-scale gap and the tipping shift, by
+strategy (mean seed-cluster size in parentheses; 95\% run-bootstrap intervals):
 
 \begin{center}
 \small
-\begin{tabular}{@{}lccccc@{}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccccc@{}}
 \toprule
-strategy & pooled $\beta_{\text{DP}}$ & $\beta_{\text{DP}}$, $\lambda = 0.5$ & $\beta_{\text{DP}}$, $\lambda = 1.0$ & gap (pp) & $MSP_c$ shift \\
+strategy & \hd{$\beta_{\text{DP}}$}{$\lambda$-mean} & \hd{$\beta_{\text{DP}}$}{$\lambda = 0.5$}
+  & \hd{$\beta_{\text{DP}}$}{$\lambda = 1.0$} & \hd{$k = 10$}{$\lambda$-mean}
+  & \hd{gap (pp)}{$\lambda$-mean} & \hd{$MSP_c$}{shift} \\
 \midrule
-central (28.7)   & $-0.758$ & $-0.517$ & $-1.179$ & 4.0--6.9 & .060--.068 \\
-closeness (28.0) & $-0.757$ & $-0.520$ & $-1.175$ & 4.0--6.8 & .062--.076 \\
-eigen (28.0)     & $-0.747$ & $-0.509$ & $-1.169$ & 4.0--6.8 & .066--.073 \\
-random (28.4)    & $-0.684$ & $-0.482$ & $-0.980$ & 4.0--6.6 & .069--.071 \\
-marginal (28.4)  & $-0.685$ & $-0.490$ & $-0.955$ & 4.0--6.4 & .068--.074 \\
+\multicolumn{7}{@{}l}{\emph{hub budget} (main): $0.40 \times$ the network's maximum degree} \\
+central (28.7)   & \ci{-0.965}{-0.976}{-0.954} & \ci{-0.533}{-0.540}{-0.526} & \ci{-1.325}{-1.344}{-1.304} & $-0.877$ & \ci{5.61}{5.55}{5.68} & .060--.068 \\
+closeness (28.0)$^{a}$ & \ci{-0.965}{-0.976}{-0.954} & \ci{-0.536}{-0.543}{-0.529} & \ci{-1.322}{-1.340}{-1.303} & $-0.877$ & \ci{5.60}{5.54}{5.66} & .062--.076 \\
+eigen (28.0)$^{a}$     & \ci{-0.951}{-0.963}{-0.938} & \ci{-0.524}{-0.531}{-0.517} & \ci{-1.312}{-1.335}{-1.291} & $-0.865$ & \ci{5.54}{5.47}{5.61} & .066--.073 \\
+random (28.4)    & \ci{-0.851}{-0.963}{-0.697} & \ci{-0.499}{-0.540}{-0.434} & \ci{-1.118}{-1.306}{-0.881} & $-0.763$ & \ci{5.46}{5.30}{5.57} & .069--.071 \\
+marginal (28.4)  & \ci{-0.852}{-0.965}{-0.700} & \ci{-0.508}{-0.549}{-0.445} & \ci{-1.091}{-1.282}{-0.865} & $-0.762$ & \ci{5.44}{5.29}{5.54} & .068--.074 \\
+\midrule
+\multicolumn{7}{@{}l}{\emph{own budget} (former rule): $0.40 \times$ the degree of the primary} \\
+random (11.6)    & \ci{-0.791}{-0.978}{-0.607} & \ci{-0.512}{-0.603}{-0.411} & \ci{-1.012}{-1.291}{-0.763} & $-0.723$ & \ci{5.22}{4.49}{5.94} & --- \\
+marginal (2.8)   & \ci{-0.659}{-0.873}{-0.482} & \ci{-0.488}{-0.645}{-0.354} & \ci{-0.724}{-0.989}{-0.521} & $-0.615$ & \ci{4.61}{3.49}{5.86} & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent{\footnotesize $^{a}$ Run under the own rule; their primaries are near-hubs (see
+\emph{Seed matching}). Central is identical under both rules.}
+
+\medskip
+\noindent Paired contrasts (same run in both strategies). On $\beta$, a negative value means
+the first strategy has the \emph{larger} premium; on the gap, a positive one does:
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+contrast & $\Delta\beta_{\text{DP}}$, $\lambda$-mean & $\lambda = 0.5$ & $\lambda = 1.0$ & $\Delta$ gap (pp), $\lambda$-mean \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{hub budget}} \\
+central $-$ random      & \ci{-0.114}{-0.271}{-0.002} & \ci{-0.034}{-0.098}{0.008} & \ci{-0.207}{-0.448}{-0.014} & \ci{0.15}{0.05}{0.31} \\
+random $-$ marginal     & \ci{0.001}{-0.246}{0.249} & \ci{0.009}{-0.086}{0.106} & \ci{-0.026}{-0.404}{0.362} & \ci{0.02}{-0.15}{0.20} \\
+central $-$ closeness   & \ci{0.000}{-0.009}{0.010} & \ci{0.003}{-0.003}{0.008} & \ci{-0.003}{-0.017}{0.013} & \ci{0.02}{-0.04}{0.07} \\
+central $-$ eigen       & \ci{-0.014}{-0.024}{-0.003} & \ci{-0.009}{-0.015}{-0.002} & \ci{-0.012}{-0.030}{0.004} & \ci{0.08}{0.02}{0.14} \\
+closeness $-$ eigen     & \ci{-0.014}{-0.026}{-0.003} & \ci{-0.012}{-0.019}{-0.004} & \ci{-0.010}{-0.028}{0.011} & \ci{0.06}{-0.01}{0.13} \\
+\midrule
+\multicolumn{5}{@{}l}{\emph{own budget, and the effect of the budget}} \\
+central $-$ random (own)   & \ci{-0.174}{-0.356}{0.010} & \ci{-0.021}{-0.121}{0.071} & \ci{-0.313}{-0.564}{-0.037} & \ci{0.40}{-0.35}{1.12} \\
+random $-$ marginal (own)  & \ci{-0.133}{-0.397}{0.162} & \ci{-0.024}{-0.200}{0.161} & \ci{-0.288}{-0.645}{0.096} & \ci{0.61}{-0.87}{2.01} \\
+random: hub $-$ own        & \ci{-0.060}{-0.195}{0.055} & \ci{0.013}{-0.056}{0.079} & \ci{-0.105}{-0.303}{0.059} & \ci{0.25}{-0.51}{0.96} \\
+marginal: hub $-$ own      & \ci{-0.193}{-0.401}{-0.005} & \ci{-0.020}{-0.156}{0.127} & \ci{-0.367}{-0.648}{-0.122} & \ci{0.83}{-0.42}{1.95} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \begin{itemize}
-  \item The three \textbf{hub strategies are interchangeable} (per-$\lambda$
-    differences $\le 0.02$), even though closeness and eigen are not node-matched between
-    GSS and DP: the hub premium is not an artefact of unequal seed budgets.
-  \item \textbf{Random and marginal coincide} (pooled $-0.684$ vs.\ $-0.685$; run-level
-    gap 5.46 vs.\ 5.44 pp): with an equal budget, a typical and a peripheral primary
-    seed equally well.
-  \item The \textbf{hubs add a small premium} (pooled $-0.76$ vs.\ $-0.68$) that grows with
-    $\lambda$ (at $\lambda = 1$: $-1.18$ vs.\ $-0.97$); run-level central $-$ random
-    $= 0.15$ pp, 95\% CI $[0.02, 0.28]$.
+  \item \textbf{The three hub strategies are interchangeable.} Central and closeness do
+    not differ ($\Delta\beta = 0.000$ $[-0.009, 0.010]$); eigen's premium is
+    distinguishably smaller, but by 1.5\% of $\beta$ (0.08 pp). The hub premium is also
+    the most precisely estimated (interval width $\approx 0.02$ in $\beta$): the
+    primary is fixed by the network, so runs differ only in network and dynamics.
+  \item \textbf{Random and marginal coincide} under the equal budget
+    ($\Delta\beta = 0.001$ $[-0.246, 0.249]$; gap $0.02$ pp $[-0.15, 0.20]$): a typical
+    and a peripheral primary seed equally well. Their premium is ten times less precise
+    than the hubs' (width $\approx 0.27$): where the primary lands is a lottery.
+  \item \textbf{The hubs add a small premium, borderline on the odds scale.} Central
+    $-$ random is $-0.114$ $[-0.271, -0.002]$ on the $\lambda$-mean and $0.15$ pp
+    $[0.05, 0.31]$ on the gap (3\% of the 5.5-pp premium; $t$ interval $[0.02, 0.28]$). It
+    grows with $\lambda$: indistinguishable from zero at $\lambda = 0.5$ and
+    $0.7$--$0.8$, distinguishable at $\lambda \ge 0.9$ ($-0.207$ $[-0.448, -0.014]$ at
+    $\lambda = 1$; 0.31 pp $[0.12, 0.52]$) and, barely, at $\lambda = 0.6$.
+  \item \textbf{Under the own budget no strategy contrast is distinguishable}
+    ($\lambda$-mean): central $-$ random 0.40 pp $[-0.35, 1.12]$, random $-$ marginal
+    0.61 pp $[-0.87, 2.01]$. Equalizing the budget raises marginal's premium
+    ($\Delta\beta = -0.193$ $[-0.401, -0.005]$; $-0.367$ $[-0.648, -0.122]$ at
+    $\lambda = 1$): its smaller premium was mostly seed size (2.8 seeds), while random's
+    change ($-0.060$ $[-0.195, 0.055]$) is not distinguishable. On the probability scale
+    neither budget effect is.
+  \item \textbf{Which budget to report.} The hub budget is the main one for the paper: with
+    equal seed counts the strategies differ only in where they seed, so the contrasts
+    isolate position; the own budget confounds position with size (2.8, 11.6 and 28.7
+    seeds) and goes to the SM as a robustness row. Caveat: with the hub budget a
+    low-degree primary's cluster reaches its second neighborhood, so the cluster's
+    geometry differs too, not only its center.
 \end{itemize}
 
 \paragraph{A reverse-premium corner (conditional, not universal).} In a small region ---
 high openness ($h \gtrsim 0.6$, median 0.83) and moderate attractiveness
-($\Gamma \approx 0.275$--$0.45$) --- \textbf{DP beats GSS}. Counting cells where the gap is
-below $-2$ pp:
+($\Gamma \approx 0.275$--$0.45$) --- \textbf{DP beats GSS}. To tell it from noise, each
+cell gets the paired $z$ of its gap over the 96 runs, and counts as a \textbf{robust DP win}
+only if it clears a one-sided \emph{simultaneous} threshold: max-$T$ over the 1025 cells of
+its strategy $\times$ $\lambda$ panel, familywise 5\%, from the same run bootstrap
+($z < -3.6$ to $-3.8$, against $-2$ pointwise; \code{premium\_reverse\_corner.csv}). With the
+hub budget:
 \begin{itemize}
-  \item the same in every strategy: at $\lambda = 0.5$--$0.7$ (2.6--3.4\%, 2.4--2.6\% and
-    0.8\% of the plane, up to $\approx$7, 5.5 and 3 pp), gone at $\lambda \ge 0.8$
-    ($\le 0.3$ pp).
+  \item \textbf{Robust at $\lambda = 0.5$--$0.7$, identically in all five strategies.}
+    47--48, 59--61 and 38 corner cells clear the threshold, including \emph{every} cell
+    where DP wins by more than 2 pp (2.6--3.4\%, 2.4--2.6\% and 0.8\% of the plane, up to
+    7.0, 5.8 and 3.0 pp). At $\lambda = 0.5$ it spills just past the box
+    ($\Gamma = 0.475$--$0.525$, $\le 1$ pp).
+  \item \textbf{Detectable but negligible at $\lambda = 0.8$} (12--13 corner cells,
+    $\le 0.14$ pp, plus 8 cells at $\Gamma = 0.25$ with $\le 0.35$ pp); at
+    $\lambda \ge 0.9$ at most 0.04 pp remains.
+  \item \textbf{The low-IUL strip} ($\Gamma \le 0.1$, DP ahead by $\le 0.05$ pp) is noise
+    for the hub strategies and random: no cell clears the threshold (up to 19 pass
+    pointwise). For marginal it is systematic (30--48 cells per $\lambda$, $h \gtrsim
+    0.5$) but negligible ($\le 0.14$ pp): an effect of the seed cluster's geometry, not a
+    reversal of the premium.
+  \item \textbf{Marginal with the own budget at $\lambda \ge 0.7$: noise.} DP ``wins'' by
+    up to 15 pp in cells scattered over the whole plane, but no cell clears the threshold:
+    with 2.8 seeds the cascade either takes off or does not, and a few runs drive the cell
+    means. (Random with the own budget behaves alike, more mildly: $\le 1.3$ pp, no robust
+    cell from $\lambda = 0.7$ on.) This was the corner's apparent persistence at high
+    $\lambda$; with an equal budget it disappears.
 \end{itemize}
-The mechanism is Tur (2024)'s own: when the gate is wide open, homophily \emph{isolates
-the resistant among the resistant}, whereas random mixing seats adopters next to reluctant
-agents and converts them. Once influence stops being similarity-gated, the sign of the
-structural effect can flip (the similarity-vs-diversity question). The corner appears only where $\Gamma + \lambda \lesssim 1$, i.e.\ where a structurally
-immune tail exists; this is a lead, not an established mechanism (it did not hold under
-the inverted $q$). The corner keeps the premium
-claim properly conditional, but it is a weak-coupling feature and should not be presented
-as present at every $\lambda$.
+The corner tracks the immunity boundary. Its strong part ($> 2$ pp) lies at
+$\Gamma + \lambda \approx 0.85$--$0.975$, where a small immune tail remains (13 to 1\% of
+agents), and the robust cells drift to lower $\Gamma$ as $\lambda$ grows
+($\Gamma = 0.35$--$0.45$ at $\lambda = 0.5$, $0.275$--$0.375$ at $0.7$, $0.275$--$0.3$ at
+$0.8$). There the most averse non-immune agents need nearly all of their neighbors to
+adopt ($\tau_i^{*}$ close to~1). The mechanism is Tur (2024)'s own: when the gate is wide
+open, homophily \emph{isolates the resistant among the resistant}, whereas random mixing
+seats adopters next to reluctant agents and converts them. Once influence stops being
+similarity-gated, the sign of the structural effect can flip (the similarity-vs-diversity
+question). This is a lead, not an established mechanism (it did not hold under the inverted
+$q$). The corner keeps the premium claim properly conditional, but it is a weak-coupling
+feature and should not be presented as present at every $\lambda$.
 
 \paragraph{Immunity under the correct $q$.} Agents with $q_i > \Gamma + \lambda$ can never
 adopt. At $\Gamma = 0$ they are 66, 47, 32, 16, 6 and 0\% of agents for
@@ -891,14 +1031,26 @@ The inverted-$q$ outputs are archived in \code{output/**/\_qinverted/} (closenes
 references: the pre-seed-fix runs in \code{\_prefix/}, which match the seed-matched code
 for the deterministic strategies: central $-0.926$ vs.\ $-0.928$).
 
-\paragraph{Still open.} The BAM standard errors ($\sim 5 \times 10^{-4}$) treat every cell
-as independent and are far too optimistic: the unit of replication is the run (96 seed
-draws per topology), so the interval on $\beta_{\text{DP}}$ must come from a run-level
-bootstrap (planned, with a joint BAM of the five strategies). Until then, differences
-between strategies of a few hundredths are not interpretable. The legacy reference
-($\beta = -0.850$), the $\lambda \approx 0.7$ calibration (\S\ref{sec:calibration}) and the
-immunity table in \S\ref{sec:immunity} were computed with the inverted $q$ and are pending
-recomputation.
+\paragraph{Still open.}
+\begin{itemize}
+  \item \textbf{Closeness and eigen with the hub budget.} Their runs use $0.40 \times$ the
+    degree of their own primary, unequal between GSS and DP in $\approx 45\%$ of runs.
+    Rerun pending; the hub contrasts are $\le 0.014$ in $\beta$, so no conclusion is
+    expected to change.
+  \item \textbf{What the intervals cover.} The bootstrap treats the 96 networks as
+    exchangeable draws from the fitted ERGM. They share the same 1000 imputed agents (the
+    $q$ composition is fixed), so the intervals cover tie formation, the seed draw and the
+    dynamics, not survey sampling of the agents or uncertainty in the ERGM coefficients.
+  \item \textbf{Specification.} The level of $\beta_{\text{DP}}$ depends on the surface
+    basis (3--13\% between $k = 10$ and te $12 \times 12$). That is not in the bootstrap
+    intervals; the contrasts are robust to it, and the link-free gap, which does not depend
+    on it, should lead in the paper.
+  \item \textbf{No intervals yet} for the band statistics, the channel split and the
+    $MSP_c$ shift of 06; the same bootstrap weights would give them.
+  \item The legacy reference ($\beta = -0.850$) and the $\lambda \approx 0.7$ calibration
+    (\S\ref{sec:calibration}) were computed with the inverted $q$ and are pending
+    recomputation. (The immunity table of \S\ref{sec:immunity} is now recomputed.)
+\end{itemize}
 
 % ============================================================================
 \section{To verify before writing any of this into the paper}
