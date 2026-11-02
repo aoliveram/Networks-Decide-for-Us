@@ -1,8 +1,8 @@
 % ============================================================================
 % Making NDFU bottom-up: the unified adoption rule and its two variants
 % Internal design note — NO changes to the engine have been made.
-% Companion scripts: scripts/06_lambda_calibration.R (lambda sweep, linear variant)
-%                    scripts/05_unified_diffusion_sweep.R (engine + structural premium)
+% Companion scripts: scripts/05_unified_diffusion_sweep.R (engine + structural premium),
+%                    06_premium_sensitivity.R and 06b_premium_bootstrap.R (analysis)
 % (The former minimal-test script was removed 2026-08-31; its tau*
 %  diagnostic now lives in script 10.)
 % History: written 2026-08-11 (markdown); Tur's exact functional form
@@ -270,7 +270,7 @@ Rearranging \eqref{eq:unified}, adoption requires $\Ee_i(t) \ge \tau_i^{*}$ with
     ($4\times4$) threshold configurations to a 1-D $\lambda$ sweep.
   \item The (IUL $\times$ MSP) heatmaps will not be identical: thresholds now co-vary
     with $q$. Whether the phase structure survives is an empirical question --- answered:
-    it does (see \S\ref{sec:calibration}).
+    it does (see \S\ref{sec:premiumresult}).
 \end{itemize}
 
 \subsection{Where social distance enters (explicitly)}
@@ -683,21 +683,21 @@ Exposure tradition & \checkmark\ Valente/Granovetter fractional; \code{netdiffus
 Preferences-fixed framing & \checkmark\ clean (``situational utility rises''; Brock--Durlauf) & defensible, but against the grain of the very citation it borrows (\S\ref{sec:preferences}) \\
 Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$) --- strong assumption, but interesting and testable \\
 Immunity & $q_i > \Gamma + \lambda$, degree-independent (\S\ref{sec:immunity}) & $q_i > \Gamma k_i^{\gamma}$, \textbf{degree-dependent} (averse $+$ poorly connected) --- arguably more realistic \\
-Empirical status & \checkmark\ \textbf{already validated}: replicates the current model's heatmaps; $\lambda \approx 0.7$ identified unimodally & not yet run; $\gamma$ to be calibrated with the same procedure \\
+Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & not yet run \\
 Hub behavior & bounded ($\Ee \le 1$) & at high $\gamma$, a saturated hub receives reinforcement $\sim k^{\gamma}$ --- may over-fire on dense networks \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
 \paragraph{Recommendation.} Use the \textbf{linear-fractional variant as the primary
-operationalization} (validated, Valente-compatible, microeconomically clean, $\lambda$
-identified from the legacy data), and the \textbf{$\gamma$-form as the formal bridge to
-Tur and as a robustness check}: present the exact nesting (\S\ref{sec:turnesting}) in the
-text, and run a short $\gamma$ sweep --- calibrated with our own fit procedure, never by
-borrowing Tur's numbers --- to show that the conclusions do not hinge on the
-additive-vs-multiplicative composition. This keeps the best of both: the tradition and
-the validation of the linear form, and the exact nesting as an argument, without
-inheriting $\gamma$'s transportability trap.
+operationalization} (run on the full design, Valente-compatible, microeconomically
+clean, $\lambda$ swept rather than calibrated), and the \textbf{$\gamma$-form as the
+formal bridge to Tur and as a robustness check}: present the exact nesting
+(\S\ref{sec:turnesting}) in the text, and run a short $\gamma$ sweep --- never borrowing
+Tur's numbers --- to show that the conclusions do not hinge on the
+additive-vs-multiplicative composition. This keeps the best of both: the tradition of
+the linear form, and the exact nesting as an argument, without inheriting $\gamma$'s
+transportability trap.
 
 % ============================================================================
 \section{Side-by-side with the current model and Tur}
@@ -717,44 +717,36 @@ Heterogeneity source & $q$ empirical $+$ $\tau$ artificial & $u$ artificial & \t
 Free params (beyond $\Gamma$, $h$) & $\tau_{\text{mean}}$, $\tau_{\text{sd}}$ & $\gamma$ & $\lambda$ (linear) or $\gamma$ ($\gamma$-form) \\
 Nests Tur 2024? & no & --- & \textbf{exactly via the $\gamma$-form} (\S\ref{sec:turnesting}); linear form only qualitatively \\
 \code{netdiffuseR} as-is? & yes & no & \textbf{yes} (fractional or count \code{threshold.dist}) \\
-Main risk & Bianchi critique & distance-blind & heatmaps shift with the $\tau$--$q$ coupling (checked: they don't, \S\ref{sec:calibration}) \\
+Main risk & Bianchi critique & distance-blind & results depend on the free $\lambda$ (reported as functions of $\lambda$, \S\ref{sec:calibration}) \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
 % ============================================================================
-\section{Calibration notes and empirical status}
+\section{Empirical status: the coupling \texorpdfstring{$\lambda$}{lambda} and the premium}
 \label{sec:calibration}
 
 \begin{itemize}
-  \item Comparability anchor: the main-text configuration of the current engine is
-    $\tau \sim \mathcal{N}(0.40, 0.12)$. Under the linear-fractional variant,
+  \item \textbf{$\lambda$ is a free coupling, swept, not calibrated.} The study sweeps $\lambda \in \{0.5, 0.6,
+    \dots, 1.0\}$ and reports every result as a function of $\lambda$
+    (\S\ref{sec:premiumresult}). Under the linear-fractional variant
     $\tau_i^{*} = \max\{0, (q_i - \Gamma)/\lambda\}$, so the implied threshold
-    distribution \emph{depends on $\Gamma$ and the empirical $q$ distribution}. The
-    sweep script reports, per $(\lambda, \Gamma)$: mean and SD of $\tau^{*}$, share of
-    instigators ($\tau^{*} = 0$), and share of immunes ($\tau^{*} > 1$).
-  \item \textbf{Empirical status (linear variant).} An initial minimal test (12 networks,
-    coarse grid; script since removed) showed the qualitative phase structure survives.
-    The extended sweep (\code{10\_unified\_model\_sweep.R}: 96 GSS networks, the engine's
-    full $41 \times 13$ grid, $\lambda \in \{0.3, 0.4, \dots, 1.5\}$, random seeding,
-    665{,}184 simulations) found a clean \textbf{unimodal best fit to the current model
-    at $\lambda \approx 0.7$} ($r = 0.94$ total, $0.98$ rational, $0.93$ social against
-    the $\tau \sim \mathcal{N}(0.40, 0.12)$ surface; $\lambda \in [0.6, 0.9]$ all
-    $r > 0.91$). Known differences: tipping one MSP-grid step earlier, and the immunity
-    ceiling at low $\lambda$ (\S\ref{sec:immunity}).
-  \item On the $\lambda$ range: $\{0.3, \dots, 1.5\}$ was a pragmatic bracketing (the
-    minimal test showed 0.5 and 1.0 straddling the current model and 2.0 clearly too
-    strong); the sweep's unimodal peak with degradation at \emph{both} flanks justifies
-    the endpoints ex post. Theoretical landmark: $\lambda = 1$ is the \textbf{immunity
-    boundary} --- since $q \le 1$, $\lambda \ge 1$ implies zero structurally-immune
-    agents at every $\Gamma > 0$, while $\lambda < 1$ leaves an immune share
-    $\Pr(q > \Gamma + \lambda)$. There is no theoretical bound at $\lambda = 1$
-    ($\lambda$ is a utility contribution, like Brock--Durlauf's unbounded $J$);
-    production runs use the calibrated band $[0.5, 0.9]$.
+    distribution depends on $\Gamma$, $\lambda$ and the empirical $q$ distribution.
+  \item \textbf{Why this range.} $\lambda = 1$ is the \textbf{immunity boundary}: since
+    $q \le 1$, $\lambda \ge 1$ leaves no structurally immune agent at any $\Gamma > 0$,
+    while $\lambda < 1$ leaves an immune share $\Pr(q > \Gamma + \lambda)$
+    (\S\ref{sec:immunity}). At $\lambda = 0.5$ two thirds of the agents are already
+    immune at $\Gamma = 0$. There is no theoretical bound at $\lambda = 1$ ($\lambda$ is a utility
+    contribution, like Brock--Durlauf's unbounded $J$).
+  \item \textbf{Retired: the calibration against the legacy engine.} An earlier sweep over
+    $\lambda$ from 0.3 to 1.5 (random seeding) found a best fit to the legacy surface ($\tau \sim \mathcal{N}(0.40, 0.12)$, $\beta_{\text{DP}} = -0.850$) at
+    $\lambda \approx 0.7$. Both engines read the propensity score as $q$ (the inverted-$q$
+    bug), so it compared two invalid surfaces, and the study does not need a calibrated
+    $\lambda$. Neither $\lambda \approx 0.7$ nor $-0.850$ should be cited (retired
+    2026-11-02).
   \item Still pending: the mirror $\gamma$-form sweep (count threshold
-    $\lceil (q_i/\Gamma)^{1/\gamma} \rceil$ on the same machinery, $\gamma$ calibrated by
-    the same fit procedure), the remaining seeding strategies, and the ATP/innovation
-    system.
+    $\lceil (q_i/\Gamma)^{1/\gamma} \rceil$ on the same machinery) and the
+    ATP/innovation system.
 \end{itemize}
 
 \subsection{The structural premium survives the unified rule}
@@ -826,22 +818,24 @@ $\lambda$ & \hd{$\beta_{\text{DP}}$ (odds)}{te $12 \times 12$} & odds drop
   & \hd{$\bar\Phi_{\text{GSS}} - \bar\Phi_{\text{DP}}$}{(pp)}
   & \hd{\% of plane}{with gap $> 0.10$} & \hd{mean gap in}{that band (pp)} \\
 \midrule
-0.5 & \ci{-0.499}{-0.540}{-0.434} & $-39\%$ & $-0.482$ & \ci{3.98}{3.86}{4.05} & 18.1 & 16.5 \\
-0.6 & \ci{-0.630}{-0.692}{-0.536} & $-47\%$ & $-0.589$ & \ci{4.52}{4.39}{4.60} & 20.3 & 17.6 \\
-0.7 & \ci{-0.834}{-0.934}{-0.689} & $-57\%$ & $-0.753$ & \ci{5.46}{5.29}{5.58} & 20.8 & 21.3 \\
-0.8 & \ci{-0.971}{-1.101}{-0.787} & $-62\%$ & $-0.851$ & \ci{5.95}{5.78}{6.08} & 20.8 & 23.4 \\
-0.9 & \ci{-1.054}{-1.216}{-0.837} & $-65\%$ & $-0.922$ & \ci{6.30}{6.11}{6.44} & 21.2 & 24.6 \\
-1.0 & \ci{-1.118}{-1.306}{-0.881} & $-67\%$ & $-0.980$ & \ci{6.57}{6.37}{6.72} & 21.5 & 25.8 \\
+0.5 & \ci{-0.499}{-0.540}{-0.434} & $-39\%$ & $-0.482$ & \ci{3.98}{3.86}{4.05} & \ci{18.1}{17.6}{18.4} & \ci{16.5}{16.2}{16.7} \\
+0.6 & \ci{-0.630}{-0.692}{-0.536} & $-47\%$ & $-0.589$ & \ci{4.52}{4.39}{4.60} & \ci{20.3}{19.0}{20.7} & \ci{17.6}{17.3}{18.0} \\
+0.7 & \ci{-0.834}{-0.934}{-0.689} & $-57\%$ & $-0.753$ & \ci{5.46}{5.29}{5.58} & \ci{20.8}{20.3}{21.1} & \ci{21.3}{20.9}{21.7} \\
+0.8 & \ci{-0.971}{-1.101}{-0.787} & $-62\%$ & $-0.851$ & \ci{5.95}{5.78}{6.08} & \ci{20.8}{20.6}{21.1} & \ci{23.4}{22.8}{23.9} \\
+0.9 & \ci{-1.054}{-1.216}{-0.837} & $-65\%$ & $-0.922$ & \ci{6.30}{6.11}{6.44} & \ci{21.2}{20.8}{22.4} & \ci{24.6}{23.8}{25.2} \\
+1.0 & \ci{-1.118}{-1.306}{-0.881} & $-67\%$ & $-0.980$ & \ci{6.57}{6.37}{6.72} & \ci{21.5}{21.1}{21.8} & \ci{25.8}{25.2}{26.3} \\
 \midrule
-mean & \ci{-0.851}{-0.963}{-0.697} & $-57\%$ & $-0.763$ & \ci{5.46}{5.30}{5.57} & & \\
+mean & \ci{-0.851}{-0.963}{-0.697} & $-57\%$ & $-0.763$ & \ci{5.46}{5.30}{5.57} & \ci{20.4}{20.0}{20.8} & \ci{21.5}{21.1}{21.9} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent Random seeding; 95\% run-bootstrap intervals below each estimate. The last two
-columns come from 06 and have no intervals yet. $MSP_c$, GSS $\to$ DP: .085$\to$.156,
+\noindent Random seeding; 95\% run-bootstrap intervals below each estimate (the last two
+columns are the band statistics of 06). $MSP_c$, GSS $\to$ DP: .085$\to$.156,
 .088$\to$.157, .082$\to$.153, .079$\to$.151, .078$\to$.147 and .077$\to$.148 for
-$\lambda = 0.5, \dots, 1.0$.
+$\lambda = 0.5, \dots, 1.0$; the shift, $.071$ $[.065, .073]$, $.069$ $[.063, .075]$,
+$.071$ $[.065, .072]$, $.071$ $[.065, .073]$, $.069$ $[.062, .074]$ and $.071$
+$[.066, .074]$.
 
 \paragraph{Reading.} \textbf{The premium survives the bottom-up engine across the whole
 $\lambda$ band and for all five seeding strategies, and no interval comes near zero}:
@@ -869,15 +863,24 @@ there), but most of the growth is genuine structural separation.
 \begin{enumerate}
   \item \textbf{Where it lives.} The premium is concentrated in an L-shaped band along
     the tipping frontier: 18--22\% of the (IUL, MSP) plane, where GSS gains 16--26
-    percentage points. Outside that band the two topologies agree (both dead, or both
-    saturated). Structure decides where the system is undecided.
+    percentage points ($\lambda$-mean 20.4\% $[20.0, 20.8]$ and 21.5 pp $[21.1, 21.9]$;
+    no per-$\lambda$ interval is wider than $\pm 1.5$). Outside that band the two
+    topologies agree (both dead, or both saturated). Structure decides where the system
+    is undecided.
   \item \textbf{Tipping shift.} DP needs 1.8--1.9 times the social openness to tip
-    ($MSP_c \approx 0.077$--$0.088$ for GSS vs.\ $0.147$--$0.157$ for DP). The absolute
-    shift is the most stable way to state the premium: 0.069--0.071 across the band
-    under random seeding ($\pm 2\%$), and 0.060--0.076 across all five strategies.
-  \item \textbf{Channel split} (06, $k = 10$ surface). The rational channel is flat in
-    $\lambda$ ($\beta \approx -0.146$) while the social channel carries the growth
-    ($-0.21 \to -0.37$). The rational channel is \emph{not} topology-blind: its
+    ($MSP_c \approx 0.077$--$0.088$ for GSS vs.\ $0.147$--$0.157$ for DP; ratio
+    $\lambda$-mean $1.87$ $[1.81, 1.89]$). The absolute shift is flat in $\lambda$:
+    0.069--0.071 under random seeding, $\lambda$-mean $0.070$ $[0.065, 0.073]$. Its
+    per-$\lambda$ intervals are about $\pm 0.005$ wide, so the flatness is well inside the
+    noise; $MSP_c$ moves on the $1/24$ grid, so these intervals are coarse. The five
+    strategies cannot be told apart on this scale ($\lambda$-mean from $0.065$
+    $[0.064, 0.070]$ for central to $0.071$ $[0.065, 0.074]$ for marginal).
+  \item \textbf{Channel split} ($k = 10$ surface, as in 06). The rational channel is flat
+    in $\lambda$ ($\beta = -0.146$ $[-0.152, -0.138]$ at every $\lambda$; 1.81 pp
+    $[1.75, 1.86]$) while the social channel carries the growth ($-0.206$
+    $[-0.208, -0.202]$ $\to$ $-0.372$ $[-0.384, -0.357]$; 2.17 $\to$ 4.76 pp). The same
+    holds in all five strategies (rational $-0.140$ to $-0.154$). The rational channel
+    is \emph{not} topology-blind: its
     adopters still need one gate-passing contact, and DP ties are socially more distant
     (mean Gower $0.229 \to 0.325$), so the gate rejects more often.
 \end{enumerate}
@@ -893,13 +896,13 @@ strategy (mean seed-cluster size in parentheses; 95\% run-bootstrap intervals):
 \toprule
 strategy & \hd{$\beta_{\text{DP}}$}{$\lambda$-mean} & \hd{$\beta_{\text{DP}}$}{$\lambda = 0.5$}
   & \hd{$\beta_{\text{DP}}$}{$\lambda = 1.0$} & \hd{$k = 10$}{$\lambda$-mean}
-  & \hd{gap (pp)}{$\lambda$-mean} & \hd{$MSP_c$}{shift} \\
+  & \hd{gap (pp)}{$\lambda$-mean} & \hd{$MSP_c$ shift}{$\lambda$-mean} \\
 \midrule
-central (28.7)   & \ci{-0.965}{-0.976}{-0.954} & \ci{-0.533}{-0.540}{-0.526} & \ci{-1.325}{-1.344}{-1.304} & $-0.877$ & \ci{5.61}{5.55}{5.68} & .060--.068 \\
-closeness (28.7) & \ci{-0.961}{-0.973}{-0.951} & \ci{-0.535}{-0.542}{-0.529} & \ci{-1.320}{-1.340}{-1.299} & $-0.874$ & \ci{5.60}{5.54}{5.66} & .062--.074 \\
-eigen (28.7)     & \ci{-0.949}{-0.961}{-0.936} & \ci{-0.523}{-0.529}{-0.516} & \ci{-1.319}{-1.343}{-1.295} & $-0.864$ & \ci{5.55}{5.47}{5.62} & .065--.076 \\
-random (28.4)    & \ci{-0.851}{-0.963}{-0.697} & \ci{-0.499}{-0.540}{-0.434} & \ci{-1.118}{-1.306}{-0.881} & $-0.763$ & \ci{5.46}{5.30}{5.57} & .069--.071 \\
-marginal (28.4)  & \ci{-0.852}{-0.965}{-0.700} & \ci{-0.508}{-0.549}{-0.445} & \ci{-1.091}{-1.282}{-0.865} & $-0.762$ & \ci{5.44}{5.29}{5.54} & .068--.074 \\
+central (28.7)   & \ci{-0.965}{-0.976}{-0.954} & \ci{-0.533}{-0.540}{-0.526} & \ci{-1.325}{-1.344}{-1.304} & $-0.877$ & \ci{5.61}{5.55}{5.68} & \ci{.065}{.064}{.070} \\
+closeness (28.7) & \ci{-0.961}{-0.973}{-0.951} & \ci{-0.535}{-0.542}{-0.529} & \ci{-1.320}{-1.340}{-1.299} & $-0.874$ & \ci{5.60}{5.54}{5.66} & \ci{.067}{.065}{.071} \\
+eigen (28.7)     & \ci{-0.949}{-0.961}{-0.936} & \ci{-0.523}{-0.529}{-0.516} & \ci{-1.319}{-1.343}{-1.295} & $-0.864$ & \ci{5.55}{5.47}{5.62} & \ci{.068}{.064}{.071} \\
+random (28.4)    & \ci{-0.851}{-0.963}{-0.697} & \ci{-0.499}{-0.540}{-0.434} & \ci{-1.118}{-1.306}{-0.881} & $-0.763$ & \ci{5.46}{5.30}{5.57} & \ci{.070}{.065}{.073} \\
+marginal (28.4)  & \ci{-0.852}{-0.965}{-0.700} & \ci{-0.508}{-0.549}{-0.445} & \ci{-1.091}{-1.282}{-0.865} & $-0.762$ & \ci{5.44}{5.29}{5.54} & \ci{.071}{.065}{.074} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1017,11 +1020,6 @@ seeded $0.40 \times$ the degree of the primary, so central is the like-for-like 
     basis (3--13\% between $k = 10$ and te $12 \times 12$). That is not in the bootstrap
     intervals; the contrasts are robust to it, and the link-free gap, which does not depend
     on it, should lead in the paper.
-  \item \textbf{No intervals yet} for the band statistics, the channel split and the
-    $MSP_c$ shift of 06; the same bootstrap weights would give them.
-  \item The legacy reference ($\beta = -0.850$) and the $\lambda \approx 0.7$ calibration
-    (\S\ref{sec:calibration}) were computed with the inverted $q$ and are pending
-    recomputation. (The immunity table of \S\ref{sec:immunity} is now recomputed.)
 \end{itemize}
 
 % ============================================================================
