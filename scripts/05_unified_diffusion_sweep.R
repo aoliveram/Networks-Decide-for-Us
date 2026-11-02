@@ -293,7 +293,6 @@ message("Pooled (all lambdas, one intercept per lambda): beta_DP = ", round(pool
 write.csv(bind_rows(per_lambda |> mutate(lambda = as.character(lambda)),
                     pooled |> mutate(lambda = "pooled")),
           file.path(DATA_OUT, paste0("unified_premium_bam", SUFFIX, ".csv")), row.names = FALSE)
-message("(legacy engine reference: beta_DP = -0.850, OR = 0.43, -57% odds)")
 
 # ---------------------------------- plots -------------------------------------
 agg <- results |>

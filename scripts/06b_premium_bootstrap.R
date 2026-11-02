@@ -51,10 +51,17 @@
 #   - the reverse-premium corner: per cell, the paired z over the 96 runs, and
 #     a one-sided simultaneous (max-T) threshold per strategy x lambda panel
 #     from the same bootstrap; a cell is a ROBUST DP win only if it clears it
+#   - the statistics of 06, with intervals from the same bootstrap: the band
+#     (% of the plane where GSS leads by > 10 pp, and the mean gap there), the
+#     channel split (beta_DP and gap of rational and social adopters, k = 10
+#     surface as in 06) and the tipping shift (per IUL, the first MSP where
+#     Phi >= 0.5; averaged over the IUL levels where both topologies tip).
+#     MSP_c moves on the 1/24 grid, so its intervals are coarse
 #
 # Reads  output/05_unified_diffusion/unified_premium_results_<s>.csv
 # Writes output/06b_premium_bootstrap/premium_bootstrap_{beta,gap,contrasts}.csv
 #        output/06b_premium_bootstrap/premium_reverse_corner{,_cells}.csv
+#        output/06b_premium_bootstrap/premium_bootstrap_band.csv
 #        output/06b_premium_bootstrap/premium_bootstrap_replicates.csv
 #        plots/06b_premium_bootstrap/premium_bootstrap.pdf
 #
@@ -211,11 +218,13 @@ message(format(Sys.time(), "%H:%M:%S"), "  Loading ", length(V), " variants: ",
         paste(V, collapse = ", "))
 N_NODES <- NULL; LAMBDAS <- NULL; RUNS <- NULL
 Y <- list()      # Y[[v]][[l]]: adopters, rows = cells (GSS then DP), cols = runs
+YR <- list(); YS <- list()   # the same for rational and social adopters
 CELLS <- NULL    # the (G, h) of the 1025 GSS rows (identical order in DP rows)
 for (i in seq_len(nrow(VARIANTS))) {
   v <- VARIANTS$variant[i]
   d <- fread(VARIANTS$path[i], select = c("topology", "lambda", "run_id", "social_distance_h",
-                                          "innovation_iul_Gamma", "num_adopters", "N_nodes"))
+                                          "innovation_iul_Gamma", "num_adopters",
+                                          "num_adopted_rational", "num_adopted_social", "N_nodes"))
   setnames(d, c("social_distance_h", "innovation_iul_Gamma"), c("h", "G"))
   stopifnot(uniqueN(d$N_nodes) == 1,
             d[, .N, by = .(topology, lambda, run_id, G, h)][, all(N == 1)])
@@ -224,19 +233,24 @@ for (i in seq_len(nrow(VARIANTS))) {
   }
   stopifnot(d$N_nodes[1] == N_NODES, identical(sort(unique(d$lambda)), LAMBDAS),
             identical(sort(unique(d$run_id)), RUNS))
-  Y[[v]] <- list()
+  Y[[v]] <- list(); YR[[v]] <- list(); YS[[v]] <- list()
   for (l in LAMBDAS) {
-    wd <- dcast(d[lambda == l], topology + G + h ~ run_id, value.var = "num_adopters")
-    wd[, topology := factor(topology, c("GSS", "DP"))]
-    setorder(wd, topology, G, h)
-    m <- as.matrix(wd[, as.character(RUNS), with = FALSE])
-    stopifnot(!anyNA(m), nrow(m) %% 2 == 0)
-    cg <- wd[topology == "GSS", .(G, h)]
-    stopifnot(isTRUE(all.equal(cg, wd[topology == "DP", .(G, h)], check.attributes = FALSE)))
-    if (is.null(CELLS)) CELLS <- cg else stopifnot(isTRUE(all.equal(CELLS, cg)))
-    Y[[v]][[as.character(l)]] <- m
+    to_mat <- function(col) {
+      wd <- dcast(d[lambda == l], topology + G + h ~ run_id, value.var = col)
+      wd[, topology := factor(topology, c("GSS", "DP"))]
+      setorder(wd, topology, G, h)
+      m <- as.matrix(wd[, as.character(RUNS), with = FALSE])
+      stopifnot(!anyNA(m), nrow(m) %% 2 == 0)
+      cg <- wd[topology == "GSS", .(G, h)]
+      stopifnot(isTRUE(all.equal(cg, wd[topology == "DP", .(G, h)], check.attributes = FALSE)))
+      if (is.null(CELLS)) CELLS <<- cg else stopifnot(isTRUE(all.equal(CELLS, cg)))
+      m
+    }
+    Y[[v]][[as.character(l)]]  <- to_mat("num_adopters")
+    YR[[v]][[as.character(l)]] <- to_mat("num_adopted_rational")
+    YS[[v]][[as.character(l)]] <- to_mat("num_adopted_social")
   }
-  rm(d, wd); invisible(gc())
+  rm(d); invisible(gc())
 }
 N_RUNS  <- length(RUNS)
 N_CELLS <- nrow(CELLS)
@@ -247,11 +261,19 @@ message(sprintf("  %d runs x %d cells x 2 topologies x %d lambdas per variant; N
                 N_RUNS, N_CELLS, length(L), N_NODES))
 
 # -------------------------------- the fits ------------------------------------
+# y: which adopters are counted. The channel fits (rational, social) use the
+# k = 10 surface of 06 and get no joint fit and no strategy contrasts.
 SPECS <- list(
-  te12 = list(sep   = cbind(A, F) ~ topology + te(G, h, k = c(12, 12)),
+  te12 = list(y = "total",
+              sep   = cbind(A, F) ~ topology + te(G, h, k = c(12, 12)),
               joint = cbind(A, F) ~ variant + variant:topology + te(G, h, by = variant, k = c(12, 12))),
-  s10  = list(sep   = cbind(A, F) ~ topology + s(G, h, k = 10),
-              joint = cbind(A, F) ~ variant + variant:topology + s(G, h, by = variant, k = 10)))
+  s10  = list(y = "total",
+              sep   = cbind(A, F) ~ topology + s(G, h, k = 10),
+              joint = cbind(A, F) ~ variant + variant:topology + s(G, h, by = variant, k = 10)),
+  s10_rational = list(y = "rational", sep = cbind(A, F) ~ topology + s(G, h, k = 10)),
+  s10_social   = list(y = "social",   sep = cbind(A, F) ~ topology + s(G, h, k = 10)))
+YM <- list(total = Y, rational = YR, social = YS)
+JOINT_SPECS <- names(SPECS)[!vapply(SPECS, function(s) is.null(s$joint), logical(1))]
 
 agg_frame <- function(m, w) {
   fr <- FRAME
@@ -268,9 +290,8 @@ fit_beta <- function(fr, form) {
 betas_for <- function(w) {
   out <- array(NA_real_, c(length(V), length(L), length(SPECS)),
                dimnames = list(V, L, names(SPECS)))
-  for (v in V) for (l in L) {
-    fr <- agg_frame(Y[[v]][[l]], w)
-    for (s in names(SPECS)) out[v, l, s] <- fit_beta(fr, SPECS[[s]]$sep)
+  for (v in V) for (l in L) for (s in names(SPECS)) {
+    out[v, l, s] <- fit_beta(agg_frame(YM[[SPECS[[s]]$y]][[v]][[l]], w), SPECS[[s]]$sep)
   }
   out
 }
@@ -283,7 +304,7 @@ joint <- list()
 for (l in L) {
   jd <- do.call(rbind, lapply(V, function(v) cbind(agg_frame(Y[[v]][[l]], w1),
                                                      variant = factor(v, V))))
-  for (s in names(SPECS)) {
+  for (s in JOINT_SPECS) {
     f  <- bam(SPECS[[s]]$joint, family = binomial(), data = jd, discrete = TRUE)
     pt <- summary(f)$p.table
     rn <- paste0("variant", V, ":topologyDP")
@@ -360,7 +381,7 @@ gap_tab <- rbindlist(lapply(V, function(v) rbindlist(lapply(lam_label, function(
 con_tab <- rbindlist(lapply(seq_len(nrow(CONTRASTS)), function(i) {
   a <- CONTRASTS$A[i]; b <- CONTRASTS$B[i]
   rbindlist(lapply(lam_label, function(l) {
-    rows <- lapply(names(SPECS), function(s) {
+    rows <- lapply(JOINT_SPECS, function(s) {
       if (l == "mean") {
         est <- mean(beta_hat[a, , s]) - mean(beta_hat[b, , s])
         bs  <- colMeans(BETA[a, , s, ]) - colMeans(BETA[b, , s, ])
@@ -378,6 +399,55 @@ con_tab <- rbindlist(lapply(seq_len(nrow(CONTRASTS)), function(i) {
     cbind(data.table(contrast = CONTRASTS$label[i], A = a, B = b, lambda = l), rbindlist(rows))
   }))
 }))
+
+# ---- the statistics of 06: band, channel gaps, tipping shift ---------------
+# Each is a function of the cell means over runs, so a replicate is the same
+# statistic on the weighted cell means. Column 1 = the full sample.
+message(format(Sys.time(), "%H:%M:%S"), "  Band, channel and tipping-shift statistics...")
+WA <- rbind(rep(1, N_RUNS), W)                       # (B + 1) x runs
+HS <- sort(unique(CELLS$h)); NH <- length(HS); NG <- N_CELLS / NH
+stopifnot(NG == uniqueN(CELLS$G), all(CELLS$h == rep(HS, NG)))   # sorted by G, then h
+cell_means <- function(m) {                          # -> list(GSS, DP), cells x (B + 1)
+  p <- sweep(m %*% t(WA), 2, N_NODES * rowSums(WA), "/")
+  list(GSS = p[seq_len(N_CELLS), , drop = FALSE], DP = p[N_CELLS + seq_len(N_CELLS), , drop = FALSE])
+}
+# per IUL level, the first MSP where Phi >= 0.5 (NA if it never tips): NG x (B + 1)
+first_tip <- function(p) {
+  a <- array(p >= 0.5, c(NH, NG, ncol(p)))
+  lead <- !a[1, , ]; n_lead <- lead + 0
+  for (r in 2:NH) { lead <- lead & !a[r, , ]; n_lead <- n_lead + lead }
+  hc <- HS[pmin(n_lead + 1, NH)]
+  hc[n_lead >= NH] <- NA
+  matrix(hc, NG)
+}
+band_tab <- list()
+for (v in V) {
+  per_l <- list()
+  for (l in L) {
+    pt <- cell_means(Y[[v]][[l]]); pr <- cell_means(YR[[v]][[l]]); ps <- cell_means(YS[[v]][[l]])
+    gap <- pt$GSS - pt$DP
+    big <- gap > 0.10
+    tg <- first_tip(pt$GSS); td <- first_tip(pt$DP)
+    both <- !is.na(tg) & !is.na(td)
+    tg[!both] <- NA; td[!both] <- NA
+    per_l[[l]] <- rbind(
+      band_pct        = 100 * colMeans(big),
+      band_gap_pp     = 100 * colSums(gap * big) / colSums(big),
+      gap_rational_pp = 100 * colMeans(pr$GSS - pr$DP),
+      gap_social_pp   = 100 * colMeans(ps$GSS - ps$DP),
+      mspc_gss        = colMeans(tg, na.rm = TRUE),
+      mspc_dp         = colMeans(td, na.rm = TRUE),
+      mspc_shift      = colMeans(td - tg, na.rm = TRUE),
+      mspc_ratio      = colMeans(td, na.rm = TRUE) / colMeans(tg, na.rm = TRUE))
+  }
+  per_l[["mean"]] <- Reduce(`+`, per_l) / length(L)
+  for (l in lam_label) for (st in rownames(per_l[[l]])) {
+    x <- per_l[[l]][st, ]
+    band_tab[[length(band_tab) + 1]] <- data.table(variant = v, lambda = l, stat = st,
+      est = x[1], ci_lo = ci_lo(x[-1]), ci_hi = ci_hi(x[-1]), n_na = sum(is.na(x[-1])))
+  }
+}
+band_tab <- rbindlist(band_tab)
 
 # ---- the reverse-premium corner: cell-level paired z + simultaneous max-T ----
 message(format(Sys.time(), "%H:%M:%S"), "  Reverse-premium corner: cell z and max-T thresholds...")
@@ -423,6 +493,7 @@ fwrite(gap_tab,    file.path(DATA_OUT, "premium_bootstrap_gap.csv"))
 fwrite(con_tab,    file.path(DATA_OUT, "premium_bootstrap_contrasts.csv"))
 fwrite(corner_tab, file.path(DATA_OUT, "premium_reverse_corner.csv"))
 fwrite(cell_tab,   file.path(DATA_OUT, "premium_reverse_corner_cells.csv"))
+fwrite(band_tab,   file.path(DATA_OUT, "premium_bootstrap_band.csv"))
 fwrite(as.data.table(as.table(BETA))[, .(variant = V1, lambda = V2, spec = V3,
                                           b = as.integer(V4), beta = N)],
        file.path(DATA_OUT, "premium_bootstrap_replicates.csv"))
@@ -448,6 +519,13 @@ line("-"); message("CONTRASTS per lambda: beta (te12) and gap (pp)"); line("-")
 print(dcast(con_tab[scale %in% c("beta_te12", "gap_pp"),
                     .(contrast, scale, lambda, ci = fmt_ci(est, ci_lo, ci_hi, 2))],
             contrast + scale ~ factor(lambda, lam_label), value.var = "ci"))
+line("-"); message("CHANNEL SPLIT: beta_DP of rational and social adopters (k = 10)"); line("-")
+print(dcast(beta_tab[spec %in% c("s10_rational", "s10_social"),
+                     .(variant, spec, lambda, ci = fmt_ci(beta, ci_lo, ci_hi))],
+            variant + spec ~ factor(lambda, lam_label), value.var = "ci"))
+line("-"); message("BAND AND TIPPING SHIFT (statistics of 06)"); line("-")
+print(dcast(band_tab[, .(variant, stat, lambda, ci = fmt_ci(est, ci_lo, ci_hi))],
+            stat + variant ~ factor(lambda, lam_label), value.var = "ci"), nrows = 100)
 line("-"); message("REVERSE-PREMIUM CORNER (robust = clears the max-T threshold)"); line("-")
 print(corner_tab[region != "plane", .(variant, lambda, region, n_dp, n_dp_band, n_pointwise,
                                       n_robust, max_dp_pp = round(max_dp_pp, 3),

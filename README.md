@@ -36,8 +36,8 @@ everyone else needs selective exposure proportional to their utility deficit (th
 
 The design note **[docs/MAKING-IT-BOTTOM-UP.pdf](docs/MAKING-IT-BOTTOM-UP.pdf)** derives
 the rule, proves it nests Tur et al. (2024) exactly, compares the two operationalizations
-(linear-fractional vs. the multiplicative γ-form), and records the calibration and the
-structural-premium results.
+(linear-fractional vs. the multiplicative γ-form), and records the structural-premium
+results.
 
 ---
 
@@ -57,7 +57,7 @@ Run from the repository root (`Rscript scripts/<file>`), in order:
 | `05_unified_diffusion_sweep.R` | **the engine**: unified-rule diffusion, GSS vs DP, + premium BAM | `output/05_unified_diffusion/`, `plots/05_*` |
 | `05_unified_diffusion_sweep_main.R` | runner: the engine across all five seeding strategies | (as above, one set per strategy) |
 | `06_premium_sensitivity.R` | how the premium moves with λ (odds vs. probability scale) | `output/06_premium_sensitivity/` |
-| `06b_premium_bootstrap.R` | joint BAM of all strategies + run-level bootstrap: CIs for β_DP, the gap and the strategy contrasts; robust vs. noise DP wins | `output/06b_premium_bootstrap/`, `plots/06b_*` |
+| `06b_premium_bootstrap.R` | joint BAM of all strategies + run-level bootstrap: CIs for β_DP, the gap, the strategy contrasts and the statistics of 06 (band, channel split, tipping shift); robust vs. noise DP wins | `output/06b_premium_bootstrap/`, `plots/06b_*` |
 | `07_structural_diagnosis.R` | what randomization destroys (clustering, assortativity, tie distance) | `output/07_structural_diagnosis/` |
 | `08_cronbach_alpha.R` | internal consistency of the propensity constructs | `output/08_cronbach_alpha/` |
 
@@ -80,12 +80,12 @@ Everything **checkpoints per (topology, λ)**, so a run can be interrupted and r
 completed combinations are skipped. `--test` writes to its own sandbox and can never
 overwrite real results.
 
-### λ calibration (not part of the study)
+### λ is swept, not calibrated
 
-A one-off sweep, λ ∈ {0.3, …, 1.5} against the legacy engine's surface, showed that
-λ ≈ 0.7 reproduces it. It is a bridge to past results, not a step of the study, so the
-script lives in `playground/lambda_calibration/` (untracked) and only runs where
-`legacy/` is present.
+λ is a free coupling: the study sweeps λ ∈ [0.5, 1.0] and reports every result as a
+function of it. An earlier calibration against the legacy engine (λ ≈ 0.7) was retired
+in November 2026: both engines read the propensity score as q (the inverted-q bug), so
+it compared two invalid surfaces.
 
 ### Raw survey data
 
@@ -153,7 +153,8 @@ current manuscript draft. It now lives in `legacy/` and is **not tracked by git*
   (see `docs/notes/HOMOPHILY_TOPOLOGY_INSEPARABILITY.md`).
 
 Everything there remains recoverable from git history (it was tracked until the
-`making-bottom-up` refactor). The λ calibration script (in `playground/`) reads one legacy file.
+`making-bottom-up` refactor). Its results used the inverted q and are not comparable with
+the current engine.
 
 ## Revisión bajo el lente similitud/diversidad
 

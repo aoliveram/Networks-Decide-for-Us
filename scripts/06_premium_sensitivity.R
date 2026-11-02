@@ -1,9 +1,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # How sensitive is the structural premium to lambda? (decile-by-decile)
-# 07_premium_sensitivity.R
+# 06_premium_sensitivity.R
 #
-# Reads output/05_unified_diffusion/unified_premium_results.csv (produced by
-# 05_unified_diffusion_sweep.R) and asks, for every lambda on the grid:
+# Reads output/05_unified_diffusion/unified_premium_results_<seeding>.csv
+# (produced by 05_unified_diffusion_sweep.R) and asks, for every lambda on the grid:
 #
 #   A. the premium on the ODDS scale (BAM beta_DP) and its step-to-step change
 #   B. the premium on the PROBABILITY scale (mean Phi_GSS - Phi_DP) — link-free
@@ -18,10 +18,11 @@
 # region where the logit link inflates differences. B-F tell these apart.
 #
 # Outputs:
-#   output/06_premium_sensitivity/premium_lambda_sensitivity.csv
-#   plots/06_premium_sensitivity/premium_lambda_sensitivity.pdf
+#   output/06_premium_sensitivity/premium_lambda_sensitivity_<seeding>.csv
+#   plots/06_premium_sensitivity/premium_lambda_sensitivity_<seeding>.pdf
 #
-# Runtime: ~1-2 min.
+# Point estimates only; 06b_premium_bootstrap.R gives these statistics their
+# run-bootstrap intervals. Runtime: ~1-2 min.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 suppressWarnings(suppressMessages({
@@ -137,13 +138,8 @@ line("-"); message("E. TIPPING SHIFT (mean MSP at which Phi crosses 0.5)"); line
 print(sens |> select(lambda, mean_MSPc_GSS, mean_MSPc_DP, mean_MSPc_shift) |>
         as.data.frame(), digits = 3, row.names = FALSE)
 
-line("="); message("Legacy engine reference: beta_DP = -0.850 (OR 0.43, -57% odds)"); line("=")
-
 # --------------------------------- plots --------------------------------------
 p1 <- ggplot(sens, aes(lambda, beta_total)) +
-  geom_hline(yintercept = -0.850, linetype = "22", color = "#B0161C") +
-  annotate("text", x = min(LAMBDAS), y = -0.815, hjust = 0, size = 3.2,
-           color = "#B0161C", label = "legacy engine (-0.850)") +
   geom_line(linewidth = 0.9, color = "#1E5AC8") +
   geom_point(size = 2.4, color = "#1E5AC8") +
   labs(title = "Premium on the odds scale", x = "λ", y = expression(beta[DP])) +
