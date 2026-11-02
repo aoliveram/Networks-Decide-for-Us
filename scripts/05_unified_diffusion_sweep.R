@@ -263,10 +263,18 @@ results <- results |>
   mutate(topology = factor(topology, levels = c("GSS", "DP")),
          fail = N_nodes - num_adopters)
 
-fit_one <- function(df, kk = if (TEST_MODE) 4 else 10) {
-  m <- bam(cbind(num_adopters, fail) ~ s(innovation_iul_Gamma, social_distance_h, k = kk)
-           + topology,
-           family = binomial(), data = df, discrete = TRUE)
+# pooled = TRUE adds one intercept per lambda (lambda_f), so the pooled premium is
+# not mixed with how the level of adoption moves with lambda. The surface is
+# still shared by all lambdas; 06b reports the mean of the per-lambda betas.
+# A single lambda (as in --test) needs no intercepts.
+fit_one <- function(df, pooled = FALSE, kk = if (TEST_MODE) 4 else 10) {
+  form <- if (pooled && length(unique(df$lambda)) > 1) {
+    cbind(num_adopters, fail) ~ s(innovation_iul_Gamma, social_distance_h, k = kk) +
+      topology + lambda_f
+  } else {
+    cbind(num_adopters, fail) ~ s(innovation_iul_Gamma, social_distance_h, k = kk) + topology
+  }
+  m <- bam(form, family = binomial(), data = df, discrete = TRUE)
   co <- summary(m)$p.table["topologyDP", ]
   data.frame(beta_DP = co[1], se = co[2], OR = exp(co[1]),
              odds_drop_pct = 100 * (exp(co[1]) - 1),
@@ -278,8 +286,8 @@ per_lambda <- results |>
   group_by(lambda) |> group_modify(~ fit_one(.x)) |> ungroup()
 print(as.data.frame(per_lambda), digits = 3)
 
-pooled <- fit_one(results |> mutate(lambda_f = factor(lambda)))
-message("Pooled (all lambdas): beta_DP = ", round(pooled$beta_DP, 3),
+pooled <- fit_one(results |> mutate(lambda_f = factor(lambda)), pooled = TRUE)
+message("Pooled (all lambdas, one intercept per lambda): beta_DP = ", round(pooled$beta_DP, 3),
         "  OR = ", round(pooled$OR, 3),
         "  odds drop = ", round(pooled$odds_drop_pct, 1), "%")
 write.csv(bind_rows(per_lambda |> mutate(lambda = as.character(lambda)),
