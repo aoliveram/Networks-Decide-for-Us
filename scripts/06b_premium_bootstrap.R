@@ -18,7 +18,7 @@
 #
 #   - the baseline surface varies by STRATEGY: with one shared surface, each
 #     strategy's misfit leaks into the strategy x topology terms and flattens
-#     the contrasts (at lambda = 1, central - random falls from -0.20 to -0.07)
+#     the contrasts (at lambda = 1, central - random falls from -0.21 to -0.08)
 #   - it does NOT vary by topology: beta_DP is defined as the constant logit
 #     shift between GSS and DP; a topology-specific surface would absorb the
 #     premium itself. Its shape (a shift of the tipping frontier) is what the
@@ -27,7 +27,8 @@
 #     understates |beta| by up to ~13% at lambda = 1 and is kept as a
 #     continuity column ("s10")
 #   - pooled beta_DP = the unweighted mean of the six per-lambda betas (the
-#     "pooled" fit of 05 puts one surface under all lambdas and is attenuated)
+#     pooled fit of 05 has one intercept per lambda but one surface under all
+#     of them, and is attenuated)
 #
 # Two exact shortcuts make B = 1000 cheap:
 #   1. The model has no run term, so the binomial likelihood of the stacked
@@ -39,13 +40,10 @@
 #      model is fitted once on the full sample (and checked against the
 #      separate fits), the replicates refit strategy by strategy.
 #
-# Variants: the five strategies with the hub budget (0.40 x the network's
-# maximum degree; the default of 05 since 2026-10-10), plus random and marginal
-# with the former "own" budget (0.40 x degree of the primary), read from
-# _superseded/, to price the seed-size confound. Caveat: closeness and eigen
-# were run on 2026-10-05 under the own rule; their primaries are near-hubs
-# (28.0 vs 28.7 seeds on average), but because they are not node-matched the
-# GSS and DP budgets differ by ~1 seed in ~45% of runs. Pending a rerun.
+# Variants: the five seeding strategies, all with the same seed budget
+# (0.40 x the network's maximum degree, ~28 seeds; the rule of 05 since
+# 2026-10-10), so they differ only in where they seed. Runs under the former
+# rule (0.40 x degree of the primary) are archived in _superseded/; not used.
 #
 # Also reported:
 #   - the link-free premium: mean over the plane of Phi_GSS - Phi_DP, per run,
@@ -55,7 +53,6 @@
 #     from the same bootstrap; a cell is a ROBUST DP win only if it clears it
 #
 # Reads  output/05_unified_diffusion/unified_premium_results_<s>.csv
-#        output/05_unified_diffusion/_superseded/unified_premium_results_{random,marginal}.csv
 # Writes output/06b_premium_bootstrap/premium_bootstrap_{beta,gap,contrasts}.csv
 #        output/06b_premium_bootstrap/premium_reverse_corner{,_cells}.csv
 #        output/06b_premium_bootstrap/premium_bootstrap_replicates.csv
@@ -67,7 +64,8 @@
 #   Rscript scripts/06b_premium_bootstrap.R --B=500 --cores=4
 #   Rscript scripts/06b_premium_bootstrap.R --plots-only  # redraw from the CSVs
 # With B < 200 everything goes to output/06b_premium_bootstrap/_test.
-# Runtime: ~1 min of loading + joint fits, then ~8 s per replicate and core.
+# Runtime: ~1 min of loading + joint fits, then ~6.5 s per replicate and core
+# (B = 1000 on 8 cores: ~14 min).
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 suppressWarnings(suppressMessages({
@@ -94,29 +92,21 @@ dir.create(DATA_OUT,  showWarnings = FALSE, recursive = TRUE)
 dir.create(PLOTS_OUT, showWarnings = FALSE, recursive = TRUE)
 
 MAIN <- c("central", "closeness", "eigen", "random", "marginal")
-VARIANTS <- data.table(
-  variant  = c(MAIN, "random_own", "marginal_own"),
-  strategy = c(MAIN, "random", "marginal"),
-  budget   = c("hub", "own", "own", "hub", "hub", "own", "own"),
-  path     = c(file.path(RES_DIR, paste0("unified_premium_results_", MAIN, ".csv")),
-               file.path(RES_DIR, "_superseded",
-                         paste0("unified_premium_results_", c("random", "marginal"), ".csv"))))
-VARIANTS <- VARIANTS[file.exists(path)]
-stopifnot(all(MAIN %in% VARIANTS$variant))
+VARIANTS <- data.table(variant = MAIN,
+                       path    = file.path(RES_DIR, paste0("unified_premium_results_", MAIN, ".csv")))
+stopifnot(all(file.exists(VARIANTS$path)))
 V <- VARIANTS$variant
 
 # contrasts A - B (paired by run). On beta: negative = A has the LARGER premium;
 # on the gap: positive = A has the larger premium.
 CONTRASTS <- data.table(
   A = c("central", "random",   "central",   "central", "closeness",
-        "random", "marginal", "central", "random_own"),
+        "closeness", "eigen"),
   B = c("random",  "marginal", "closeness", "eigen",   "eigen",
-        "random_own", "marginal_own", "random_own", "marginal_own"),
+        "random",    "random"),
   label = c("central - random", "random - marginal", "central - closeness",
             "central - eigen", "closeness - eigen",
-            "random: hub - own budget", "marginal: hub - own budget",
-            "central - random (own budget)", "random - marginal (own budget)"))
-CONTRASTS <- CONTRASTS[A %in% V & B %in% V]
+            "closeness - random", "eigen - random"))
 
 # reverse-premium regions (the corner box is the one described in the design note)
 REGIONS <- list(
@@ -131,7 +121,7 @@ t_all <- Sys.time()
 
 # --------------------------------- plots --------------------------------------
 # Defined first so that --plots-only can redraw from the saved CSVs.
-# Categorical slots in fixed order, one hue per strategy; budget = line type.
+# Categorical slots in fixed order, one hue per strategy.
 COLS   <- c(central = "#2a78d6", closeness = "#eb6834", eigen = "#1baf7a",
             random = "#eda100", marginal = "#e87ba4")
 SHAPES <- c(central = 16, closeness = 17, eigen = 15, random = 18, marginal = 25)
@@ -146,8 +136,8 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
 
   bm <- beta_tab[spec == "te12" & lambda != "mean" & variant %in% MAIN]
   gm <- gap_tab[lambda != "mean" & variant %in% MAIN]
-  bm[, `:=`(lam = num_l(lambda), strategy = factor(strategy, MAIN))]
-  gm[, `:=`(lam = num_l(lambda), strategy = factor(strategy, MAIN))]
+  bm[, `:=`(lam = num_l(lambda), strategy = factor(variant, MAIN))]
+  gm[, `:=`(lam = num_l(lambda), strategy = factor(variant, MAIN))]
   strat_plot <- function(df, y, title, ylab) {
     ggplot(df, aes(lam, .data[[y]], color = strategy, shape = strategy)) +
       geom_line(linewidth = 0.5, position = dodge) +
@@ -179,25 +169,6 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
          x = "λ", y = NULL) +
     base_theme + theme(strip.placement = "outside", strip.text = element_text(size = 8))
 
-  # budget: random and marginal, hub vs own (same hue, budget = line type)
-  bb <- rbind(beta_tab[spec == "te12" & lambda != "mean" & strategy %in% c("random", "marginal"),
-                       .(strategy, budget, lambda, est = beta, ci_lo, ci_hi, what = "β_DP (te12)")],
-              gap_tab[lambda != "mean" & strategy %in% c("random", "marginal"),
-                      .(strategy, budget, lambda, est = gap_pp, ci_lo, ci_hi, what = "gap (pp)")])
-  bb[, `:=`(lam = num_l(lambda), strategy = factor(strategy, c("random", "marginal")),
-            what = factor(what, c("β_DP (te12)", "gap (pp)")))]
-  p_bud <- ggplot(bb, aes(lam, est, color = strategy, linetype = budget, shape = budget)) +
-    geom_line(linewidth = 0.5, position = dodge) +
-    geom_pointrange(aes(ymin = ci_lo, ymax = ci_hi), size = 0.45, linewidth = 0.5,
-                    fill = "white", position = dodge) +
-    facet_wrap(~ what, scales = "free_y") +
-    scale_color_manual(values = COLS[c("random", "marginal")], name = NULL) +
-    scale_linetype_manual(values = c(hub = "solid", own = "22"), name = "budget") +
-    scale_shape_manual(values = c(hub = 16, own = 21), name = "budget") +
-    scale_x_continuous(breaks = lams) +
-    labs(title = "Seed budget: hub (0.40 × max degree, ≈28 seeds) vs own (0.40 × degree of the primary)",
-         x = "λ", y = NULL) + base_theme
-
   # where DP robustly beats GSS
   cc <- cell_tab[gap_pp < 0]
   cc[, `:=`(dp_pp = -gap_pp, row = factor(variant, intersect(V, unique(variant))),
@@ -223,7 +194,6 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
 
   cairo_pdf(file.path(PLOTS_OUT, "premium_bootstrap.pdf"), width = 11, height = 7.5, onefile = TRUE)
   print((p_beta | p_gap) / p_con + plot_layout(heights = c(1, 1.1)))
-  print(p_bud)
   print(p_map)
   invisible(dev.off())
 }
@@ -368,7 +338,6 @@ beta_tab <- rbindlist(lapply(V, function(v) rbindlist(lapply(names(SPECS), funct
 beta_tab <- merge(beta_tab, joint[, .(variant, lambda, spec, bam_se, dev_expl)],
                   by = c("variant", "lambda", "spec"), all.x = TRUE, sort = FALSE)
 beta_tab[, se_inflation := boot_se / bam_se]
-beta_tab <- merge(VARIANTS[, .(variant, strategy, budget)], beta_tab, by = "variant", sort = FALSE)
 
 # ---- link-free premium: mean plane gap per run ------------------------------
 # D[[v]][[l]]: cells x runs paired differences Phi_GSS - Phi_DP
@@ -386,7 +355,6 @@ gap_tab <- rbindlist(lapply(V, function(v) rbindlist(lapply(lam_label, function(
              ci_lo = 100 * ci_lo(bs), ci_hi = 100 * ci_hi(bs),
              t_lo = 100 * tc[1], t_hi = 100 * tc[2])
 }))))
-gap_tab <- merge(VARIANTS[, .(variant, strategy, budget)], gap_tab, by = "variant", sort = FALSE)
 
 # ---- contrasts (paired by run) ----------------------------------------------
 con_tab <- rbindlist(lapply(seq_len(nrow(CONTRASTS)), function(i) {
@@ -448,7 +416,6 @@ corner_tab[, verdict := fifelse(n_robust == 0, "noise",
                         fifelse(max_dp_pp_robust >= BAND_PP, "robust (> 2 pp)",
                         fifelse(max_dp_pp_robust >= 0.2, "robust, small (0.2-2 pp)",
                                 "detectable, negligible (< 0.2 pp)")))]
-corner_tab <- merge(VARIANTS[, .(variant, strategy, budget)], corner_tab, by = "variant", sort = FALSE)
 
 # --------------------------------- save ---------------------------------------
 fwrite(beta_tab,   file.path(DATA_OUT, "premium_bootstrap_beta.csv"))
@@ -463,17 +430,17 @@ fwrite(as.data.table(as.table(BETA))[, .(variant = V1, lambda = V2, spec = V3,
 # -------------------------------- report --------------------------------------
 fmt_ci <- function(e, lo, hi, d = 3) sprintf(paste0("%.", d, "f [%.", d, "f, %.", d, "f]"), e, lo, hi)
 line("="); message("beta_DP (te12) WITH RUN-BOOTSTRAP 95% CI   (B = ", B, ")"); line("=")
-print(dcast(beta_tab[spec == "te12", .(variant, budget, lambda, ci = fmt_ci(beta, ci_lo, ci_hi))],
-            variant + budget ~ factor(lambda, lam_label), value.var = "ci"))
+print(dcast(beta_tab[spec == "te12", .(variant, lambda, ci = fmt_ci(beta, ci_lo, ci_hi))],
+            variant ~ factor(lambda, lam_label), value.var = "ci"))
 line("-"); message("Same, continuity spec s(k = 10) of 05/06"); line("-")
-print(dcast(beta_tab[spec == "s10", .(variant, budget, lambda, ci = fmt_ci(beta, ci_lo, ci_hi))],
-            variant + budget ~ factor(lambda, lam_label), value.var = "ci"))
+print(dcast(beta_tab[spec == "s10", .(variant, lambda, ci = fmt_ci(beta, ci_lo, ci_hi))],
+            variant ~ factor(lambda, lam_label), value.var = "ci"))
 line("-"); message("Bootstrap SE / naive BAM SE (te12)"); line("-")
 print(dcast(beta_tab[spec == "te12" & lambda != "mean"], variant ~ lambda,
             value.var = "se_inflation"), digits = 3)
 line("-"); message("LINK-FREE PREMIUM: mean plane gap (pp), bootstrap CI"); line("-")
-print(dcast(gap_tab[, .(variant, budget, lambda, ci = fmt_ci(gap_pp, ci_lo, ci_hi, 2))],
-            variant + budget ~ factor(lambda, lam_label), value.var = "ci"))
+print(dcast(gap_tab[, .(variant, lambda, ci = fmt_ci(gap_pp, ci_lo, ci_hi, 2))],
+            variant ~ factor(lambda, lam_label), value.var = "ci"))
 line("-"); message("CONTRASTS (paired by run), lambda-mean   [beta: < 0 = A larger premium]"); line("-")
 print(con_tab[lambda == "mean", .(contrast, scale, est = round(est, 3),
                                   ci = sprintf("[%.3f, %.3f]", ci_lo, ci_hi), p_boot = signif(p_boot, 2))])
