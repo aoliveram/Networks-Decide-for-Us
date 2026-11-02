@@ -776,12 +776,11 @@ run-level bootstrap; all intervals below).
 $\lambda$. For \emph{random}, \emph{marginal} and \emph{central} it is the \emph{same node}
 in a GSS network and its DP twin; \emph{closeness} and \emph{eigen} use each topology's
 own most central node. The seed cluster is the primary plus its nearest nodes,
-$0.40 \times$ the network's maximum degree in total ($\approx 28$ seeds), so strategies
-differ only in where they seed. The \emph{random} strategy is the reference.
-\emph{Caveat:} closeness and eigen were run (2026-10-05) under the former rule,
-$0.40 \times$ the degree of their own primary. Their primaries are near-hubs (28.0 seeds on
-average vs.\ 28.7 for central), but since they are not node-matched, the GSS and DP budgets
-differ by about one seed in $\approx 45\%$ of runs. Rerun pending.
+$0.40 \times$ the network's maximum degree in total ($\approx 28$ seeds). A network and
+its twin share the degree sequence, so the cluster has the same size in both (checked in
+all 96 runs of every strategy), and the strategies differ only in where they seed. With a
+low-degree primary the cluster reaches into the second neighborhood, so its shape
+differs too, not only its center. The \emph{random} strategy is the reference.
 
 \paragraph{Uncertainty: the run is the unit.} The 1025 cells of a run share the GSS
 network, its DP twin and the primary draw, so they are not independent observations:
@@ -799,7 +798,7 @@ decided by checking them against the data:
 \begin{itemize}
   \item \textbf{The surface varies by strategy.} With one shared surface, each strategy's
     misfit leaks into the strategy~$\times$~topology terms and flattens the contrasts (at
-    $\lambda = 1$, central $-$ random shrinks from $-0.20$ to $-0.07$). With
+    $\lambda = 1$, central $-$ random shrinks from $-0.21$ to $-0.08$). With
     strategy-specific surfaces the joint model factorizes and reproduces the separate
     per-strategy fits exactly; what it adds is the paired bootstrap of the contrasts.
   \item \textbf{It does not vary by topology.} $\beta_{\text{DP}}$ is \emph{defined} as
@@ -813,8 +812,9 @@ decided by checking them against the data:
     values are kept for continuity.
 \end{itemize}
 The pooled premium is the unweighted mean of the six per-$\lambda$ estimates
-(``$\lambda$-mean''); the former pooled fit of 05 put one surface under all $\lambda$ and is
-attenuated (random: $-0.684$ vs.\ $-0.763$ with the same $k = 10$ basis).
+(``$\lambda$-mean''). The pooled fit of 05 has one intercept per $\lambda$ but puts one
+surface under all of them, and is attenuated (random: $-0.718$ vs.\ $-0.763$ with the same
+$k = 10$ basis; an earlier version also left out the $\lambda$ intercepts and gave $-0.684$).
 
 \begin{center}
 \small
@@ -849,8 +849,8 @@ rewiring the ties lowers the odds of adoption by 39--67\% under random seeding
 ($\lambda$-mean $\beta_{\text{DP}} = -0.851$ $[-0.963, -0.697]$, $-57\%$; probability
 scale 5.46 pp $[5.30, 5.57]$). It grows smoothly and monotonically with $\lambda$ (steps
 per decile $-0.131$, $-0.203$, $-0.137$, $-0.083$, $-0.063$): the stronger social proof is,
-the more the real fabric matters. The honest intervals are 7--17 times the naive BAM
-standard errors for the hub strategies and 64--235 times for random and marginal, whose
+the more the real fabric matters. The honest intervals are 7--18 times the naive BAM
+standard errors for the hub strategies and 64--220 times for random and marginal, whose
 primary seed is a lottery.
 
 $\lambda$ is a free coupling, not a calibrated constant, so the paper should report
@@ -895,21 +895,14 @@ strategy & \hd{$\beta_{\text{DP}}$}{$\lambda$-mean} & \hd{$\beta_{\text{DP}}$}{$
   & \hd{$\beta_{\text{DP}}$}{$\lambda = 1.0$} & \hd{$k = 10$}{$\lambda$-mean}
   & \hd{gap (pp)}{$\lambda$-mean} & \hd{$MSP_c$}{shift} \\
 \midrule
-\multicolumn{7}{@{}l}{\emph{hub budget} (main): $0.40 \times$ the network's maximum degree} \\
 central (28.7)   & \ci{-0.965}{-0.976}{-0.954} & \ci{-0.533}{-0.540}{-0.526} & \ci{-1.325}{-1.344}{-1.304} & $-0.877$ & \ci{5.61}{5.55}{5.68} & .060--.068 \\
-closeness (28.0)$^{a}$ & \ci{-0.965}{-0.976}{-0.954} & \ci{-0.536}{-0.543}{-0.529} & \ci{-1.322}{-1.340}{-1.303} & $-0.877$ & \ci{5.60}{5.54}{5.66} & .062--.076 \\
-eigen (28.0)$^{a}$     & \ci{-0.951}{-0.963}{-0.938} & \ci{-0.524}{-0.531}{-0.517} & \ci{-1.312}{-1.335}{-1.291} & $-0.865$ & \ci{5.54}{5.47}{5.61} & .066--.073 \\
+closeness (28.7) & \ci{-0.961}{-0.973}{-0.951} & \ci{-0.535}{-0.542}{-0.529} & \ci{-1.320}{-1.340}{-1.299} & $-0.874$ & \ci{5.60}{5.54}{5.66} & .062--.074 \\
+eigen (28.7)     & \ci{-0.949}{-0.961}{-0.936} & \ci{-0.523}{-0.529}{-0.516} & \ci{-1.319}{-1.343}{-1.295} & $-0.864$ & \ci{5.55}{5.47}{5.62} & .065--.076 \\
 random (28.4)    & \ci{-0.851}{-0.963}{-0.697} & \ci{-0.499}{-0.540}{-0.434} & \ci{-1.118}{-1.306}{-0.881} & $-0.763$ & \ci{5.46}{5.30}{5.57} & .069--.071 \\
 marginal (28.4)  & \ci{-0.852}{-0.965}{-0.700} & \ci{-0.508}{-0.549}{-0.445} & \ci{-1.091}{-1.282}{-0.865} & $-0.762$ & \ci{5.44}{5.29}{5.54} & .068--.074 \\
-\midrule
-\multicolumn{7}{@{}l}{\emph{own budget} (former rule): $0.40 \times$ the degree of the primary} \\
-random (11.6)    & \ci{-0.791}{-0.978}{-0.607} & \ci{-0.512}{-0.603}{-0.411} & \ci{-1.012}{-1.291}{-0.763} & $-0.723$ & \ci{5.22}{4.49}{5.94} & --- \\
-marginal (2.8)   & \ci{-0.659}{-0.873}{-0.482} & \ci{-0.488}{-0.645}{-0.354} & \ci{-0.724}{-0.989}{-0.521} & $-0.615$ & \ci{4.61}{3.49}{5.86} & --- \\
 \bottomrule
 \end{tabular}
 \end{center}
-\noindent{\footnotesize $^{a}$ Run under the own rule; their primaries are near-hubs (see
-\emph{Seed matching}). Central is identical under both rules.}
 
 \medskip
 \noindent Paired contrasts (same run in both strategies). On $\beta$, a negative value means
@@ -922,29 +915,25 @@ the first strategy has the \emph{larger} premium; on the gap, a positive one doe
 \toprule
 contrast & $\Delta\beta_{\text{DP}}$, $\lambda$-mean & $\lambda = 0.5$ & $\lambda = 1.0$ & $\Delta$ gap (pp), $\lambda$-mean \\
 \midrule
-\multicolumn{5}{@{}l}{\emph{hub budget}} \\
 central $-$ random      & \ci{-0.114}{-0.271}{-0.002} & \ci{-0.034}{-0.098}{0.008} & \ci{-0.207}{-0.448}{-0.014} & \ci{0.15}{0.05}{0.31} \\
+closeness $-$ random    & \ci{-0.110}{-0.267}{0.003} & \ci{-0.036}{-0.101}{0.005} & \ci{-0.202}{-0.440}{-0.009} & \ci{0.14}{0.03}{0.30} \\
+eigen $-$ random        & \ci{-0.098}{-0.252}{0.017} & \ci{-0.024}{-0.089}{0.018} & \ci{-0.201}{-0.441}{-0.006} & \ci{0.08}{-0.04}{0.24} \\
 random $-$ marginal     & \ci{0.001}{-0.246}{0.249} & \ci{0.009}{-0.086}{0.106} & \ci{-0.026}{-0.404}{0.362} & \ci{0.02}{-0.15}{0.20} \\
-central $-$ closeness   & \ci{0.000}{-0.009}{0.010} & \ci{0.003}{-0.003}{0.008} & \ci{-0.003}{-0.017}{0.013} & \ci{0.02}{-0.04}{0.07} \\
-central $-$ eigen       & \ci{-0.014}{-0.024}{-0.003} & \ci{-0.009}{-0.015}{-0.002} & \ci{-0.012}{-0.030}{0.004} & \ci{0.08}{0.02}{0.14} \\
-closeness $-$ eigen     & \ci{-0.014}{-0.026}{-0.003} & \ci{-0.012}{-0.019}{-0.004} & \ci{-0.010}{-0.028}{0.011} & \ci{0.06}{-0.01}{0.13} \\
 \midrule
-\multicolumn{5}{@{}l}{\emph{own budget, and the effect of the budget}} \\
-central $-$ random (own)   & \ci{-0.174}{-0.356}{0.010} & \ci{-0.021}{-0.121}{0.071} & \ci{-0.313}{-0.564}{-0.037} & \ci{0.40}{-0.35}{1.12} \\
-random $-$ marginal (own)  & \ci{-0.133}{-0.397}{0.162} & \ci{-0.024}{-0.200}{0.161} & \ci{-0.288}{-0.645}{0.096} & \ci{0.61}{-0.87}{2.01} \\
-random: hub $-$ own        & \ci{-0.060}{-0.195}{0.055} & \ci{0.013}{-0.056}{0.079} & \ci{-0.105}{-0.303}{0.059} & \ci{0.25}{-0.51}{0.96} \\
-marginal: hub $-$ own      & \ci{-0.193}{-0.401}{-0.005} & \ci{-0.020}{-0.156}{0.127} & \ci{-0.367}{-0.648}{-0.122} & \ci{0.83}{-0.42}{1.95} \\
+central $-$ closeness   & \ci{-0.004}{-0.013}{0.006} & \ci{0.002}{-0.003}{0.008} & \ci{-0.005}{-0.022}{0.011} & \ci{0.01}{-0.04}{0.07} \\
+central $-$ eigen       & \ci{-0.016}{-0.026}{-0.005} & \ci{-0.010}{-0.017}{-0.004} & \ci{-0.006}{-0.026}{0.012} & \ci{0.07}{0.01}{0.13} \\
+closeness $-$ eigen     & \ci{-0.012}{-0.023}{-0.002} & \ci{-0.012}{-0.019}{-0.006} & \ci{-0.001}{-0.022}{0.021} & \ci{0.06}{-0.01}{0.12} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \begin{itemize}
   \item \textbf{The three hub strategies are interchangeable.} Central and closeness do
-    not differ ($\Delta\beta = 0.000$ $[-0.009, 0.010]$); eigen's premium is
-    distinguishably smaller, but by 1.5\% of $\beta$ (0.08 pp). The hub premium is also
+    not differ ($\Delta\beta = -0.004$ $[-0.013, 0.006]$); eigen's premium is
+    distinguishably smaller, but by 1.6\% of $\beta$ (0.07 pp). The hub premium is also
     the most precisely estimated (interval width $\approx 0.02$ in $\beta$): the
     primary is fixed by the network, so runs differ only in network and dynamics.
-  \item \textbf{Random and marginal coincide} under the equal budget
+  \item \textbf{Random and marginal coincide}
     ($\Delta\beta = 0.001$ $[-0.246, 0.249]$; gap $0.02$ pp $[-0.15, 0.20]$): a typical
     and a peripheral primary seed equally well. Their premium is ten times less precise
     than the hubs' (width $\approx 0.27$): where the primary lands is a lottery.
@@ -953,20 +942,11 @@ marginal: hub $-$ own      & \ci{-0.193}{-0.401}{-0.005} & \ci{-0.020}{-0.156}{0
     $[0.05, 0.31]$ on the gap (3\% of the 5.5-pp premium; $t$ interval $[0.02, 0.28]$). It
     grows with $\lambda$: indistinguishable from zero at $\lambda = 0.5$ and
     $0.7$--$0.8$, distinguishable at $\lambda \ge 0.9$ ($-0.207$ $[-0.448, -0.014]$ at
-    $\lambda = 1$; 0.31 pp $[0.12, 0.52]$) and, barely, at $\lambda = 0.6$.
-  \item \textbf{Under the own budget no strategy contrast is distinguishable}
-    ($\lambda$-mean): central $-$ random 0.40 pp $[-0.35, 1.12]$, random $-$ marginal
-    0.61 pp $[-0.87, 2.01]$. Equalizing the budget raises marginal's premium
-    ($\Delta\beta = -0.193$ $[-0.401, -0.005]$; $-0.367$ $[-0.648, -0.122]$ at
-    $\lambda = 1$): its smaller premium was mostly seed size (2.8 seeds), while random's
-    change ($-0.060$ $[-0.195, 0.055]$) is not distinguishable. On the probability scale
-    neither budget effect is.
-  \item \textbf{Which budget to report.} The hub budget is the main one for the paper: with
-    equal seed counts the strategies differ only in where they seed, so the contrasts
-    isolate position; the own budget confounds position with size (2.8, 11.6 and 28.7
-    seeds) and goes to the SM as a robustness row. Caveat: with the hub budget a
-    low-degree primary's cluster reaches its second neighborhood, so the cluster's
-    geometry differs too, not only its center.
+    $\lambda = 1$; 0.31 pp $[0.12, 0.52]$) and, barely, at $\lambda = 0.6$. Closeness
+    behaves like central ($-0.110$ $[-0.267, 0.003]$; 0.14 pp $[0.03, 0.30]$). Eigen's
+    margin is the smallest and not distinguishable on the $\lambda$-mean ($-0.098$
+    $[-0.252, 0.017]$; 0.08 pp $[-0.04, 0.24]$), but at $\lambda = 1$ all three hubs are
+    ($\Delta\beta \approx -0.20$; 0.29--0.33 pp).
 \end{itemize}
 
 \paragraph{A reverse-premium corner (conditional, not universal).} In a small region ---
@@ -975,8 +955,7 @@ high openness ($h \gtrsim 0.6$, median 0.83) and moderate attractiveness
 cell gets the paired $z$ of its gap over the 96 runs, and counts as a \textbf{robust DP win}
 only if it clears a one-sided \emph{simultaneous} threshold: max-$T$ over the 1025 cells of
 its strategy $\times$ $\lambda$ panel, familywise 5\%, from the same run bootstrap
-($z < -3.6$ to $-3.8$, against $-2$ pointwise; \code{premium\_reverse\_corner.csv}). With the
-hub budget:
+($z < -3.6$ to $-3.8$, against $-2$ pointwise; \code{premium\_reverse\_corner.csv}):
 \begin{itemize}
   \item \textbf{Robust at $\lambda = 0.5$--$0.7$, identically in all five strategies.}
     47--48, 59--61 and 38 corner cells clear the threshold, including \emph{every} cell
@@ -991,12 +970,6 @@ hub budget:
     pointwise). For marginal it is systematic (30--48 cells per $\lambda$, $h \gtrsim
     0.5$) but negligible ($\le 0.14$ pp): an effect of the seed cluster's geometry, not a
     reversal of the premium.
-  \item \textbf{Marginal with the own budget at $\lambda \ge 0.7$: noise.} DP ``wins'' by
-    up to 15 pp in cells scattered over the whole plane, but no cell clears the threshold:
-    with 2.8 seeds the cascade either takes off or does not, and a few runs drive the cell
-    means. (Random with the own budget behaves alike, more mildly: $\le 1.3$ pp, no robust
-    cell from $\lambda = 0.7$ on.) This was the corner's apparent persistence at high
-    $\lambda$; with an equal budget it disappears.
 \end{itemize}
 The corner tracks the immunity boundary. Its strong part ($> 2$ pp) lies at
 $\Gamma + \lambda \approx 0.85$--$0.975$, where a small immune tail remains (13 to 1\% of
@@ -1022,21 +995,20 @@ the propensity score itself as $q_i$ (high = \emph{more} willing), the opposite 
 as a minimum utility requirement (GSS mean 0.415 instead of 0.585); the same inversion
 affected the legacy engine. With the correct $q$: (i) the premium survives in every
 strategy and keeps its shape (L-shaped band, flat rational channel, stable tipping shift
-of $\approx 0.065$--$0.07$); (ii) it is smaller on the odds scale (random pooled
-$-0.750 \to -0.684$; hubs $\approx -0.93 \to -0.75$) but steeper in $\lambda$ (random
-$-0.61 \to -0.96$ became $-0.48 \to -0.98$); (iii) the reverse corner moves to higher $\Gamma$ (from $0.10$--$0.275$, by
+of $\approx 0.065$--$0.07$); (ii) it is smaller on the odds scale ($\lambda$-mean with
+$k = 10$: central $-1.07 \to -0.88$, random $-0.81 \to -0.76$) and, relative to its
+level, steeper in $\lambda$ ($\beta$ at $\lambda = 1$ over $\lambda = 0.5$: central
+$2.0 \to 2.3$, random $1.6 \to 2.0$); (iii) the reverse corner moves to higher $\Gamma$ (from $0.10$--$0.275$, by
 about the 0.17 shift in mean $q$) and is no longer present at every $\lambda$; (iv) the
 immune share rises 2.7-fold or more (IUL-grid average 5.2 $\to$ 14.0\% at $\lambda = 0.5$).
 The inverted-$q$ outputs are archived in \code{output/**/\_qinverted/} (closeness and eigen
 references: the pre-seed-fix runs in \code{\_prefix/}, which match the seed-matched code
-for the deterministic strategies: central $-0.926$ vs.\ $-0.928$).
+for the deterministic strategies: central $-0.926$ vs.\ $-0.928$). Those runs predate the
+common seed budget: except for central, whose cluster is the same under both rules, they
+seeded $0.40 \times$ the degree of the primary, so central is the like-for-like comparison.
 
 \paragraph{Still open.}
 \begin{itemize}
-  \item \textbf{Closeness and eigen with the hub budget.} Their runs use $0.40 \times$ the
-    degree of their own primary, unequal between GSS and DP in $\approx 45\%$ of runs.
-    Rerun pending; the hub contrasts are $\le 0.014$ in $\beta$, so no conclusion is
-    expected to change.
   \item \textbf{What the intervals cover.} The bootstrap treats the 96 networks as
     exchangeable draws from the fitted ERGM. They share the same 1000 imputed agents (the
     $q$ composition is fixed), so the intervals cover tie formation, the seed draw and the
