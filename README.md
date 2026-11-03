@@ -9,7 +9,7 @@ empirically measured adoption propensity, and simulates a hybrid social contagio
 those networks against degree-preserving randomized counterfactuals.
 
 **Authors:** Aníbal Olivera Morales, Jorge Fábrega Lacoa (CICS, Universidad del
-Desarrollo), Thomas W. Valente (USC).
+Desarrollo), Thomas W. Valente (USC), José Figueroa (phase-transitions aspects).
 
 ---
 
