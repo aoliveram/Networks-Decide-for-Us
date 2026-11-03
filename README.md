@@ -156,15 +156,4 @@ Everything there remains recoverable from git history (it was tracked until the
 `making-bottom-up` refactor). Its results used the inverted q and are not comparable with
 the current engine.
 
-## Revisión bajo el lente similitud/diversidad
 
-*Nota de revisión (septiembre 2026), a partir del capítulo "Complex contagions" de Centola (2022, §7) y de State & Adamic (2015).*
-
-El modelo tiene **una sola compuerta** para la influencia social: la exposición efectiva $\tilde{E}_i$ solo cuenta pares dentro de la proximidad social ($MSP$ sobre la distancia en el espacio de Blau). Eso operacionaliza exactamente el régimen de **similitud** de Centola, que según su argumento es el mecanismo correcto cuando la barrera a la adopción es **credibilidad** o **excitación emocional**, pero no cuando es **legitimidad** — donde lo que convence son **fuentes diversas** (State & Adamic 2015: la gente cambió su foto de perfil cuando vio adoptantes de círculos sociales distintos). Esto deja los dos *outcomes* en posiciones distintas:
-
-- **Apertura a la innovación (ATP)**: barrera dominante = credibilidad → la compuerta de similitud está bien justificada (Centola 2011, *Science*). La "prima estructural" de la homofilia es teóricamente coherente aquí.
-- **Acción colectiva (GSS 2004, MUR)**: mezcla emoción (→ similitud, OK) con **legitimidad** (→ diversidad). La compuerta actual, por construcción, *no puede* capturar refuerzo por diversidad: descuenta justamente las exposiciones que vienen de lejos en Blau. Riesgo: sobreestimar la prima de la homofilia, o mal especificar el mecanismo, para este outcome.
-
-**Extensión testeable**: agregar un segundo término de exposición **por diversidad** — número de grupos/componentes distintos entre los alters adoptantes, à la Ugander et al. (2012, PNAS, *structural diversity*) — y comparar qué compuerta ajusta mejor por outcome. Predicción: similitud gana en ATP; diversidad pesa en GSS. Microfundamento del término de diversidad: el *multiple source effect* de Harkins & Petty (1981, 1987) y la independencia de fuentes de Wilder (1977) — solo cuentan las fuentes independientes.
-
-**Otras dos notas**: (1) el hallazgo "cascadas rodantes vs. *tipping points* súbitos al romper la homofilia" es una transición de primer orden en el sentido de la física estadística; conviene nombrarlo así. (2) Inconsistencia interna a resolver: la carpeta y `PROJECT_MAP` dicen ATP 2014 (W3–W4, que son olas de 2014); el abstract SN26 dice ATP 2016. → **Resuelto (oct 2026): los datos ATP son de 2014**; hay que corregir "2016" donde aparezca al reescribir el manuscrito.
