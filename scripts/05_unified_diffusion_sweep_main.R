@@ -13,7 +13,8 @@
 #   5. 06b                      per set (joint BAM + run bootstrap, B = 1000)
 #   6. 06c                      per set (exposure axis)
 #   7. 06d                      per survey, with both levels (x2 - x1 against the same DP twin)
-#   8. 07                       per survey (structural diagnosis: x2, x1, DP)
+#   8. 06e                      consolidation: q vs Blau attributes, corner 2 x 2, premium with permuted q
+#   9. 07                       per survey (structural diagnosis: x2, x1, DP)
 # Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP; LEVEL in x2 (main), x1.
 #
 # Cost on 8 performance cores (2026-11-05: 99 min in all): ~1.2 min per survey x
@@ -72,6 +73,7 @@ if (!SKIP_ANALYSIS) {
   }
   if (all(c("x1", "x2") %in% LEVELS))
     for (s in SURVEYS) { banner("06d ", s); run("06d_closure_contrast.R", paste0("--survey=", s), fatal = FALSE) }
+  if ("x2" %in% LEVELS) { banner("06e consolidation"); run("06e_consolidation.R", paste0("--surveys=", paste(SURVEYS, collapse = ",")), fatal = FALSE) }
   for (s in SURVEYS) { banner("07 ", s); run("07_structural_diagnosis.R", paste0("--survey=", s), fatal = FALSE) }
 }
 

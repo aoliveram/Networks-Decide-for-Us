@@ -1417,6 +1417,40 @@ for the deeper corner is the frozen gate (not isolated here): a tie that is clos
 averse, homophily keeps the resistant among the resistant (the mechanism of
 \S\ref{sec:premiumresult}).
 
+\paragraph{Why the corner is a GSS feature: consolidation} \label{sec:consolidation}
+(\code{scripts/06e\_consolidation.R}; x2, base exposure, random seeding, the seeds of 05).
+In GSS, aversion is tied to the Blau attributes: age, sex, education, race and religion explain
+19\% of the variance of $q$, and $q$ is assortative over ties (0.076). In ATP they explain 2.7\%
+(assortativity 0.022; $q$ also has only 7 values, 10\% of nodes at $q = 1$). Two manipulations
+separate association from distribution: permuting $q$ across nodes (same distribution, no
+association) and mapping $q$ by rank onto the other survey's distribution (same association):
+
+\begin{center}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+ & & \multicolumn{3}{c}{robust corner cells (DP ahead $> 2$ pp, $z > 3.5$)} \\
+survey & $q$ & $\lambda = 0.5$ & $0.6$ & $0.7$ \\
+\midrule
+GSS & real & 33 & 26 & 10 \\
+GSS & permuted & 0 & 0 & 0 \\
+GSS & ATP distribution, same ranks & 18 & 35 & 27 \\
+ATP & real & 0 & 0 & 0 \\
+ATP & GSS distribution, same ranks & 11 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Permuting $q$ removes the GSS corner; changing its distribution does not. The corner is
+a consolidation effect: when aversion is socially patterned, homophily seats the averse among the
+averse, and where the gate is open and $\lambda$ low nobody reaches them; the DP twin mixes them
+with adopters. In ATP aversion is barely patterned, so there is no trap. The premium itself
+survives permuting $q$ (GSS 5.2, 6.2, 6.9 pp at $\lambda = 0.5, 0.7, 1.0$, against 5.0, 6.4, 8.1
+with the real $q$; ATP 5.2, 6.2, 7.4 against 5.5, 6.5, 8.1): it comes from homophily through the
+gate, and consolidation only shifts it (down at low $\lambda$, up at high $\lambda$). The same
+three checks (association, corner $2 \times 2$, premium with permuted $q$) are to be run on every
+new survey (ELSOC, GSS 2014).
+
 \paragraph{What breaking the network destroys} (\code{07\_structural\_diagnosis.R}; means over
 24 networks, GSS; ATP within a few percent). From x2 to x1 only closure changes: global and
 local clustering halve ($0.149 \to 0.075$ and $0.151 \to 0.077$), degree assortativity falls
