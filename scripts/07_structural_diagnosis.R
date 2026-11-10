@@ -1,24 +1,31 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Structural diagnosis: what does "breaking homophily" (GSS -> GSS-DP) destroy?
-# 08_structural_diagnosis.R   (GSS vs DP: what does randomization destroy?)
+# Structural diagnosis: what does "breaking the network" destroy?
+# 07_structural_diagnosis.R
 #
-# For the 100 imputed GSS plausible networks and 100 degree-preserving
-# randomized (DP) counterparts (one DP per plausible, via the SAME double-edge
-# swap used in the diffusion sims: igraph::rewire(keeping_degseq)), compute a
-# panel of network statistics in three families:
+# For the 24 networks of a survey (02_network_calibrated.R) compares three
+# versions of each network:
+#   x2  the main networks (calibrated + rewired to twice the triangles)
+#   x1  the same nodes, degrees and mixing, before the rewiring: the extra
+#       closure is gone, the homophily stays
+#   DP  the degree-preserving twin of x2, built exactly as in 05
+#       (set.seed(500000 + k), rewire(keeping_degseq, niter = 20 m)): the
+#       homophily is gone too
+# (Until 2026-11 the middle column was the SH network, attributes shuffled on
+# the same topology; SH is no longer used.)
+# Panel of statistics in three families:
 #   A. Controls the DP preserves by construction  (<k>, density)  -> sanity check
-#   B. Higher-order topology (the candidate topological "culprit")
-#        clustering(global), clustering(avg local), #triangles, degree
-#        assortativity, mean path length, modularity (Louvain), giant component
-#   C. Homophily (the sociological "culprit")
-#        attribute assortativity per Blau axis (race, sex, relig, age, educ)
-#        + MEAN GOWER DISTANCE OVER EDGES (the model's own d_ij)
+#   B. Higher-order topology: clustering (global, average local), triangles,
+#      degree assortativity, mean path length, modularity (Louvain), giant component
+#   C. Homophily: attribute assortativity per Blau axis (race, sex, relig, age,
+#      educ) + the MEAN GOWER DISTANCE OVER EDGES (the model's own d_ij)
 #
-# Significance: 100 vs 100 -> Mann-Whitney U (two-sided) + Cohen's d effect size.
-# Outputs:
-#   - data/structural_diagnosis_summary.csv  (per-stat: means, p, d, % change)
-#   - plots/structural_diagnosis_B.pdf  (3x3 grid, family B)
-#   - plots/structural_diagnosis_C.pdf  (1x2: per-axis assortativity + Gower dist)
+# Significance: 24 vs 24 -> Mann-Whitney U (two-sided) + Cohen's d (x2 vs DP),
+# and Mann-Whitney x2 vs x1.
+# Outputs (<S> = GSS or ATP):
+#   output/07_structural_diagnosis/<S>/structural_diagnosis_{raw,summary}.csv
+#   plots/07_structural_diagnosis/<S>/structural_diagnosis_B.pdf  (3x2 grid, family B)
+#   plots/07_structural_diagnosis/<S>/structural_diagnosis_C.pdf  (assortativity + Gower distance)
+# Usage: Rscript scripts/07_structural_diagnosis.R --survey=GSS     (~1 min)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 suppressWarnings(suppressMessages({
@@ -26,36 +33,25 @@ suppressWarnings(suppressMessages({
   library(dplyr); library(tidyr); library(ggplot2); library(patchwork)
 }))
 
-set.seed(20260619)
-NET_DIR  <- "data/02_GSS_network_ergm"
-PAT      <- "^GSS_net_sim_1000_\\d{3}\\.rds$"
-N_NETS   <- 100
-SWAP_FAC <- 20                 # same niter_factor as the diffusion sims
-PLOTS    <- "plots/07_structural_diagnosis"
-DATA_OUT <- "output/07_structural_diagnosis"
+ARGS <- commandArgs(trailingOnly = TRUE)
+SURVEY <- toupper(sub("^--survey=", "", grep("^--survey=", ARGS, value = TRUE)))
+if (length(SURVEY) == 0) SURVEY <- "GSS"
+stopifnot(SURVEY %in% c("GSS", "ATP"))
+NET_DIR  <- "data/02_calibrated_networks"
+SWAP_FAC <- 20                 # same niter factor as the DP twins of 05
+PLOTS    <- file.path("plots/07_structural_diagnosis", SURVEY)
+DATA_OUT <- file.path("output/07_structural_diagnosis", SURVEY)
 dir.create(PLOTS, showWarnings = FALSE, recursive = TRUE)
 dir.create(DATA_OUT, showWarnings = FALSE, recursive = TRUE)
+TOPO_LV <- paste0(SURVEY, c(" x2", " x1", "-DP"))      # display order: main -> no extra closure -> no homophily
 
 BLAU_CAT <- c("race", "sex", "relig")    # categorical Blau axes
 BLAU_NUM <- c("age", "educ_num")          # continuous Blau axes
 GOWER_VARS <- c("age", "educ_num", "race", "relig", "sex")  # = model's d_ij inputs
 
-# ---------------------------------------------------------------------------
-# load a statnet network -> igraph, carrying the demographic attributes
-# ---------------------------------------------------------------------------
-load_igraph <- function(path) {
-  net <- readRDS(path)
-  A <- network::as.matrix.network(net, matrix.type = "adjacency")
-  g <- igraph::graph_from_adjacency_matrix(A, mode = "undirected", diag = FALSE)
-  for (a in c(BLAU_CAT, BLAU_NUM, "mur_score")) {
-    if (a %in% network::list.vertex.attributes(net))
-      g <- igraph::set_vertex_attr(g, a, value = network::get.vertex.attribute(net, a))
-  }
-  g
-}
-
-# degree-preserving randomization (identical to 04_GSS_diffusion_sims.R)
-make_dp <- function(g) {
+# DP twin of network k, identical to 05's (make_pair in 05_unified_engine.R)
+make_dp <- function(g, k) {
+  set.seed(500000 + k)
   igraph::rewire(g, with = igraph::keeping_degseq(niter = SWAP_FAC * igraph::ecount(g)))
 }
 
@@ -97,7 +93,7 @@ stats_one <- function(g) {
     triangles          = sum(igraph::count_triangles(g)) / 3,
     assort_degree      = igraph::assortativity_degree(g, directed = FALSE),
     mean_path_length   = igraph::mean_distance(g, directed = FALSE),
-    modularity         = igraph::modularity(igraph::cluster_louvain(g)),
+    modularity         = { set.seed(1); igraph::modularity(igraph::cluster_louvain(g)) },
     giant_frac         = max(comps$csize) / igraph::vcount(g),
     # C. homophily
     assort_race        = assort_attr(g, "race",  TRUE),
@@ -111,30 +107,20 @@ stats_one <- function(g) {
 }
 
 # ---------------------------------------------------------------------------
-# run over the 100 networks
+# run over the 24 networks of each level
 # ---------------------------------------------------------------------------
-files <- list.files(NET_DIR, pattern = PAT, full.names = TRUE)[1:N_NETS]
-cat("Computing statistics on", length(files), "GSS networks and their DP counterparts...\n")
-
-# GSS-SH networks (topology byte-identical, attributes permuted) — already built
-# and saved by 04b_make_SH_networks.R; load them so the panel can place an
-# SH column BETWEEN GSS and GSS-DP.
-SH_DIR <- "data/02_GSS_SH_network"
-SH_PAT <- "^GSS_sh_sim_1000_(\\d{3})\\.rds$"
-sh_files <- list.files(SH_DIR, pattern = SH_PAT, full.names = TRUE)
-
+g2s <- readRDS(file.path(NET_DIR, paste0(SURVEY, "_x2.rds")))
+g1s <- readRDS(file.path(NET_DIR, paste0(SURVEY, "_x1.rds")))
+cat("Computing statistics on", length(g2s), SURVEY, "networks (x2, x1) and the DP twins of x2...\n")
 rows <- list()
-for (i in seq_along(files)) {
-  g  <- load_igraph(files[i])
-  gd <- make_dp(g)
-  rows[[length(rows) + 1]] <- data.frame(net = i, topo = "GSS",    t(stats_one(g)))
-  rows[[length(rows) + 1]] <- data.frame(net = i, topo = "GSS-SH", t(stats_one(load_igraph(sh_files[i]))))
-  rows[[length(rows) + 1]] <- data.frame(net = i, topo = "GSS-DP", t(stats_one(gd)))
-  if (i %% 10 == 0) cat("  done", i, "/", length(files), "\n")
+for (i in seq_along(g2s)) {
+  rows[[length(rows) + 1]] <- data.frame(net = i, topo = TOPO_LV[1], t(stats_one(g2s[[i]])))
+  rows[[length(rows) + 1]] <- data.frame(net = i, topo = TOPO_LV[2], t(stats_one(g1s[[i]])))
+  rows[[length(rows) + 1]] <- data.frame(net = i, topo = TOPO_LV[3], t(stats_one(make_dp(g2s[[i]], i))))
+  if (i %% 6 == 0) cat("  done", i, "/", length(g2s), "\n")
 }
 allstats <- bind_rows(rows)
-# fixed display order: GSS (real) -> GSS-SH (homophily gone) -> GSS-DP (topology gone)
-allstats$topo <- factor(allstats$topo, levels = c("GSS", "GSS-SH", "GSS-DP"))
+allstats$topo <- factor(allstats$topo, levels = TOPO_LV)
 write.csv(allstats, file.path(DATA_OUT, "structural_diagnosis_raw.csv"), row.names = FALSE)
 
 # ---------------------------------------------------------------------------
@@ -148,17 +134,17 @@ cohens_d <- function(x, y) {
   (mean(x) - mean(y)) / sp
 }
 summ <- lapply(stat_cols, function(s) {
-  x  <- allstats[[s]][allstats$topo == "GSS"]
-  sh <- allstats[[s]][allstats$topo == "GSS-SH"]
-  y  <- allstats[[s]][allstats$topo == "GSS-DP"]
-  p     <- tryCatch(wilcox.test(x, y)$p.value,  error = function(e) NA_real_)  # GSS vs DP
-  p_sh  <- tryCatch(wilcox.test(x, sh)$p.value, error = function(e) NA_real_)  # GSS vs SH
+  x  <- allstats[[s]][allstats$topo == TOPO_LV[1]]
+  x1 <- allstats[[s]][allstats$topo == TOPO_LV[2]]
+  y  <- allstats[[s]][allstats$topo == TOPO_LV[3]]
+  p    <- tryCatch(wilcox.test(x, y)$p.value,  error = function(e) NA_real_)  # x2 vs DP
+  p_x1 <- tryCatch(wilcox.test(x, x1)$p.value, error = function(e) NA_real_)  # x2 vs x1
   data.frame(statistic = s,
-             mean_GSS = mean(x, na.rm = TRUE), mean_SH = mean(sh, na.rm = TRUE),
+             mean_x2 = mean(x, na.rm = TRUE), mean_x1 = mean(x1, na.rm = TRUE),
              mean_DP = mean(y, na.rm = TRUE),
              pct_change_DP = 100 * (mean(y, na.rm = TRUE)  - mean(x, na.rm = TRUE)) / abs(mean(x, na.rm = TRUE)),
-             pct_change_SH = 100 * (mean(sh, na.rm = TRUE) - mean(x, na.rm = TRUE)) / abs(mean(x, na.rm = TRUE)),
-             cohens_d = cohens_d(x, y), p_value = p, p_value_SH = p_sh)
+             pct_change_x1 = 100 * (mean(x1, na.rm = TRUE) - mean(x, na.rm = TRUE)) / abs(mean(x, na.rm = TRUE)),
+             cohens_d = cohens_d(x, y), p_value = p, p_value_x1 = p_x1)
 }) %>% bind_rows()
 write.csv(summ, file.path(DATA_OUT, "structural_diagnosis_summary.csv"), row.names = FALSE)
 cat("\n=============== STRUCTURAL DIAGNOSIS SUMMARY ===============\n")
@@ -168,10 +154,9 @@ cat("===========================================================\n")
 # ---------------------------------------------------------------------------
 # plotting helpers
 # ---------------------------------------------------------------------------
-# GSS-DP now uses the deck's dark green (ndgreen = RGB 0,118,54) to match the
+# DP uses the deck's dark green (ndgreen = RGB 0,118,54) to match the
 # "Two ways to break the network" concept map.
-COLS <- c("GSS" = "#E74C3C", "GSS-SH" = "#2980B9", "GSS-DP" = "#007636")
-TOPO_LV <- c("GSS", "GSS-SH", "GSS-DP")
+COLS <- setNames(c("#E74C3C", "#2980B9", "#007636"), TOPO_LV)
 
 # single boxplot, 3 topologies, labels above each box (no legend, no p-value)
 box_one <- function(stat, title) {
@@ -200,7 +185,7 @@ pB <- wrap_plots(Map(box_one, B_stats, B_titles), ncol = 3)
 ggsave(file.path(PLOTS, "structural_diagnosis_B.pdf"), pB, width = 9, height = 5.6)
 
 # --- Plot 2: family C, 1x2 (3 topologies). Left panel: dashed separators between
-#     Blau axes, per-box GSS/GSS-SH/GSS-DP labels (no legend), compact. ---
+#     Blau axes, per-box x2/x1/DP labels (no legend), compact. ---
 AXIS_ORDER <- c("Age", "Education", "Race", "Religion", "Sex")
 assort_long <- allstats %>%
   select(topo, assort_race, assort_sex, assort_relig, assort_age, assort_educ) %>%
