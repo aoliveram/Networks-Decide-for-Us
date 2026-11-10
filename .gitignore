@@ -28,6 +28,10 @@ output/**/checkpoints/
 #   output/**/exposure_axis_*.rds <- scripts/05_unified_diffusion_sweep.R (compact sweep results)
 output/**/exposure_axis_*.rds
 
+# Figures of the 96 ERGM networks (annealed gate): local copies only, for comparison
+# until PR #3 closes; the tracked versions stay in the git history
+plots/**/_ergm96/
+
 # Smoke-test sandboxes (--test) and the networks of the held-out validation
 # (scripts/09_network_validation.R rebuilds them in ~2 min)
 output/**/_test/
