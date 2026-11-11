@@ -20,6 +20,9 @@
 # 4. PEOCNTCT (contacts in a typical weekday: 0-4, 5-9, 10-19, 20-49, 50+) by race, as an
 #    alternative to the GSS 2004 relative number of confidants (the targets of 02).
 # 5. Association of each q with the Blau attributes (R2), as in 06e.
+# Weights: the GSS 2014 nodes are drawn with probability proportional to WTSSNR (01_survey_data.R);
+# their mean q, the POLVIEWS shares and PEOCNTCT by race are also reported weighted (WTSSNR of
+# the 2014 cross-section). GSS 2004 stays unweighted, as in its networks.
 # Outputs: output/03_GSS14_MUR/{alpha,distribution,peocntct_by_race,polviews,association}.csv
 #          plots/03_GSS14_MUR/gss14_q.pdf
 # Usage (repo root): Rscript scripts/03_GSS14_MUR_calculation.R   (seconds)
@@ -51,6 +54,8 @@ fwrite(AL, file.path(OUT, "alpha.csv"))
 cat("\nCRONBACH ALPHA:\n"); print(AL, digits = 3)
 p04_9 <- ca_propensity(X04_9)[blau_ok(A04)]; p04_8 <- ca_propensity(X04_8)[blau_ok(A04)]
 nodes_ca <- gss14_nodes("ca"); nodes_sci <- gss14_nodes("sci")
+cat(sprintf("GSS 2014 nodes, weighted (WTSSNR): mean q %.3f (unweighted %.3f); Kish effective n %d of %d\n",
+            weighted.mean(nodes_ca$mur_score, nodes_ca$w), mean(nodes_ca$mur_score), round(sum(nodes_ca$w)^2 / sum(nodes_ca$w^2)), nrow(nodes_ca)))
 DI <- rbind(cbind(data.table(index = "collective action, 9 items", survey = "GSS 2004 (Blau complete)"), dist_of(p04_9)),
             cbind(data.table(index = "collective action, same 8 items", survey = "GSS 2004 (Blau complete)"), dist_of(p04_8)),
             cbind(data.table(index = "collective action, 8 items", survey = "GSS 2014 nodes"), dist_of(nodes_ca$propensity_score)),
@@ -67,7 +72,8 @@ cat("Kolmogorov-Smirnov, GSS 2014 (8) vs GSS 2004 (same 8): D =",
     round(suppressWarnings(ks.test(nodes_ca$propensity_score, p04_8))$statistic, 3), "\n")
 
 # ---- 3. POLVIEWS -------------------------------------------------------------------------------------
-pv <- nodes_ca[, .(n = .N, share = .N / nrow(nodes_ca), mean_q = mean(mur_score)), by = ideol][order(match(ideol, c("Liberal", "Moderate", "Conservative")))]
+pv <- nodes_ca[, .(n = .N, share = .N / nrow(nodes_ca), share_w = sum(w) / sum(nodes_ca$w), mean_q = mean(mur_score),
+                   mean_q_w = weighted.mean(mur_score, w)), by = ideol][order(match(ideol, c("Liberal", "Moderate", "Conservative")))]
 fwrite(pv, file.path(OUT, "polviews.csv"))
 cat("\nPOLVIEWS in the GSS 2014 nodes (3 groups) and mean q:\n"); print(pv, digits = 3)
 cat("R2 of polviews (3 groups) on the Blau attributes (multinomial pseudo-R2 via lm on each dummy):\n")
@@ -76,18 +82,19 @@ for (k in c("Liberal", "Moderate", "Conservative"))
 
 # ---- 4. PEOCNTCT by race ------------------------------------------------------------------------------
 mid <- c(2, 7, 14.5, 34.5, 60)                     # midpoints of 0-4, 5-9, 10-19, 20-49, 50+ (50+ at 60)
-pc <- data.table(race = A14$race, peocntct = as.numeric(zap_labels(g14$peocntct)))[cs14 & peocntct %in% 1:5 & !is.na(race)]
+pc <- data.table(race = A14$race, peocntct = as.numeric(zap_labels(g14$peocntct)), w = as.numeric(zap_labels(g14$wtssnr)))[
+  cs14 & peocntct %in% 1:5 & !is.na(race)]
 pc[, contacts := mid[peocntct]]
-pcr <- pc[, .(n = .N, mean_contacts = mean(contacts), mean_category = mean(peocntct)), by = race]
-pcr[, rel_contacts := mean_contacts / weighted.mean(mean_contacts, n)][, rel_category := mean_category / weighted.mean(mean_category, n)]
+pcr <- pc[, .(n = .N, wn = sum(w), mean_contacts = weighted.mean(contacts, w), mean_category = weighted.mean(peocntct, w)), by = race]
+pcr[, rel_contacts := mean_contacts / weighted.mean(mean_contacts, wn)][, rel_category := mean_category / weighted.mean(mean_category, wn)]
 tg04 <- fread("output/02_calibrated_networks/gss2004_targets.csv")
 pcr <- merge(pcr, tg04[, .(race = ego, gss2004_rel_confidants = rel_deg, rel_lo, rel_hi)], by = "race")[match(RACES, race)]
 set.seed(2014)
-bt <- rbindlist(lapply(1:1000, function(b) { x <- pc[sample.int(.N, replace = TRUE)][, .(n = .N, m = mean(contacts)), by = race]
-  x[, .(race, rel = m / weighted.mean(m, n))] }))[, .(peo_lo = quantile(rel, .025), peo_hi = quantile(rel, .975)), by = race]
+bt <- rbindlist(lapply(1:1000, function(b) { x <- pc[sample.int(.N, replace = TRUE)][, .(wn = sum(w), m = weighted.mean(contacts, w)), by = race]
+  x[, .(race, rel = m / weighted.mean(m, wn))] }))[, .(peo_lo = quantile(rel, .025), peo_hi = quantile(rel, .975)), by = race]
 pcr <- merge(pcr, bt, by = "race")[match(RACES, race)]
 fwrite(pcr, file.path(OUT, "peocntct_by_race.csv"))
-cat("\nPEOCNTCT (GSS 2014 cross-section) vs GSS 2004 confidants: relative degree by race (95% CI):\n")
+cat("\nPEOCNTCT (GSS 2014 cross-section, weighted by WTSSNR) vs GSS 2004 confidants: relative degree by race (95% CI):\n")
 print(pcr[, .(race, n, mean_contacts = round(mean_contacts, 1), peocntct = sprintf("%.3f [%.3f, %.3f]", rel_contacts, peo_lo, peo_hi),
               by_category = round(rel_category, 3), gss2004_confidants = sprintf("%.3f [%.3f, %.3f]", gss2004_rel_confidants, rel_lo, rel_hi))])
 

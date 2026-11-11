@@ -48,19 +48,19 @@
 #    every statistic). Relative error = predicted / observed - 1, with its 95%
 #    percentile interval.
 #
-# ELSOC (--survey=ELSOC; PR #5). The same design on the ELSOC confidants of 2017 and
-# 2019: respondents (both waves of a respondent in the same half) split in two halves
-# stratified by education (the calibrated group; education of the first network wave);
-# targets (relative number of confidants and same-education share by education of ego)
-# from half A; nodes = the 2018 node records (c09 and attributes) of half-B respondents;
-# observed = the confidants of half B (one row per respondent and wave; the bootstrap
-# resamples respondents within education). Features: relative degree and same education
-# (targeted, out of sample), same sex, religion and ideology, age difference and
-# education difference (categories 1-5) (not targeted: their coefficients come from the
-# ELSOC case-control of both halves, as Smith et al.'s come from the GSS), and Blau
-# diversity of education, religion, ideology and sex of k contacts. No closure: ELSOC has
-# no alter-alter ties. Levels x1 and x2 (they differ only in the Blau diversity of the
-# matched contacts). Outputs in output/09_network_validation/ELSOC/ and
+# ELSOC (--survey=ELSOC; PR #5). The same design on the ELSOC confidants of 2017:
+# respondents split in two halves stratified by education (the first calibrated group);
+# targets (relative number of confidants and same-group share by education and by ideology
+# of ego, weighted) from half A; nodes = the 2018 node records (c09 and attributes) of
+# half-B respondents, drawn with their weights; observed = the confidants of half B, every
+# ego weighted by ponderador02 (the bootstrap resamples respondents within education and
+# keeps the weights). Features: relative degree and same education and same ideology by
+# group (targeted, out of sample), same sex and religion, age difference and education
+# difference (categories 1-5) (not targeted: their coefficients come from the ELSOC
+# case-control of both halves, as Smith et al.'s come from the GSS), and Blau diversity of
+# education, religion, ideology and sex of k contacts. No closure: ELSOC has no
+# alter-alter ties. Levels x1 and x2 (they differ only in the Blau diversity of the matched
+# contacts). Outputs in output/09_network_validation/ELSOC/ and
 # plots/09_network_validation/ELSOC/.
 #
 # Outputs
@@ -89,6 +89,7 @@ RACES <- c("White", "Black", "Hispanic", "Asian", "Other")
 RELIG <- c("Protestant", "Catholic", "Jewish", "None", "OtherRelig")
 CFG <- survey_config(SURVEY); GROUP <- CFG$group                 # calibrated group: race (GSS), educ (ELSOC)
 ALL_GROUPS <- CFG$groups; CAL_GROUPS <- ALL_GROUPS[CFG$cal]; GROUPS <- c(CAL_GROUPS, "All")
+GROUPS_X <- if (IS_GSS) GROUPS else c(GROUPS, paste0("ideol:", IDE3))     # ELSOC: also by ideology of ego
 CATS <- if (IS_GSS) c("race", "sex", "relig") else c("educ", "sex", "relig", "ideol")    # same_* features
 BLAU_V <- if (IS_GSS) c("race", "relig", "sex") else c("educ", "relig", "ideol", "sex")  # Blau diversity of k contacts
 CLOSURE <- IS_GSS                                                 # alter-alter ties: GSS 2004 only
@@ -140,11 +141,11 @@ PR <- rbindlist(lapply(combn(5, 2, simplify = FALSE), function(p) data.table(
 PR[, eid := gss_id]
 STRATUM <- EG[, .(rid, stratum = race)]
 } else {
-EG <- elsoc_egos(c(2, 4))[!is.na(educ) & !is.na(nredes)]
+EG <- elsoc_egos(2)[!is.na(educ) & !is.na(nredes)]
 EG[, `:=`(eid = .I, rid = idencuesta, grp = educ, numgiven = nredes, educ_cat = match(educ, EDU5))]
-AL <- merge(elsoc_alters(c(2, 4)), EG[, .(idencuesta, ola, eid)], by = c("idencuesta", "ola"))[, educ_cat := match(educ, EDU5)]
+AL <- merge(elsoc_alters(2), EG[, .(idencuesta, ola, eid)], by = c("idencuesta", "ola"))[, educ_cat := match(educ, EDU5)]
 setorder(EG, rid, ola)
-STRATUM <- EG[, .(stratum = grp[1]), by = rid]                 # education of the first network wave
+STRATUM <- EG[, .(stratum = grp[1]), by = rid]                 # education of ego
 }
 
 # split by respondent, stratified (GSS: one row per respondent, as until PR #5)
@@ -177,8 +178,10 @@ NODE_ID <- if (IS_GSS) "gss_id" else "elsoc_id"
 # the networks must come from this split: nodes from half B, targets equal to half A's
 stopifnot(all(unlist(lapply(NETS, function(L) lapply(L, function(g) vertex_attr(g, NODE_ID)))) %in% STRATUM[half == "B", rid]))
 tgA <- fread(file.path("output/02_calibrated_networks", TAG, if (IS_GSS) "gss2004_targets.csv" else "elsoc_targets.csv"))
-chkA <- merge(EG[half == "A", .(n = .N, deg = mean(numgiven)), by = .(ego = grp)],
+chkA <- if (IS_GSS) merge(EG[half == "A", .(n = .N, deg = mean(numgiven)), by = .(ego = grp)],
               merge(AL[!is.na(get(GROUP))], EG[half == "A", .(eid, ego = grp)], by = "eid")[, .(same = mean(get(GROUP) == ego)), by = ego],
+              by = "ego") else merge(EG[half == "A", .(n = .N), by = .(ego = grp)],
+              merge(AL[!is.na(get(GROUP))], EG[half == "A", .(eid, w, ego = grp)], by = "eid")[, .(same = weighted.mean(get(GROUP) == ego, w)), by = ego],
               by = "ego")
 chkA <- merge(chkA, tgA[, .(ego, n_t = n, same_t = same)], by = "ego")
 stopifnot(all(chkA$n == chkA$n_t), isTRUE(all.equal(chkA$same, chkA$same_t)))
@@ -220,7 +223,8 @@ FEATS <- c(setNames(lapply(CATS, function(v) c(paste0("s_", v), paste0("n_", v))
            if (CLOSURE) list(closure_know = c("p_know", "p_all"), closure_close = c("p_close", "p_all")))
 SHARE_F <- c(paste0("same_", CATS), "age_diff", "educ_diff")
 MATCHED <- c(paste0("blau_", BLAU_V), if (CLOSURE) c("closure_know", "closure_close"))
-gmask <- function(gr) if (gr == "All") rep(1, N_E) else as.numeric(EB$grp == gr)
+gmask <- function(gr) if (gr == "All") rep(1, N_E) else if (startsWith(gr, "ideol:")) as.numeric(EB$ideol %in% sub("ideol:", "", gr)) else
+  as.numeric(EB$grp == gr)
 SIZES <- c("2", "3", "4", "5", "6+")
 
 # bootstrap weights: respondents within stratum (W, B x egos: every row of a respondent gets the
@@ -233,6 +237,7 @@ for (r in unique(RB$stratum)) { ii <- which(RB$stratum == r)
 W <- CW[, match(EB$rid, RB$rid), drop = FALSE]
 V <- t(vapply(seq_len(B_BOOT), function(b) tabulate(sample.int(N_NETS, N_NETS, TRUE), N_NETS), numeric(N_NETS)))
 W <- rbind(1, W); V <- rbind(1, V)
+if (!IS_GSS) W <- sweep(W, 2, EB$w, `*`)                  # ELSOC: every ego carries its survey weight
 
 obs_feature <- function(f, gr, mask = gmask(gr)) {
   cols <- FEATS[[f]]
@@ -240,7 +245,7 @@ obs_feature <- function(f, gr, mask = gmask(gr)) {
 }
 obs_reldeg <- function(gr) (drop(W %*% (EB$numgiven * gmask(gr))) / drop(W %*% gmask(gr))) / (drop(W %*% EB$numgiven) / rowSums(W))
 OBS <- list()
-for (gr in GROUPS) {
+for (gr in GROUPS_X) {
   if (gr != "All") OBS[[paste("rel_deg", gr)]] <- obs_reldeg(gr)
   for (f in names(FEATS)) OBS[[paste(f, gr)]] <- obs_feature(f, gr)
 }
@@ -275,6 +280,12 @@ net_stats <- function(g, seed) {
                         list(age_diff = abs(va$age[i] - va$age[j]), educ_diff = abs(va$educ_cat[i] - va$educ_cat[j]))))
   all_c <- rbind(te[, lapply(.SD, mean), by = r, .SDcols = -"r"], te[, lapply(.SD, mean), .SDcols = -"r"][, r := "All"])
   all_c <- merge(all_c, data.table(r = c(ALL_GROUPS, "All"), rel_deg = c(tapply(deg, factor(va[[GROUP]], ALL_GROUPS), mean) / mean(deg), 1)), by = "r")
+  if (!IS_GSS) {                                            # ELSOC: the same by ideology of ego
+    te2 <- copy(te)[, r := paste0("ideol:", va$ideol[i])]
+    all_c <- rbind(all_c, merge(te2[, lapply(.SD, mean), by = r, .SDcols = -"r"],
+                                data.table(r = paste0("ideol:", IDE3), rel_deg = as.numeric(tapply(deg, factor(va$ideol, IDE3), mean)) / mean(deg)),
+                                by = "r"), use.names = TRUE)
+  }
   lc <- transitivity(g, "local"); q5 <- cut(deg, unique(quantile(deg, 0:5 / 5)), include.lowest = TRUE, labels = FALSE)
   str <- as.data.table(c(list(transitivity = transitivity(g, "global"), local_clustering = mean(lc, na.rm = TRUE),
                               assort_degree = assortativity_degree(g, directed = FALSE)),
@@ -333,7 +344,7 @@ row_of <- function(feature, group, level, source, pred, obs) {
              rel_err = re[1], rel_lo = re[2], rel_hi = re[3], fits = re[2] <= 0 & re[3] >= 0)
 }
 TAB <- list(); CBS <- list()
-for (l in LEVELS$level) for (gr in GROUPS) {
+for (l in LEVELS$level) for (gr in GROUPS_X) {
   if (gr != "All") TAB[[length(TAB) + 1]] <- row_of("rel_deg", gr, l, "all contacts", pred_all(l, "rel_deg", gr), OBS[[paste("rel_deg", gr)]])
   for (f in SHARE_F)
     TAB[[length(TAB) + 1]] <- row_of(f, gr, l, "all contacts", pred_all(l, f, gr), OBS[[paste(f, gr)]])
@@ -359,7 +370,7 @@ TREND <- if (CLOSURE) rbindlist(lapply(LEVELS$level, function(l) rbindlist(lappl
   data.table(feature = f, level = l, source = rule, observed = oq[1], obs_lo = oq[2], obs_hi = oq[3],
              predicted = pq[1], pred_lo = pq[2], pred_hi = pq[3], diff = dq[1], diff_lo = dq[2], diff_hi = dq[3])
 })))))) else data.table()
-TAB[, n_egos := vapply(group, function(gr) if (gr == "All") N_E else sum(EB$grp == gr), numeric(1))]
+TAB[, n_egos := vapply(group, function(gr) sum(gmask(gr)), numeric(1))]
 fwrite(TAB, file.path(OUT, "validation_table.csv"))
 if (CLOSURE) { fwrite(CBS, file.path(OUT, "validation_closure_by_size.csv")); fwrite(TREND, file.path(OUT, "validation_closure_trend.csv")) }
 STR <- rbindlist(lapply(LEVELS$level, function(l) rbindlist(lapply(ST[[l]], `[[`, "structure"), fill = TRUE)[, lapply(.SD, mean)][, level := l]))
@@ -374,7 +385,7 @@ show[, obs := fmt(observed, obs_lo, obs_hi)][, pred := sprintf("%.3f", predicted
 for (f in unique(show$feature)) {
   cat("\n--", f, "\n")
   w <- dcast(show[feature == f], group + obs ~ level + source, value.var = "err")
-  print(w[match(intersect(GROUPS, w$group), group)], row.names = FALSE)
+  print(w[match(intersect(GROUPS_X, w$group), group)], row.names = FALSE)
 }
 if (CLOSURE) {
 cat("\nClosure by number of confidants (all egos): observed (know / especially close) and predicted share of connected pairs:\n")
@@ -391,6 +402,7 @@ cat("\nStructure of the validation networks (means over networks):\n"); print(ST
 # compact table for the paper: all egos (and same-race by group), x1 / x2 / x2g
 pick <- rbind(TAB[group == "All" & source == "all contacts" & feature %in% SHARE_F],
               TAB[group %in% CAL_GROUPS & source == "all contacts" & feature %in% c("rel_deg", paste0("same_", GROUP))],
+              if (!IS_GSS) TAB[startsWith(group, "ideol:") & source == "all contacts" & feature %in% c("rel_deg", "same_ideol")],
               TAB[group == "All" & feature %in% MATCHED & source %in% RULES])[level %in% SHOW_LV]
 lab_f <- c(rel_deg = "Relative degree", same_race = "Same race", same_educ = "Same education", same_sex = "Same sex",
            same_relig = "Same religion", same_ideol = "Same ideology",
@@ -398,9 +410,9 @@ lab_f <- c(rel_deg = "Relative degree", same_race = "Same race", same_educ = "Sa
            blau_race = "Blau diversity, race", blau_educ = "Blau diversity, education", blau_relig = "Blau diversity, religion",
            blau_ideol = "Blau diversity, ideology", blau_sex = "Blau diversity, sex",
            closure_know = "Pairs who know each other", closure_close = "Pairs especially close")
-pick[, row := paste0(lab_f[feature], ifelse(group == "All", "", paste0(", ", group)), ifelse(source == "all contacts", "", paste0(" (", source, ")")))]
+pick[, row := paste0(lab_f[feature], ifelse(group == "All", "", paste0(", ", sub("ideol:", "ideology ", group))), ifelse(source == "all contacts", "", paste0(" (", source, ")")))]
 tex <- dcast(pick, row + feature + group + source + observed + obs_lo + obs_hi ~ level, value.var = c("predicted", "rel_err", "fits"))
-tex <- tex[order(match(feature, names(lab_f)), match(group, GROUPS), match(source, c("all contacts", RULES)))]
+tex <- tex[order(match(feature, names(lab_f)), match(group, GROUPS_X), match(source, c("all contacts", RULES)))]
 cell <- function(p, e, ok) sprintf("%.3f & %s%+.0f\\%%%s", p, if (ok) "" else "\\textbf{", 100 * e, if (ok) "" else "}")
 if (IS_GSS) {
 lines <- c("% generated by scripts/09_network_validation.R; bold = 95% interval of the relative error excludes 0",
@@ -424,7 +436,7 @@ lines <- c("% generated by scripts/09_network_validation.R; bold = 95% interval 
 } else {
 lines <- c("% generated by scripts/09_network_validation.R --survey=ELSOC; bold = 95% interval of the relative error excludes 0",
            "\\begin{tabular}{lcrrrr}", "\\hline",
-           " & ELSOC 2017+2019, half B & \\multicolumn{2}{c}{x1} & \\multicolumn{2}{c}{x2 (main)} \\\\",
+           " & ELSOC 2017, half B & \\multicolumn{2}{c}{x1} & \\multicolumn{2}{c}{x2 (main)} \\\\",
            "Feature & observed [95\\% CI] & pred. & error & pred. & error \\\\", "\\hline",
            vapply(seq_len(nrow(tex)), function(i) with(tex[i], paste0(row, " & ", sprintf("%.3f [%.3f, %.3f]", observed, obs_lo, obs_hi), " & ",
                                                                      cell(predicted_x1, rel_err_x1, fits_x1), " & ", cell(predicted_x2, rel_err_x2, fits_x2), " \\\\")), ""),
@@ -442,7 +454,7 @@ p1 <- ggplot(pd, aes(100 * rel_err, lab, color = level)) +
   geom_linerange(aes(xmin = 100 * rel_lo, xmax = 100 * rel_hi), position = position_dodge(width = 0.6)) +
   geom_point(position = position_dodge(width = 0.6), size = 1.6) +
   scale_color_manual(values = COLS, name = NULL) +
-  labs(title = sprintf("Relative error, networks vs %s half B (all egos; 95%% bootstrap CI)", if (IS_GSS) "GSS 2004" else "ELSOC 2017+2019"),
+  labs(title = sprintf("Relative error, networks vs %s half B (all egos; 95%% bootstrap CI)", if (IS_GSS) "GSS 2004" else "ELSOC 2017"),
        x = "Predicted / observed − 1 (%)", y = NULL) +
   theme_bw(base_size = 8) + theme(legend.position = "bottom", plot.title = element_text(size = 8, face = "bold"))
 gd <- TAB[group %in% CAL_GROUPS & source == "all contacts" & feature %in% c("rel_deg", paste0("same_", CATS)) & level == "x2"]

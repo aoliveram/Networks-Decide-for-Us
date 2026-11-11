@@ -50,16 +50,27 @@
 #   GSS14  GSS 2014 nodes (collective action, 8 of the 9 items), built as ATP: GSS 2004
 #          race targets and Smith et al. coefficients; POLVIEWS kept as attribute 'ideol'
 #          (3 groups) for the circles of the theta arm (it is not in the tie model).
-#   ELSOC  ELSOC 2018 nodes (willingness c09). The group calibrated is EDUCATION (5 groups,
-#          all calibrated): activity delta_e and homophily gamma_e by Newton against the
-#          ELSOC confidants of 2017 and 2019 (relative number of confidants and share of
-#          same-education confidants by education of ego). The rest of the tie model comes
-#          from the ELSOC case-control estimates (02_ELSOC_homophily.R, all ties, both waves):
-#          same sex, religion and ideology, |age| and |education in years|. The x2 rewiring
-#          keeps the education mixing matrix and the same-sex, same-religion and
-#          same-ideology counts exact. ELSOC has no alter-alter ties: x2 is a choice there
-#          too. Networks carry the graph attributes survey, blau and cell (the Gower inputs
-#          and the theta circles of 05_unified_engine.R); GSS and ATP keep the defaults.
+#   ELSOC  ELSOC 2018 nodes (willingness c09). TWO dimensions are calibrated by group,
+#          jointly: EDUCATION (5 groups) and IDEOLOGY (3 groups: Left, Neither, Right):
+#            logit p_ij = delta_e(i) + delta_e(j) + gamma_e [educ_i = educ_j = e]
+#                       + eta_l(i) + eta_l(j) + kappa_l [ideol_i = ideol_j = l, l = Left, Right] + rest
+#          (eta_Left = 0: the two activity sets share one constant). Newton matches, for the
+#          nodes of each network, the degree sum and the within-group ties of every
+#          education group, the degree sum of every ideology group and the within-group ties
+#          of Left and Right to the ELSOC confidants of 2017 (relative number of confidants
+#          and same-group share by group of ego, weighted by ponderador02;
+#          02_ELSOC_homophily.R). Neither has no homophily term (as 'Other' in GSS has no
+#          target): it is a residual category (no left-right identification, same / chance
+#          1.14), its same-group share follows from its size, and with its own term the
+#          Newton system is nearly flat (the left-right ties implied by the targets are close
+#          to zero; on the held-out halves Newton diverges). The rest of the tie model comes from the ELSOC
+#          case-control estimates (all ties, 2017, weighted): same sex, same religion,
+#          |age| and |education in years|. Nodes are drawn with probability proportional to
+#          ponderador02. The x2 rewiring keeps the education, sex, religion and ideology
+#          mixing matrices exact. ELSOC has no alter-alter ties: x2 is a choice there too.
+#          Networks carry the graph attributes survey, blau and cell (the Gower inputs and
+#          the theta circles of 05_unified_engine.R); GSS and ATP keep the defaults.
+#   GSS14 nodes are drawn with probability proportional to WTSSNR (GSS 2004 and ATP: uniform).
 #
 # Outputs (<S> = GSS, ATP, GSS14 or ELSOC):
 #   data/02_calibrated_networks/<S>_x1.rds, <S>_x2.rds   lists of 24 igraph objects
@@ -68,6 +79,7 @@
 #   data/02_calibrated_networks/<S>_calibration.rds      parameters, Newton and rewiring info
 #   output/02_calibrated_networks/gss2004_targets.csv    targets with bootstrap CI (elsoc_targets.csv)
 #   output/02_calibrated_networks/<S>_by_group.csv       degree and same-group share by group vs targets
+#                                                        (ELSOC also <S>_by_ideol.csv, elsoc_targets_ideol.csv)
 #   output/02_calibrated_networks/<S>_structure.csv      structure of x1 and x2 (means over networks)
 #   output/02_calibrated_networks/<S>_checks.csv         per network: degrees, mixing, simple graph
 #
@@ -91,7 +103,7 @@
 #   --name=<level>      file name of the rewired level (default x<closure>, plus "g" in global mode)
 # Alternative degree target (GSS14 only; use with --tag, e.g. --tag=peocntct):
 #   --rel-deg=peocntct  relative degree by race from PEOCNTCT (contacts in a typical weekday, GSS 2014
-#                       cross-section, category midpoints 2, 7, 14.5, 34.5, 60) instead of the GSS 2004
+#                       cross-section weighted by WTSSNR, category midpoints 2, 7, 14.5, 34.5, 60) instead of the GSS 2004
 #                       relative number of confidants; same-race shares unchanged (03_GSS14_MUR_calculation.R)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 suppressWarnings(suppressMessages({
@@ -126,10 +138,11 @@ GROUP <- CFG$group; GROUPS <- CFG$groups; G <- length(GROUPS); CAL <- CFG$cal   
 UNCAL <- setdiff(seq_len(G), CAL)                                                  # GSS: 'Other'
 CATS <- CFG$cats; NUMS <- CFG$nums
 if (SURVEY == "ELSOC") {
-  # ELSOC case-control (02_ELSOC_homophily.R: all ties, 2017 + 2019, B = 1000), nodematch scale;
-  # educ per year of the 5 education categories (6, 10, 12, 14, 16)
-  COEF <- c(sex = 0.379, relig = 1.111, ideol = 0.726, age = -0.026, educ = -0.166)
-  CAT_TERMS <- c(sex = "sex", relig = "relig", ideol = "ideol"); GAMMA0 <- 0.5
+  # ELSOC case-control (02_ELSOC_homophily.R: all ties, 2017, weighted, B = 1000), nodematch scale;
+  # educ per year of the 5 education categories (6, 10, 12, 14, 16). Same ideology (0.528 there) is
+  # not a common term: ideology is calibrated by group (start value GAMMA2_0)
+  COEF <- c(sex = 0.467, relig = 0.990, age = -0.030, educ = -0.195)
+  CAT_TERMS <- c(sex = "sex", relig = "relig"); GAMMA0 <- 0.5; GAMMA2_0 <- 0.528
 } else {
   # 02's homophily coefficients (Smith et al. 2014, Table 3 model 2, effects for 2004), nodematch scale
   COEF <- c(race = 1.959 - 0.264, sex = 0.373 - 0.144, relig = 1.270 + 0.215,
@@ -137,6 +150,8 @@ if (SURVEY == "ELSOC") {
   CAT_TERMS <- c(sex = "sex", relig = "relig"); GAMMA0 <- COEF[["race"]]
 }
 NUM_TERMS <- c(age = "age", educ = "educ_num")
+TWO <- !is.null(CFG$group2)                                   # second calibrated dimension (ELSOC: ideology)
+if (TWO) { GROUP2 <- CFG$group2; GROUPS2 <- CFG$groups2; H2 <- length(GROUPS2); CAL2 <- CFG$cal2 }
 stamp <- function(...) message(format(Sys.time(), "%H:%M:%S"), "  ", ...)
 t_start <- Sys.time()
 
@@ -182,10 +197,12 @@ VCOLS <- switch(SURVEY,
   ELSOC = c("age", "sex", "educ", "educ_num", "relig", "ideol", "mur_score", "propensity_score", if (nzchar(TAG)) "elsoc_id"),
   GSS14 = c("age", "sex", "educ_num", "race", "relig", "ideol", "mur_score", "propensity_score"),
   c("age", "sex", "educ_num", "race", "relig", "mur_score", "propensity_score", if (nzchar(TAG) && SURVEY == "GSS") "gss_id"))
+PROB <- if (isTRUE(CFG$weights)) pop$w else NULL                         # survey weights: node draw ~ w
 pop <- as.data.frame(pop)[, VCOLS]
 stopifnot(all(pop[[GROUP]] %in% GROUPS))
 stamp(SURVEY, " node pool: ", nrow(pop), " complete cases", if (nzchar(NODE_IDS)) paste0(" (restricted to ", NODE_IDS, ")"),
-      "; mean mur_score = ", round(mean(pop$mur_score), 3))
+      "; mean mur_score = ", round(mean(pop$mur_score), 3),
+      if (!is.null(PROB)) sprintf(" (weighted %.3f; Kish effective n %d)", weighted.mean(pop$mur_score, PROB), round(sum(PROB)^2 / sum(PROB^2))))
 
 # ---- 2. targets by group of ego (with bootstrap CI) -----------------------------------------
 if (GROUP == "race") {               # GSS 2004 confidants, by race of ego (GSS, ATP, GSS14)
@@ -207,32 +224,36 @@ tg <- gss_targets(resp$id)
 set.seed(2004)
 boot <- rbindlist(lapply(1:1000, function(b) gss_targets(sample(resp$id, replace = TRUE))[, b := b]))
 TG_FILE <- "gss2004_targets.csv"; TG_SRC <- "GSS 2004"; N_RESP <- nrow(resp)
-} else {                             # ELSOC confidants (r13, 2017 and 2019), by education of ego
-eg_r <- elsoc_egos(c(2, 4))[!is.na(educ) & !is.na(nredes)]
+} else {                             # ELSOC confidants (r13, 2017), by education and by ideology of ego, weighted
+eg_r <- elsoc_egos(2)[!is.na(nredes)]
 if (nzchar(TARGET_IDS)) eg_r <- eg_r[idencuesta %in% read_ids(TARGET_IDS)]
-al_r <- merge(elsoc_alters(c(2, 4))[!is.na(educ), .(idencuesta, ola, alter = educ)], eg_r[, .(idencuesta, ola, ego = educ)],
-              by = c("idencuesta", "ola"))
+al_r <- merge(elsoc_alters(2)[, .(idencuesta, a_educ = educ, a_ideol = ideol)],
+              eg_r[, .(idencuesta, w, e_educ = educ, e_ideol = ideol)], by = "idencuesta")
 setkey(eg_r, idencuesta); setkey(al_r, idencuesta)
-elsoc_targets <- function(ids) {     # ids: respondents (both waves of a respondent together)
-  r <- eg_r[.(ids), allow.cartesian = TRUE, nomatch = 0L]; a <- al_r[.(ids), allow.cartesian = TRUE, nomatch = 0L]
-  d <- r[, .(n = .N, deg = mean(nredes)), by = ego][, rel_deg := deg / weighted.mean(deg, n)]
-  s <- a[, .(alters = .N, same = mean(alter == ego)), by = ego]
-  merge(d, s, by = "ego", all = TRUE)[match(GROUPS, ego)]
+elsoc_targets <- function(ids, v, lv) {     # ids: respondents (a bootstrap draw repeats them)
+  r <- eg_r[.(ids), nomatch = 0L][!is.na(get(v))]
+  a <- al_r[.(ids), nomatch = 0L, allow.cartesian = TRUE][!is.na(get(paste0("a_", v))) & !is.na(get(paste0("e_", v)))]
+  d <- r[, .(n = .N, wn = sum(w), deg = weighted.mean(nredes, w)), by = .(ego = get(v))][, rel_deg := deg / weighted.mean(deg, wn)]
+  s <- a[, .(alters = .N, same = weighted.mean(get(paste0("a_", v)) == get(paste0("e_", v)), w)), by = .(ego = get(paste0("e_", v)))]
+  merge(d[, .(ego, n, deg, rel_deg)], s, by = "ego", all = TRUE)[match(lv, ego)]
 }
-eg_r[, ego := educ]
 uid <- unique(eg_r$idencuesta)
-tg <- elsoc_targets(uid)
+tg <- elsoc_targets(uid, GROUP, GROUPS)
 set.seed(2017)
-boot <- rbindlist(lapply(1:1000, function(b) elsoc_targets(sample(uid, replace = TRUE))[, b := b]))
-TG_FILE <- "elsoc_targets.csv"; TG_SRC <- "ELSOC 2017+2019"; N_RESP <- length(uid)
+boot <- rbindlist(lapply(1:1000, function(b) elsoc_targets(sample(uid, replace = TRUE), GROUP, GROUPS)[, b := b]))
+tg2 <- elsoc_targets(uid, GROUP2, GROUPS2)
+set.seed(2018)
+boot2 <- rbindlist(lapply(1:1000, function(b) elsoc_targets(sample(uid, replace = TRUE), GROUP2, GROUPS2)[, b := b]))
+TG_FILE <- "elsoc_targets.csv"; TG_SRC <- "ELSOC 2017 (weighted)"; N_RESP <- length(uid)
 }
-tg <- merge(tg, boot[, .(rel_lo = quantile(rel_deg, .025, na.rm = TRUE), rel_hi = quantile(rel_deg, .975, na.rm = TRUE),
-                         same_lo = quantile(same, .025, na.rm = TRUE), same_hi = quantile(same, .975, na.rm = TRUE)), by = ego],
-            by = "ego")[match(GROUPS, ego)]
+add_ci <- function(tg, boot, lv) merge(tg, boot[, .(rel_lo = quantile(rel_deg, .025, na.rm = TRUE), rel_hi = quantile(rel_deg, .975, na.rm = TRUE),
+                                                    same_lo = quantile(same, .025, na.rm = TRUE), same_hi = quantile(same, .975, na.rm = TRUE)), by = ego],
+                                      by = "ego")[match(lv, ego)]
+tg <- add_ci(tg, boot, GROUPS)
 if (REL_DEG == "peocntct") {         # GSS14 sensitivity: relative daily contacts by race (GSS 2014 cross-section)
-  g14 <- gss_load(2014); pc <- data.table(race = race_gss(g14), x = as.numeric(zap_labels(g14$peocntct)))[
+  g14 <- gss_load(2014); pc <- data.table(race = race_gss(g14), x = as.numeric(zap_labels(g14$peocntct)), w = as.numeric(zap_labels(g14$wtssnr)))[
     as.numeric(g14$samptype) == 2014 & x %in% 1:5 & !is.na(race)][, x := c(2, 7, 14.5, 34.5, 60)[x]]
-  pcr <- pc[, .(n = .N, m = mean(x)), by = race][, rel := m / weighted.mean(m, n)]
+  pcr <- pc[, .(wn = sum(w), m = weighted.mean(x, w)), by = race][, rel := m / weighted.mean(m, wn)]     # weighted by WTSSNR
   tg[, rel_deg := pcr$rel[match(ego, pcr$race)]][, `:=`(rel_lo = NA_real_, rel_hi = NA_real_)]
   cat("\nRELATIVE DEGREE TARGETS REPLACED BY PEOCNTCT (GSS 2014):\n"); print(tg[, .(ego, rel_deg, same)], digits = 3)
 }
@@ -241,14 +262,24 @@ SAME <- setNames(tg$same, GROUPS)
 fwrite(tg, file.path(OUT, TG_FILE))
 cat("\n", TG_SRC, " TARGETS (", N_RESP, " respondents", if (nzchar(TARGET_IDS)) paste0(", from ", TARGET_IDS),
     "; 95% bootstrap CI):\n", sep = ""); print(tg, digits = 3)
+if (TWO) {
+  tg2 <- add_ci(tg2, boot2, GROUPS2); REL2 <- setNames(tg2$rel_deg, GROUPS2); SAME2 <- setNames(tg2$same, GROUPS2)
+  fwrite(tg2, file.path(OUT, sub("\\.csv$", paste0("_", GROUP2, ".csv"), TG_FILE)))
+  cat("\n", TG_SRC, " TARGETS BY ", toupper(GROUP2), ":\n", sep = ""); print(tg2, digits = 3)
+}
 
 # ---- 3. level x1: calibrated dyad-independent draw -------------------------------------------
 gen_cal <- function(i) {
   set.seed(SEED_NODES + N + i)
-  VA <- pop[sample.int(nrow(pop), N, replace = TRUE), ]; rownames(VA) <- NULL
+  VA <- pop[sample.int(nrow(pop), N, replace = TRUE, prob = PROB), ]; rownames(VA) <- NULL
   ij <- which(upper.tri(matrix(FALSE, N, N)), arr.ind = TRUE)
   gi <- match(VA[[GROUP]], GROUPS); g1 <- gi[ij[, 1]]; g2 <- gi[ij[, 2]]; ng <- tabulate(gi, G)
   same <- g1 == g2
+  # cells: the groups (one dimension) or the education x ideology combinations (two)
+  if (TWO) { hi <- match(VA[[GROUP2]], GROUPS2); nh <- tabulate(hi, H2); same2 <- hi[ij[, 1]] == hi[ij[, 2]]
+             ci <- (gi - 1L) * H2 + hi; NC <- G * H2 } else { ci <- gi; NC <- G }
+  cg <- function(a) if (TWO) (a - 1L) %/% H2 + 1L else a          # first-dimension group of cell a
+  ch <- function(a) (a - 1L) %% H2 + 1L                              # second-dimension group of cell a
   # rest of the tie model, in the order sex, relig (, ideol), age, educ (GSS: then the common race
   # coefficient inside 'Other'), so GSS and ATP sums are bit-identical to the earlier version
   terms <- c(lapply(names(CAT_TERMS), function(t) COEF[t] * (VA[[CAT_TERMS[[t]]]][ij[, 1]] == VA[[CAT_TERMS[[t]]]][ij[, 2]])),
@@ -260,16 +291,30 @@ gen_cal <- function(i) {
   cap <- 0.9 * ng[CAL] * (ng[CAL] - 1) / 2
   capped <- GROUPS[CAL][W_t > cap]; W_t <- pmin(W_t, cap)    # within-group density above 90%: capped
   Tt <- c(deg_t, W_t)
-  pk <- (pmin(g1, g2) - 1L) * G + pmax(g1, g2)               # group pair of each dyad
-  X <- matrix(0, G * G, G + length(CAL))
-  for (a in 1:G) for (b in a:G) { k <- (a - 1) * G + b; X[k, a] <- X[k, a] + 1; X[k, b] <- X[k, b] + 1
-                                   if (a == b && a %in% CAL) X[k, G + match(a, CAL)] <- 1 }
+  c1 <- ci[ij[, 1]]; c2 <- ci[ij[, 2]]
+  pk <- (pmin(c1, c2) - 1L) * NC + pmax(c1, c2)              # cell pair of each dyad
+  P1 <- G + length(CAL)                                      # columns: delta (G), gamma (CAL) [, eta (H2 - 1), kappa (CAL2)]
+  X <- matrix(0, NC * NC, P1 + if (TWO) H2 - 1L + length(CAL2) else 0L)
+  for (a in 1:NC) for (b in a:NC) { k <- (a - 1) * NC + b; ga <- cg(a); gb <- cg(b)
+    X[k, ga] <- X[k, ga] + 1; X[k, gb] <- X[k, gb] + 1
+    if (ga == gb && ga %in% CAL) X[k, G + match(ga, CAL)] <- 1
+    if (TWO) { ha <- ch(a); hb <- ch(b)
+      if (ha > 1) X[k, P1 + ha - 1] <- X[k, P1 + ha - 1] + 1; if (hb > 1) X[k, P1 + hb - 1] <- X[k, P1 + hb - 1] + 1
+      if (ha == hb && ha %in% CAL2) X[k, P1 + H2 - 1 + match(ha, CAL2)] <- 1 } }
   live <- c(ng > 0, ng[CAL] > 1)                             # parameters of absent groups stay at 0
-  th <- c(rep(uniroot(function(c) sum(plogis(c + rest + GAMMA0 * same)) - K_MEAN * N / 2, c(-20, 5))$root / 2, G),
-          rep(GAMMA0, length(CAL)))
+  hom0 <- GAMMA0 * same
+  if (TWO) {
+    d_h <- K_MEAN * REL2 * N / sum(nh * REL2); deg_h <- nh * d_h
+    W_h <- (deg_h * SAME2 / 2)[CAL2]; cap2 <- 0.9 * nh[CAL2] * (nh[CAL2] - 1) / 2
+    capped <- c(capped, GROUPS2[CAL2][W_h > cap2]); W_h <- pmin(W_h, cap2)
+    Tt <- c(Tt, deg_h[-1], W_h); live <- c(live, nh[-1] > 0, nh[CAL2] > 1)
+    hom0 <- hom0 + GAMMA2_0 * (same2 & hi[ij[, 1]] %in% CAL2)
+  }
+  th <- c(rep(uniroot(function(c) sum(plogis(c + rest + hom0)) - K_MEAN * N / 2, c(-20, 5))$root / 2, G),
+          rep(GAMMA0, length(CAL)), if (TWO) c(rep(0, H2 - 1), rep(GAMMA2_0, length(CAL2))))
   for (it in 1:300) {
     p <- plogis(rest + drop(X %*% th)[pk])
-    sp <- tabulate(pk, G * G) * 0; r1 <- rowsum(p, pk); sp[as.integer(rownames(r1))] <- r1[, 1]
+    sp <- tabulate(pk, NC * NC) * 0; r1 <- rowsum(p, pk); sp[as.integer(rownames(r1))] <- r1[, 1]
     sq <- sp * 0; r2 <- rowsum(p * (1 - p), pk); sq[as.integer(rownames(r2))] <- r2[, 1]
     E <- drop(crossprod(X, sp)); gap <- (Tt - E)[live]
     if (max(abs(gap / Tt[live])) < 1e-6) break
@@ -281,7 +326,8 @@ gen_cal <- function(i) {
   g <- make_empty_graph(N, directed = FALSE) + edges(as.vector(t(ij[keep, ])))
   vertex_attr(g) <- as.list(VA)
   if (!SURVEY %in% c("GSS", "ATP")) { g$survey <- SURVEY; g$blau <- CFG$blau; g$cell <- CFG$cell }   # read by 05's engine
-  list(g = g, theta = setNames(th, c(paste0("delta_", GROUPS), paste0("gamma_", GROUPS[CAL]))), iters = it,
+  list(g = g, theta = setNames(th, c(paste0("delta_", GROUPS), paste0("gamma_", GROUPS[CAL]),
+                                     if (TWO) c(paste0("eta_", GROUPS2[-1]), paste0("kappa_", GROUPS2[CAL2])))), iters = it,
        max_rel_gap = max(abs(gap / Tt[live])), capped = capped)
 }
 
@@ -309,7 +355,7 @@ if (any(bad)) stop("generator failure: ", res[[which(bad)[1]]])
 g1s <- lapply(res, function(x) x$x1$g); g2s <- lapply(res, function(x) x$x2$g)
 saveRDS(g1s, file.path(NET_OUT, paste0(SURVEY, "_x1.rds")))
 saveRDS(g2s, file.path(NET_OUT, paste0(SURVEY, "_", LEVEL2, ".rds")))
-calib <- list(survey = SURVEY, targets = tg, coef_rest = COEF, closure = CLOSURE,
+calib <- list(survey = SURVEY, targets = tg, targets2 = if (TWO) tg2, weighted = !is.null(PROB), coef_rest = COEF, closure = CLOSURE,
               closure_mode = MODE, level2 = LEVEL2, tag = TAG, target_ids = TARGET_IDS, node_ids = NODE_IDS,
               theta = rbindlist(lapply(res, function(x) as.data.table(as.list(x$x1$theta)))),
               newton = data.table(net = seq_len(N_NETS), iters = vapply(res, function(x) x$x1$iters, integer(1)),
@@ -345,7 +391,7 @@ cat("\nCHECKS x2 vs x1 (networks passing / ", N_NETS, "): degrees ", sum(checks$
     paste0(", same-", OTHER_CATS, " ties ", vapply(OTHER_CATS, function(a) sum(checks[[paste0("same_", a, "_count")]]), 0), collapse = ""),
     ", simple graphs ", sum(checks$simple_x1 & checks$simple_x2), "\n", sep = "")
 
-by_group <- function(g) {
+by_group <- function(g, GROUP = get("GROUP", globalenv()), GROUPS = get("GROUPS", globalenv())) {
   d <- degree(g); r <- vertex_attr(g, GROUP); el <- as_edgelist(g, names = FALSE)
   e2 <- data.table(ego = c(r[el[, 1]], r[el[, 2]]), alter = c(r[el[, 2]], r[el[, 1]]))
   ng <- as.numeric(table(factor(r, GROUPS)))
@@ -359,6 +405,14 @@ grp <- merge(tg[, .(ego, target_rel_deg = REL[ego], target_same = same, same_lo,
 fwrite(grp, file.path(OUT, paste0(SURVEY, "_by_group.csv")))      # x1 only: identical for every level
 cat("\nBY ", toupper(GROUP), " OF EGO, x1 (= x2 by construction) vs ", TG_SRC, " targets (means over networks):\n", sep = "")
 print(grp, digits = 3)
+if (TWO) {
+  grp2 <- rbindlist(lapply(g1s, by_group, GROUP = GROUP2, GROUPS = GROUPS2))[
+    , .(n = mean(n), rel_deg = mean(rel_deg, na.rm = TRUE), same = mean(same, na.rm = TRUE), within_density = mean(within_density, na.rm = TRUE)), by = ego]
+  grp2 <- merge(tg2[, .(ego, target_rel_deg = rel_deg, target_same = same, same_lo, same_hi)], grp2, by = "ego")[match(GROUPS2, ego)][
+    , same_targeted := ego %in% GROUPS2[CAL2]]
+  fwrite(grp2, file.path(OUT, paste0(SURVEY, "_by_", GROUP2, ".csv")))
+  cat("\nBY ", toupper(GROUP2), " OF EGO, x1 vs targets:\n", sep = ""); print(grp2, digits = 3)
+}
 
 structure_of <- function(g) {
   d <- degree(g); el <- as_edgelist(g, names = FALSE); va <- vertex_attr(g); lc <- transitivity(g, "local")

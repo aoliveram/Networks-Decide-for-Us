@@ -2,7 +2,7 @@
 # SURVEYS ADDED IN PR #5 (ELSOC 2016-2023, GSS 2014): loaders, recodes and the
 # per-survey configuration of the calibrated networks.
 # source("scripts/01_survey_data.R") from the repo root (02, 02c, 02_ELSOC_homophily,
-# 03_ELSOC_MUR_calculation, 03_GSS14_MUR_calculation, 06e, 07, 09, 10).
+# 03_ELSOC_MUR_calculation, 03_GSS14_MUR_calculation, 06e, 07, 09).
 #
 # Raw data live outside the repo, next to GSS 2004 and ATP 2014:
 #   <NDFU_SURVEYS>/ELSOC 2016-2023/ELSOC_Long_2016_2023.RData   (20,761 rows, waves 1-7 = 2016-2023)
@@ -16,8 +16,18 @@
 #   GSS14  GSS 2014 nodes, collective action (8 of the 9 items: no INTERPOL); GSS 2004
 #          race targets (no ego networks in 2014), POLVIEWS as attribute 'ideol'
 #   ELSOC  ELSOC 2018 nodes, willingness to act (c09, 4 items); targets and homophily
-#          coefficients from the ELSOC confidants (r13, waves 2017 and 2019),
-#          calibrated by EDUCATION (5 groups); Blau space without race, with ideology
+#          coefficients from the ELSOC confidants (r13, wave 2017 only: the wave before the
+#          outburst of October 2019; decided with the user, 2026-11-11),
+#          calibrated by EDUCATION (5 groups) and IDEOLOGY (3 groups); Blau space without
+#          race, with ideology
+#
+# Survey weights (decided with the user, 2026-11-11: when a survey publishes weights, use them
+# from the start). Column w, rescaled to mean 1 in each pool:
+#   ELSOC  ponderador02 of the wave (selection probability, non-response, regional population
+#          and sex; the weight the ELSOC manual recommends). Egos of 2017 weight the targets and
+#          the case-control; the 2018 nodes are drawn with probability proportional to w.
+#   GSS14  WTSSNR (non-respondent subsampling and area non-response) of the 2014 cross-section.
+#   GSS 2004 and ATP 2014 are not weighted (the networks of PR #4).
 #
 # ELSOC recodes (alters have coarser categories than egos; egos are mapped to them):
 #   education  ego m01 (10 levels) and alter r13_educ (5) -> Primary (basica or less),
@@ -26,13 +36,17 @@
 #   religion   ego m38 (9) and alter r13_relig (5) -> Catholic, Evangelical (ego:
 #              evangelical or historical protestant), None (ego: none or believer without
 #              affiliation), AtheistAgnostic, Other
-#   ideology   ego c15 (0 left ... 10 right; 11 independent, 12 none) and alter r13_ideol
-#              (right, centre-right, centre, centre-left, left, none) -> Left (ego 0-4;
-#              alter left or centre-left), Right (6-10; right or centre-right), CentreNone
-#              (5, 11, 12; centre or none). The ego scale and the perceived ideology of
-#              the alters do not line up at the centre (23.5% of egos at 5, 6% of alters
-#              "centre"); with three categories the marginals match (egos 21/64/15%,
-#              alters 19/67/14%). Decided with the user, 2026-11-11.
+#   ideology   ego c15 (0 left ... 10 right; 11 independent and 12 none, both volunteered,
+#              not read) and alter r13_ideol (right, centre-right, centre, centre-left,
+#              left, none) -> Left (ego 0-3; alter left or centre-left), Right (7-10; right
+#              or centre-right), Neither (ego 4-6, 11, 12; alter centre or none): neither
+#              left nor right, NOT "centre". Egos and alters cannot be matched at the centre
+#              (2017: 27% of egos at 4-6, 5% of alters perceived as "centre", 58% as "none";
+#              an ego at 5 sees 57% of confidants as "none", an ego at 11-12 74%), so a
+#              centre group would show a spurious heterophily (same-group share 0.10 vs 0.27
+#              by chance). With this cut the 2017 marginals match: egos 15.5/70.8/13.7%,
+#              confidants 15.1/71.0/13.9%. Decided with the user, 2026-11-11 (it replaces the
+#              earlier 0-4 / 5, 11, 12 / 6-10).
 #   alter age  < 12 set to missing (132 alters)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 suppressWarnings(suppressMessages({ library(data.table); library(haven) }))
@@ -46,8 +60,10 @@ GSS04_FILE <- "data/02_GSS_network_ergm/GSS_2004_NORC.dta"
 #   group      vertex attribute calibrated by group (activity + homophily, Newton)
 #   groups     its levels; cal = the calibrated ones (the rest: relative degree 1 and the
 #              common coefficient coef_group, as 'Other' in GSS)
-#   cats       categorical attributes kept EXACT by the x2 rewiring (mixing matrix of the
-#              group; same-attribute counts of the others)
+#   group2     (optional) a second calibrated attribute (ELSOC: ideology), solved jointly with the
+#   groups2    first: activity of every level; homophily of the levels cal2 (ELSOC: Left and
+#   cal2       Right; Neither, a residual category, has no homophily term)
+#   cats       categorical attributes whose mixing matrices the x2 rewiring keeps EXACT
 #   nums       continuous attributes kept within 1% by the rewiring
 #   blau       inputs of the Gower distance d_ij of the gate (05_unified_engine.R)
 #   cell       attributes whose combinations are the circles of the theta arm
@@ -56,17 +72,18 @@ RACES <- c("White", "Black", "Hispanic", "Asian", "Other")
 EDU5  <- c("Primary", "SecondaryInc", "Secondary", "Technical", "University")
 EDU_YEARS <- c(Primary = 6, SecondaryInc = 10, Secondary = 12, Technical = 14, University = 16)
 REL5_CL <- c("Catholic", "Evangelical", "None", "AtheistAgnostic", "Other")
-IDE3  <- c("Left", "CentreNone", "Right")
+IDE3  <- c("Left", "Neither", "Right")
 US_CONFIG <- list(group = "race", groups = RACES, cal = 1:4, cats = c("race", "sex", "relig"), nums = c("age", "educ_num"),
                   blau = c("age", "educ_num", "race", "relig", "sex"), cell = c("race", "relig"), ideol = FALSE,
-                  targets = "GSS 2004")
+                  targets = "GSS 2004", weights = FALSE)
 SURVEY_CONFIG <- list(
   GSS   = US_CONFIG,
   ATP   = US_CONFIG,
-  GSS14 = modifyList(US_CONFIG, list(ideol = TRUE)),
-  ELSOC = list(group = "educ", groups = EDU5, cal = 1:5, cats = c("educ", "sex", "relig", "ideol"), nums = c("age", "educ_num"),
+  GSS14 = modifyList(US_CONFIG, list(ideol = TRUE, weights = TRUE)),
+  ELSOC = list(group = "educ", groups = EDU5, cal = 1:5, group2 = "ideol", groups2 = IDE3, cal2 = c(1, 3),
+               cats = c("educ", "sex", "relig", "ideol"), nums = c("age", "educ_num"),
                blau = c("age", "educ_num", "sex", "relig", "ideol"), cell = c("educ", "relig"), ideol = TRUE,
-               targets = "ELSOC 2017+2019"))
+               targets = "ELSOC 2017", weights = TRUE))
 survey_config <- function(S) { cf <- SURVEY_CONFIG[[S]]; if (is.null(cf)) stop("unknown survey ", S, "; known: ",
                                                                            paste(names(SURVEY_CONFIG), collapse = ", ")); cf }
 SURVEY_LABEL <- c(GSS = "GSS 2004", ATP = "ATP 2014", GSS14 = "GSS 2014", ELSOC = "ELSOC 2018")
@@ -87,8 +104,9 @@ elsoc_educ_alter <- function(x) EDU5[num_pos(x)]
 elsoc_relig_ego  <- function(m38) REL5_CL[c(1, 2, 2, 5, 3, 5, 4, 4, 3)[num_pos(m38)]]
 elsoc_relig_alter <- function(x) REL5_CL[num_pos(x)]
 elsoc_ideol_ego  <- function(c15) { x <- num_pos(c15)
-  ifelse(is.na(x), NA_character_, ifelse(x <= 4, "Left", ifelse(x >= 6 & x <= 10, "Right", "CentreNone"))) }
-elsoc_ideol_alter <- function(x) c("Right", "Right", "CentreNone", "Left", "Left", "CentreNone")[num_pos(x)]
+  ifelse(is.na(x), NA_character_, ifelse(x <= 3, "Left", ifelse(x >= 7 & x <= 10, "Right", "Neither"))) }
+elsoc_ideol_alter <- function(x) c("Right", "Right", "Neither", "Left", "Left", "Neither")[num_pos(x)]
+unit_mean <- function(w) w / mean(w)                # weights rescaled to mean 1 in their pool
 elsoc_sex <- function(x) c("Male", "Female")[num_pos(x)]
 ELSOC_C09 <- sprintf("c09_%02d", 1:4)             # willingness: petition, march, strike, social media (1-5)
 ELSOC_C08 <- sprintf("c08_%02d", 1:4)             # frequency of the same four acts (1-5); c08_05 cacerolazo from 2019
@@ -99,7 +117,8 @@ elsoc_egos <- function(waves = c(2, 4)) {
   d <- df[ola %in% waves & !is.na(num_pos(r13_sexo_01))]
   d[, .(idencuesta = as.numeric(idencuesta), ola = as.integer(ola), year = ELSOC_YEAR[as.character(ola)],
         sex = elsoc_sex(m0_sexo), age = num_pos(m0_edad), educ = elsoc_educ_ego(m01), relig = elsoc_relig_ego(m38),
-        ideol = elsoc_ideol_ego(c15), nredes = num_pos(r13_nredes))][, educ_num := unname(EDU_YEARS[educ])][]
+        ideol = elsoc_ideol_ego(c15), nredes = num_pos(r13_nredes), w = as.numeric(ponderador02))][
+    , educ_num := unname(EDU_YEARS[educ])][, w := unit_mean(w), by = ola][]
 }
 # confidants (up to 5 per ego); rel: 1 spouse/partner, 2 child, 3 other relative, 4 friend, 5 other acquaintance
 elsoc_alters <- function(waves = c(2, 4)) {
@@ -116,14 +135,15 @@ elsoc_alters <- function(waves = c(2, 4)) {
 }
 # node pool of the networks: one wave (default 2018), willingness c09 complete, attributes of that wave
 #   propensity_score = mean of the four c09 items rescaled to [0, 1] (high = willing)
-#   mur_score = 1 - propensity_score (q: aversion)
+#   mur_score = 1 - propensity_score (q: aversion);  w = ponderador02 of the wave, mean 1 in the pool
 elsoc_nodes <- function(wave = 3) {
   df <- elsoc_load(); d <- df[ola == wave]
   X <- sapply(ELSOC_C09, function(v) num_pos(d[[v]]))
   out <- data.table(idencuesta = as.numeric(d$idencuesta), sex = elsoc_sex(d$m0_sexo), age = num_pos(d$m0_edad),
-                    educ = elsoc_educ_ego(d$m01), relig = elsoc_relig_ego(d$m38), ideol = elsoc_ideol_ego(d$c15))
+                    educ = elsoc_educ_ego(d$m01), relig = elsoc_relig_ego(d$m38), ideol = elsoc_ideol_ego(d$c15),
+                    w = as.numeric(d$ponderador02))
   out <- cbind(out, as.data.table(X))
-  out <- out[complete.cases(out)]
+  out <- out[complete.cases(out)][, w := unit_mean(w)]
   out[, educ_num := unname(EDU_YEARS[educ])]
   out[, propensity_score := (rowSums(.SD) - 4) / 16, .SDcols = ELSOC_C09]
   out[, mur_score := 1 - propensity_score][]
@@ -168,13 +188,14 @@ ca_propensity <- function(X) rowSums(4 - X) / (3 * ncol(X))
 sci_items <- function(g) { nn <- function(v, ok) { x <- as.numeric(zap_labels(g[[v]])); x[!x %in% ok] <- NA; x }
   cbind(nextgen = (4 - nn("nextgen", 1:4)) / 3, toofast = (nn("toofast", 1:4) - 1) / 3,
         advfront = (4 - nn("advfront", 1:4)) / 3, scibnfts = (3 - nn("scibnfts", 1:3)) / 2) }
-# GSS 2014 node pool: the 2014 cross-section (samptype 2014; the ISSP module was asked only there)
+# GSS 2014 node pool: the 2014 cross-section (samptype 2014; the ISSP module was asked only there);
+#   w = WTSSNR, mean 1 in the pool
 #   index "ca"   collective action, 8 items; "sci" science attitudes, 4 items
 gss14_nodes <- function(index = c("ca", "sci")) {
   index <- match.arg(index); g <- gss_load(2014); cs <- as.numeric(g$samptype) == 2014
   A <- gss_attributes(g)
   if (index == "ca") { X <- gss_items(g, GSS_CA8); p <- ca_propensity(X) } else { X <- sci_items(g); p <- rowMeans(X) }
-  out <- cbind(A, as.data.table(X))[, propensity_score := p][cs]
-  out <- out[complete.cases(out[, c("age", "sex", "educ_num", "race", "relig", "ideol", "propensity_score"), with = FALSE])]
-  out[, mur_score := 1 - propensity_score][]
+  out <- cbind(A, as.data.table(X))[, `:=`(propensity_score = p, w = as.numeric(zap_labels(g$wtssnr)))][cs]
+  out <- out[complete.cases(out[, c("age", "sex", "educ_num", "race", "relig", "ideol", "propensity_score", "w"), with = FALSE])]
+  out[, `:=`(mur_score = 1 - propensity_score, w = unit_mean(w))][]
 }
