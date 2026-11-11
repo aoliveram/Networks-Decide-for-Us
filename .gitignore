@@ -27,6 +27,8 @@ data/02_GSS_SH_network/
 output/**/checkpoints/
 #   output/**/exposure_axis_*.rds <- scripts/05_unified_diffusion_sweep.R (compact sweep results)
 output/**/exposure_axis_*.rds
+#   output/06f_rule_robustness/<set>/gamma_*.rds <- scripts/06f_rule_robustness.R (~2.5 min, seeded)
+output/06f_rule_robustness/*/gamma_*.rds
 
 # Figures of the 96 ERGM networks (annealed gate): local copies only, for comparison
 # until PR #3 closes; the tracked versions stay in the git history

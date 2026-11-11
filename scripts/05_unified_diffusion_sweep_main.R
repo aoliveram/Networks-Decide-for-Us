@@ -14,7 +14,9 @@
 #   6. 06c                      per set (exposure axis)
 #   7. 06d                      per survey, with both levels (x2 - x1 against the same DP twin)
 #   8. 06e                      consolidation: q vs Blau attributes, corner 2 x 2, premium with permuted q
-#   9. 07                       per survey (structural diagnosis: x2, x1, DP)
+#   9. 06f                      rule robustness: complements in shares (lambda(Gamma) paths) and
+#                               Tur's gamma form (new base-exposure sweep, ~2.5 min for 4 sets x 5 seedings)
+#  10. 07                       per survey (structural diagnosis: x2, x1, DP)
 # Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP; LEVEL in x2 (main), x1.
 #
 # Cost on 8 performance cores (2026-11-05: 99 min in all): ~1.2 min per survey x
@@ -74,11 +76,14 @@ if (!SKIP_ANALYSIS) {
   if (all(c("x1", "x2") %in% LEVELS))
     for (s in SURVEYS) { banner("06d ", s); run("06d_closure_contrast.R", paste0("--survey=", s), fatal = FALSE) }
   if ("x2" %in% LEVELS) { banner("06e consolidation"); run("06e_consolidation.R", paste0("--surveys=", paste(SURVEYS, collapse = ",")), fatal = FALSE) }
+  banner("06f rule robustness")
+  run("06f_rule_robustness.R", c(paste0("--sets=", paste(outer(SURVEYS, LEVELS, paste, sep = "_"), collapse = ",")),
+                                 paste0("--seedings=", paste(SEEDINGS, collapse = ","))), fatal = FALSE)
   for (s in SURVEYS) { banner("07 ", s); run("07_structural_diagnosis.R", paste0("--survey=", s), fatal = FALSE) }
 }
 
 banner("ALL DONE in ", round(as.numeric(difftime(Sys.time(), t_all, units = "mins")), 1), " min")
 message("Sweep:    output/05_unified_diffusion/<set>/  (unified_premium_results_<seeding>.csv, exposure_axis_<seeding>.rds)")
 message("Premium:  output/06_premium_sensitivity/<set>/, output/06b_premium_bootstrap/<set>/, output/06c_exposure_axis/<set>/,")
-message("          output/06d_closure_contrast/")
+message("          output/06d_closure_contrast/, output/06e_consolidation/, output/06f_rule_robustness/")
 message("Figures:  plots/05_unified_diffusion/<set>/, plots/06*/<set>/, plots/07_structural_diagnosis/<survey>/")
