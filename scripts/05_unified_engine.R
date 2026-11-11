@@ -28,14 +28,23 @@
 # ties over all contacts). The robustness axis uses one formula with two dials
 # (see run_exposure_grid() in the .cpp):
 #   theta  independent reinforcement: adopters in the same circle (race x
-#          religion cell of the ego's contacts) count less, Kish's discount
+#          religion cell of the ego's contacts; ELSOC: education x religion) count
+#          less, Kish's discount
 #   kappa  cohesive reinforcement: a bonus for every pair of adopting contacts
 #          who know each other
 # Common signed axis for figures, c = (value of the second adopter) - 1:
 #   theta arm: c = -2 theta / (1 + theta)   (theta = -c / (2 + c),  c in [-1, 0])
 #   kappa arm: c = 2 kappa                   (kappa = c / 2,         c > 0)
 # EXPOSURE_CONDITIONS lists the conditions of the sweep (c = -1, -0.5, 0, 0.5,
-# 1, each arm with its permuted control).
+# 1, each arm with its permuted control). Networks whose nodes carry 'ideol'
+# (ELSOC, GSS14; PR #5) add EXPOSURE_CONDITIONS_IDEOL: the theta arm with circles
+# = ideology groups (c = -1, -0.5 and permuted controls); exposure_conditions(g)
+# returns the list of a network.
+#
+# Survey-specific inputs come from graph attributes written by 02 (ELSOC, GSS14):
+#   g$blau  the attributes of the Gower distance (default: age, educ_num, race,
+#           relig, sex, the GSS and ATP networks)
+#   g$cell  the attributes of the theta circles (default: race, relig)
 #
 # Helpers
 #   sigmoid_gate(), frozen_weights()       the gate
@@ -65,9 +74,15 @@ frozen_weights <- function(w) {
 }
 
 # ---- networks -> engine arrays ---------------------------------------------------------------
+GOWER_NUMERIC <- c("age", "educ_num")
 gower_of <- function(g) {
-  attrs <- data.frame(age = V(g)$age, educ_num = V(g)$educ_num, race = as.factor(V(g)$race),
-                      relig = as.factor(V(g)$relig), sex = as.factor(V(g)$sex))
+  if (is.null(g$blau)) {              # GSS and ATP networks (exactly the pre-PR #5 code)
+    attrs <- data.frame(age = V(g)$age, educ_num = V(g)$educ_num, race = as.factor(V(g)$race),
+                        relig = as.factor(V(g)$relig), sex = as.factor(V(g)$sex))
+  } else {                            # ELSOC: age, educ_num, sex, relig, ideol
+    attrs <- as.data.frame(lapply(setNames(g$blau, g$blau), function(a) {
+      x <- vertex_attr(g, a); if (a %in% GOWER_NUMERIC) as.numeric(x) else as.factor(x) }))
+  }
   as.matrix(daisy(attrs, metric = "gower"))
 }
 # seeding: the primary nodes of the position-based strategies, computed once
@@ -156,9 +171,22 @@ EXPOSURE_CONDITIONS <- list(
   theta_033_perm = cond(theta = 1/3, circles = "cell_perm", control = "theta_033"),
   kappa_025_perm = cond(kappa_p = 0.25, pairs = "perm", control = "kappa_025"),
   kappa_05_perm  = cond(kappa_p = 0.5,  pairs = "perm", control = "kappa_05"))
+# theta arm with ideology circles (networks whose nodes carry 'ideol': ELSOC, GSS14)
+EXPOSURE_CONDITIONS_IDEOL <- list(
+  theta_1_ideol        = cond(theta = 1,   circles = "ideol"),
+  theta_033_ideol      = cond(theta = 1/3, circles = "ideol"),
+  theta_1_ideol_perm   = cond(theta = 1,   circles = "ideol_perm", control = "theta_1_ideol"),
+  theta_033_ideol_perm = cond(theta = 1/3, circles = "ideol_perm", control = "theta_033_ideol"))
+exposure_conditions <- function(g)
+  c(EXPOSURE_CONDITIONS, if ("ideol" %in% vertex_attr_names(g)) EXPOSURE_CONDITIONS_IDEOL)
 
-# circle label of the SOURCE of each directed tie: race x religion cell
-cell_labels <- function(top) as.integer(interaction(V(top$g)$race, V(top$g)$relig, drop = TRUE))[top$src]
+# circle label of the SOURCE of each directed tie: race x religion cell (g$cell for ELSOC)
+cell_labels <- function(top) {
+  g <- top$g
+  if (is.null(g$cell)) return(as.integer(interaction(V(g)$race, V(g)$relig, drop = TRUE))[top$src])
+  as.integer(interaction(lapply(g$cell, function(a) vertex_attr(g, a)), drop = TRUE))[top$src]
+}
+ideol_labels <- function(top) as.integer(factor(V(top$g)$ideol))[top$src]
 permute_within_ego <- function(top, lab, seed) {
   set.seed(seed); out <- lab
   for (ii in split(seq_along(top$dst), top$dst)) if (length(ii) > 1L) out[ii] <- lab[ii][sample.int(length(ii))]
@@ -210,6 +238,11 @@ build_exposure_ctx <- function(top, run, topo_id, conds = EXPOSURE_CONDITIONS) {
     lab <- cell_labels(top)
     ctx$cell <- make_slots(top, lab)
     ctx$cell_perm <- make_slots(top, permute_within_ego(top, lab, base_seed + 2L))
+  }
+  if (any(c("ideol", "ideol_perm") %in% need_c)) {
+    lab <- ideol_labels(top)
+    ctx$ideol <- make_slots(top, lab)
+    ctx$ideol_perm <- make_slots(top, permute_within_ego(top, lab, base_seed + 4L))
   }
   if (any(c("real", "perm") %in% need_p)) {
     pr <- pairs_real(top)

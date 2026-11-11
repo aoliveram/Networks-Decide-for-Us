@@ -15,9 +15,12 @@
 #   7. 06d                      per survey, with both levels (x2 - x1 against the same DP twin)
 #   8. 06e                      consolidation: q vs Blau attributes, corner 2 x 2, premium with permuted q
 #   9. 06f                      rule robustness: complements in shares (lambda(Gamma) paths) and
-#                               Tur's gamma form (new base-exposure sweep, ~2.5 min for 4 sets x 5 seedings)
+#                               Tur's gamma form (new base-exposure sweep, ~2.5 min for 4 sets x 5 seedings);
+#                               GSS and ATP sets only
 #  10. 07                       per survey (structural diagnosis: x2, x1, DP)
-# Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP; LEVEL in x2 (main), x1.
+# Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP, GSS14, ELSOC (PR #5); LEVEL in x2 (main), x1.
+# ELSOC and GSS14 sweep 13 exposure conditions (+ the ideology theta arm), ~1.7 min per
+# survey x level x seeding.
 #
 # Cost on 8 performance cores (2026-11-05: 99 min in all): ~1.2 min per survey x
 # level x seeding with all 9 conditions (~25 min for 2 x 2 x 5); 06b ~17 min per set
@@ -27,6 +30,8 @@
 #   Rscript scripts/05_unified_diffusion_sweep_main.R
 #   Rscript scripts/05_unified_diffusion_sweep_main.R --surveys=GSS --levels=x2 --seedings=random,central
 #   Rscript scripts/05_unified_diffusion_sweep_main.R --skip-analysis      # only steps 1-3
+#   Rscript scripts/05_unified_diffusion_sweep_main.R --skip-sweep         # only steps 4-10
+#   Rscript scripts/05_unified_diffusion_sweep_main.R --surveys=ELSOC,GSS14
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ARGS <- commandArgs(trailingOnly = TRUE)
 arg_list <- function(k, d) { a <- grep(paste0("^--", k, "="), ARGS, value = TRUE)
@@ -34,9 +39,9 @@ arg_list <- function(k, d) { a <- grep(paste0("^--", k, "="), ARGS, value = TRUE
 SURVEYS  <- toupper(arg_list("surveys", c("GSS", "ATP")))
 LEVELS   <- tolower(arg_list("levels", c("x2", "x1")))
 SEEDINGS <- arg_list("seedings", c("random", "central", "marginal", "closeness", "eigen"))
-stopifnot(all(SURVEYS %in% c("GSS", "ATP")), all(LEVELS %in% c("x1", "x2")),
+stopifnot(all(SURVEYS %in% c("GSS", "ATP", "GSS14", "ELSOC")), all(LEVELS %in% c("x1", "x2")),
           all(SEEDINGS %in% c("random", "central", "marginal", "closeness", "eigen")))
-SKIP_ANALYSIS <- "--skip-analysis" %in% ARGS
+SKIP_ANALYSIS <- "--skip-analysis" %in% ARGS; SKIP_SWEEP <- "--skip-sweep" %in% ARGS
 ALL_FIVE <- setequal(SEEDINGS, c("random", "central", "marginal", "closeness", "eigen"))
 
 rscript <- file.path(R.home("bin"), "Rscript")
@@ -53,6 +58,7 @@ run <- function(script, args = character(0), fatal = TRUE) {
 }
 t_all <- Sys.time()
 
+if (!SKIP_SWEEP) {
 for (s in SURVEYS) {
   if (!all(file.exists(file.path("data/02_calibrated_networks", paste0(s, c("_x1.rds", "_x2.rds")))))) {
     banner("NETWORKS: ", s); run("02_network_calibrated.R", paste0("--survey=", s))
@@ -65,6 +71,7 @@ for (s in SURVEYS) for (l in LEVELS) for (sd in SEEDINGS) {
   banner("SWEEP ", s, "_", l, " | seeding ", toupper(sd))
   run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), paste0("--level=", l), paste0("--seeding=", sd)))
 }
+}
 
 if (!SKIP_ANALYSIS) {
   for (s in SURVEYS) for (l in LEVELS) {
@@ -76,9 +83,12 @@ if (!SKIP_ANALYSIS) {
   if (all(c("x1", "x2") %in% LEVELS))
     for (s in SURVEYS) { banner("06d ", s); run("06d_closure_contrast.R", paste0("--survey=", s), fatal = FALSE) }
   if ("x2" %in% LEVELS) { banner("06e consolidation"); run("06e_consolidation.R", paste0("--surveys=", paste(SURVEYS, collapse = ",")), fatal = FALSE) }
-  banner("06f rule robustness")
-  run("06f_rule_robustness.R", c(paste0("--sets=", paste(outer(SURVEYS, LEVELS, paste, sep = "_"), collapse = ",")),
-                                 paste0("--seedings=", paste(SEEDINGS, collapse = ","))), fatal = FALSE)
+  S6F <- intersect(SURVEYS, c("GSS", "ATP"))            # 06f is about the rule: GSS and ATP sets
+  if (length(S6F)) {
+    banner("06f rule robustness")
+    run("06f_rule_robustness.R", c(paste0("--sets=", paste(outer(S6F, LEVELS, paste, sep = "_"), collapse = ",")),
+                                   paste0("--seedings=", paste(SEEDINGS, collapse = ","))), fatal = FALSE)
+  }
   for (s in SURVEYS) { banner("07 ", s); run("07_structural_diagnosis.R", paste0("--survey=", s), fatal = FALSE) }
 }
 
