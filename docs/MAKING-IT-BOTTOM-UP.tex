@@ -3,7 +3,8 @@
 % Internal design note.
 % Companion scripts: scripts/02_network_calibrated.R (networks), 05_unified_engine.{cpp,R}
 %   (Rcpp engine), 05_unified_diffusion_sweep.R (sweep), 06_premium_sensitivity.R,
-%   06b_premium_bootstrap.R, 06c_exposure_axis.R, 06d_closure_contrast.R, 07, 09 (analysis)
+%   06b_premium_bootstrap.R, 06c_exposure_axis.R, 06d_closure_contrast.R, 06f_rule_robustness.R,
+%   07, 09 (analysis)
 % (The former minimal-test script was removed 2026-08-31; its tau*
 %  diagnostic now lives in script 10.)
 % History: written 2026-08-11 (markdown); Tur's exact functional form
@@ -22,6 +23,10 @@
 %   triangles of every node, held-out validation, frozen gate, Rcpp engine, exposure
 %   axis, rerun of 05-07 for GSS and ATP). sec:premiumresult kept as the record of the
 %   96 ERGM networks with the annealed gate.
+%   2026-11-10 (Prompt 6): new subsection sec:mechanisms (substitutes or complements, read
+%   against the literature; the defense of the additive rule reframed); the gamma form and
+%   complements in shares run as robustness (scripts/06f_rule_robustness.R); verdict table,
+%   recommendation and sec:brockdurlauf updated.
 % Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
@@ -621,18 +626,176 @@ social proof falls steeply with quality,
 an elasticity of $-1/\gamma$ --- e.g.\ at $\gamma = 0.5$, doubling the product's quality
 divides the required count of similar adopters by four.
 
-So the honest summary of the user's point: it \emph{can} be framed as
-preferences-fixed either way, but the multiplicative interaction is a substantive
-behavioral commitment (quality--social-proof complementarity), not just bookkeeping ---
-and since Tur themselves present the form as requirement-lowering, adopting their exact
-form and citation invites the ``preferences change'' reading unless a paragraph defends
-the other bookkeeping.
+So it \emph{can} be framed as preferences-fixed either way, but the multiplicative
+interaction is a substantive behavioral commitment (quality--social-proof
+complementarity), not just bookkeeping --- and since Tur themselves present the form as
+requirement-lowering, adopting their exact form and citation invites the ``preferences
+change'' reading unless a paragraph defends the other bookkeeping.
+
+\paragraph{The prediction that tells them apart.} The social proof needed to convert $i$
+depends on the \emph{difference} $q_i - \Gamma$ under the linear form and on the
+\emph{ratio} $q_i / \Gamma$ under the $\gamma$-form. Because $q_i$ and $\Gamma$ live on
+a survey-index scale, the distinction is cardinal: in logs the $\gamma$-form is additive
+too (\S\ref{sec:turnesting}). What is scale-free is the shape of the indifference curves
+between quality and social proof: parallel lines (linear) or hyperbolas that blow up as
+$\Gamma \to 0$ ($\gamma$-form). Which composition is right is a question about the
+\emph{mechanism} by which peers matter; \S\ref{sec:mechanisms} reads the literature on
+it.
+
+% ----------------------------------------------------------------------------
+\subsection{Substitutes or complements? What the mechanisms imply}
+\label{sec:mechanisms}
+
+Until 2026-11 the only support for the linear form was the modelling convention of Brock \&
+Durlauf (2001). This subsection reads twelve papers against the question of
+\S\ref{sec:preferences}: does a given adopting neighborhood contribute the same whatever the
+quality (substitutes), or more for better products (complements)? The organizing frame is
+Young (2009, AER 99(5):1899--1924), who sorts diffusion models by \emph{why} prior adoption
+matters: contagion, social influence (conformity) and social learning. The working
+hypothesis was: if social proof is a payoff for conforming it adds (substitutes); if it is
+information about quality it combines multiplicatively (complements), which would suggest
+substitutes for the collective action of the GSS and complements for the technology of the
+ATP. The reading confirms the first half and corrects the second.
+
+\paragraph{Conformity and coordination: every model adds, in shares.}
+\begin{itemize}
+  \item Bass (1969, Mgmt.\ Sci.\ 15(5)), pp.~216--217: the hazard of a first purchase is
+    $p + q F(T)$, ``a linear function of the number of previous buyers''.
+  \item Morris (2000, RES 67(1)), pp.~58, 60; Ellison (1993, Econometrica 61(5)), p.~1049;
+    Blume (1993, GEB 5(3)), p.~391 and Eq.~(2.3): each player sums the payoffs of a
+    $2\times2$ coordination game over her neighbors, so action 1 is a best response when the
+    \emph{proportion} of neighbors playing it exceeds a critical value set by the payoffs.
+    That is the derived threshold \eqref{eq:taustar}, obtained rather than assumed.
+  \item Brock \& Durlauf (2001, RES 68(2)), Eq.~(1), p.~238: private plus social utility
+    plus a shock. The authors adopt the parametric forms because they ``render our model
+    both theoretically and econometrically tractable'' (p.~238), and their
+    ``complementarity'' ($\partial^2 S/\partial\omega_i\partial\bar m = J$, Eq.~3) is between
+    one's action and the others', not between quality and social proof. NDFU is their
+    model at zero temperature with heterogeneous private utility $h_i = \Gamma - q_i$, a
+    case they allow (\S5.3, Eq.~37).
+  \item Soetevent (2006, J.\ Econ.\ Surveys 20(2)), pp.~197, 200: the linear form is
+    \emph{assumed} in the empirical literature, and the behavioral motive is almost never
+    identified. P.~222 proposes, as an unexplored extension, interaction weights that depend
+    on the characteristics of both parties, $\gamma_{ij} = \gamma(x_i, x_j)$: NDFU's
+    similarity gate.
+  \item Young (2009), p.~1905: in the social-influence model adoption depends on
+    popularity, ``rather than on how good or desirable the innovation has proven to be''.
+\end{itemize}
+
+\paragraph{Learning does not yield Tur's product.}
+\begin{itemize}
+  \item Bikhchandani, Hirshleifer \& Welch (1992, JPE 100(5)): agents adopt if
+    $E[V\mid\text{history}] \ge C$ (p.~996). Evidence adds in log-odds --- the difference
+    between adoptions and rejections is a sufficient statistic (n.~23, p.~1009) --- and it
+    \emph{saturates}: once a cascade starts further adoptions are uninformative, whereas
+    under conformity uniformity ``becomes more robust as the number of adopters increases''
+    (p.~1004).
+  \item Young (2009), Eqs.~(13), (16), pp.~1911--1912: under learning from outcomes the
+    evidence $i$ needs is her prior deficit divided by the true margin of quality over her
+    cost. There is complementarity, but agents whose cost exceeds the true quality never
+    adopt; Young analyses only $\{i: \mu > c_i\}$ (p.~1912).
+\end{itemize}
+Tur's $\Gamma\cdot\Acount^{\gamma}$ cannot be learning: it is unbounded in the count, and
+learning can never persuade an agent that a product is better than it is. It is a reduced
+form, with axioms but no mechanism (\S\ref{sec:gammastatus}).
+
+\paragraph{The experiments establish the channel, not the functional form.} Salganik,
+Dodds \& Watts (2006, Science 311) show that a social signal makes success more unequal and
+the quality--success mapping more convex (Fig.~3), but this is an aggregate market-share
+result. Krumme et al.\ (2012, PLoS ONE 7(5)), p.~2, separate sampling (where the social
+signal and appeal \emph{add}) from downloading (driven by quality alone); the product is
+\emph{between} stages, which NDFU already has as its awareness condition. Cai, Chen \& Fang
+(2009, AER 99(3)) find that a top-five ranking raises demand by 13--20\% (Tables 3, 5), more
+so among infrequent customers (Table 8), and cannot separate learning from conformity
+(n.~8, p.~865). Tucker \& Zhang (2011, Mgmt.\ Sci.\ 57(5)) find that popularity helps
+narrow-appeal vendors more, with an additive utility (p.~829). \textbf{None of them estimates
+the sign of $\partial^2 U / \partial\Gamma\,\partial\Ee$ at the individual level.} (Manski
+1993 is cited only through Brock \& Durlauf and Soetevent.)
+
+\paragraph{Where quality lives (our derivation from Morris's game).} In a two-action game
+with each neighbor, the advantage of adopting is always $-a + (a + b)\,\Ee$, with $a$ the loss
+from adopting when the neighbor did not and $b$ the gain when she did. It is linear in the
+share. If quality is value that does not need others, it lowers $a$ and shifts the line:
+\emph{substitutes}. If quality is value realized only jointly (a network good, a protest that
+needs a crowd), it raises $b$ and tilts the line: \emph{complements, bounded and in shares},
+$\Gamma + (\lambda_0 + \varphi\Gamma)\Ee \ge q$, not Tur's form.
+
+\paragraph{Four boxes.}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.1cm}@{}}
+\toprule
+Box & Why peers matter & Composition ($\partial^2F/\partial\Gamma\partial\Ee$) & Status in NDFU \\
+\midrule
+1. Conformity & legitimacy, safety in numbers, fashion, pure coordination: utility that does not depend on quality & sum, $\Gamma + \lambda\Ee$ (0) & main rule \\
+2. Joint value & the behavior pays only if others adopt too & bounded product in shares, $\Gamma + (\lambda_0 + \varphi\Gamma)\Ee$ ($\varphi$) & robustness, level 1 \\
+3. Learning & peers inform about an uncertain quality & evidence that adds and saturates, capped by true quality & out of scope \\
+4. Tur & none (reduced form) & unbounded product in counts, $\Gamma\cdot\Acount^{\gamma}$ ($\gamma\Acount^{\gamma-1}$) & robustness, level 2 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+The exposure axis of \S\ref{sec:pr4} is a second, independent knob: \emph{how} adopters are
+counted into $\Ee_i$ before being combined with $\Gamma$. Its two arms have natural
+mechanisms too: the independent reinforcement $\theta$ (redundant sources discounted) is the
+logic of box~3, and the cohesive reinforcement $\kappa$ (pairs of adopters who know each
+other) the logic of boxes 1--2.
+
+\paragraph{By survey.} GSS (collective action): legitimacy and safety are box~1, the
+efficacy of a protest that needs a crowd is box~2; the sum is the natural rule. ATP
+(technology): learning (box~3), network effects (box~2) and fashion (box~1); the sum is a
+reasonable simplification, and box~3 is a stated limitation --- technology adoption is the
+textbook case of learning (Ryan and Gross's hybrid corn, the running example of Young 2009).
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\textbf{The defense of the additive rule.} Quality and social
+proof add because peers contribute a utility of their own that does not depend on quality
+(legitimacy, safety, pure coordination). If that utility grows with quality (box~2), the
+result holds. Pure learning (box~3) is outside the scope of the model. Two reasons beyond
+the convention: (i) it is the best-response form of every local-interaction game; (ii) it is
+what the model needs, because everything interesting happens to agents with $q_i > \Gamma$
+who adopt through their peers --- if peers only informed about a common quality, those agents
+would learn not to adopt.}}
+\end{center}
+
+\paragraph{Robustness.} The premium does not depend on the composition. The numbers come from
+the script \code{06f\_rule\_robustness.R} (about 2.5 min), with base exposure and the
+networks, twins, seeds and frozen gate of 05. Premium = mean over the $\Gamma \times h$ plane of
+adoption in the network minus its DP twin, in pp, with 95\% run-bootstrap intervals
+($B = 2000$); random seeding.
+\begin{itemize}
+  \item \textbf{Level 1, box 2, no new simulation.} For each $\Gamma$ the rule
+    $\Gamma + (\lambda_0 + \varphi\Gamma)\Ee \ge q$ \emph{is} the main rule with
+    $\lambda(\Gamma) = \lambda_0 + \varphi\Gamma$: a diagonal path through the
+    $(\Gamma, \lambda)$ grid already swept, interpolated linearly in $\lambda$ and clamped to
+    $[0.5, 1]$ (a pure network good, $\lambda_0 = 0$, is out of range).
+  \item \textbf{Level 2, box 4, new sweep.} $\Gamma\cdot\Acount^{\gamma} \ge q$ is one more
+    vector of node thresholds, $\Ee_i \ge (q_i/\Gamma)^{1/\gamma}/k_i$, so the engine runs it
+    unchanged. Checks: the trick reproduces the main rule cell by cell, the engine equals an
+    independent R cascade by counts in 2016/2016 cells, and six hand-solved cases hold.
+    $\gamma \in \{0.2, 0.25, 1/3, 0.5, 0.75, 1\}$, chosen for degree $\approx 30$ (Tur's values
+    are for degree 4); $\Gamma \in [0.025, 1]$ ($\Gamma = 0$ is undefined).
+\end{itemize}
+\begin{center}
+\small
+\textbf{Level 1}, $\Gamma + \lambda(\Gamma)\,\Ee \ge q$\\[2pt]
+\input{../output/06f_rule_robustness/table_level1.tex}\\[8pt]
+\textbf{Level 2}, $\Gamma\cdot\Acount^{\gamma} \ge q$\\[2pt]
+\input{../output/06f_rule_robustness/table_gamma.tex}
+\end{center}
+\noindent The premium is positive everywhere: 4.6--8.5 pp on the $\lambda(\Gamma)$ paths over
+all four sets and five seedings (lowest lower bound 4.4), and 4.0--8.8 pp under the
+$\gamma$-form (lowest lower bound 3.9; positive in all 24 networks in 118 of 120
+set $\times$ seeding $\times$ $\gamma$ combinations, in 23 in the other two). As with the
+linear rule, a region of the plane favors the DP twin (4--17\% of the cells in GSS $\times2$,
+by $\gamma$) without changing the sign of the average. At low $\gamma$ many agents are immune
+(29\% at $\gamma = 0.2$, 1\% at $\gamma = 1$), and immunity depends on degree
+(\S\ref{sec:immunity}). Not yet run: boxes 2 or 4 crossed with $\theta$ or $\kappa$.
 
 % ----------------------------------------------------------------------------
 \subsection{The Brock--Durlauf microfoundation of the linear form}
 \label{sec:brockdurlauf}
 
-The linear variant is not ad hoc: it is the deterministic limit of the canonical
+The linear variant is the deterministic limit of the canonical
 discrete-choice-with-social-interactions model of Brock \& Durlauf (2001,
 \emph{Review of Economic Studies} 68(2):235--260). In their setup, agent $i$ chooses a
 binary action and derives utility
@@ -650,7 +813,9 @@ $J \ge 0$ is the social-interaction (conformity) coefficient. Three points of co
 
 \begin{enumerate}
   \item \textbf{Additive separability of private and social utility is the standard
-    assumption} of that literature --- exactly the structure of the linear rule. Mapping:
+    assumption} of that literature --- exactly the structure of the linear rule --- adopted
+    for tractability (p.~238); the substantive reasons for it are in
+    \S\ref{sec:mechanisms}. Mapping:
     the private net utility of adopting is $\Gamma - q_i$; the social term is
     $\lambda \Ee_i$, with $\Ee_i$ playing $\bar{m}_i^{e}$ (the adoption rate of the
     reference group) and $\lambda$ playing $J$. Adoption when total utility is
@@ -683,27 +848,27 @@ $J \ge 0$ is the social-interaction (conformity) coefficient. Three points of co
  & \textbf{Linear-fractional} --- $\Gamma + \lambda \Ee_i \ge q_i$ & \textbf{$\gamma$-form (count)} --- $\Gamma \cdot \Acount_i^{\gamma} \ge q_i$ \\
 \midrule
 Answer to Bianchi & \checkmark\ equally bottom-up (threshold derived from measured $q$) & \checkmark\ equally bottom-up \\
-Backing of the coupling & $\lambda$ with Brock--Durlauf microfoundation (additive private $+$ social utility; \S\ref{sec:brockdurlauf}); its magnitude still needs arguing & $\gamma$ with Tur precedent (axioms $+$ concavity), but \textbf{no empirical calibration and no transportability} across degree scales (\S\ref{sec:gammastatus}) \\
+Backing of the coupling & $\lambda$: best-response form of local-interaction games when peers give utility of their own (\S\ref{sec:mechanisms}); Brock--Durlauf microfoundation (\S\ref{sec:brockdurlauf}); its magnitude still needs arguing & $\gamma$ with Tur precedent (axioms $+$ concavity), but \textbf{no empirical calibration and no transportability} across degree scales (\S\ref{sec:gammastatus}) \\
 Nesting in Tur 2024 & only qualitative & \textbf{exact, on any graph} (gate off; $\xi{=}\Gamma$, $u_0{=}q$, same $\gamma$) \\
 Exposure tradition & \checkmark\ Valente/Granovetter fractional; \code{netdiffuseR} native & counts (Centola--Macy/Watts); Valente exposure only as ex-post reporting (\S\ref{sec:exposuretrad}) \\
 Preferences-fixed framing & \checkmark\ clean (``situational utility rises''; Brock--Durlauf) & defensible, but against the grain of the very citation it borrows (\S\ref{sec:preferences}) \\
-Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$) --- strong assumption, but interesting and testable \\
+Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$): conformity, safety, pure coordination (box 1) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$), unbounded; no mechanism yields it, not even learning (box 4, \S\ref{sec:mechanisms}) \\
 Immunity & $q_i > \Gamma + \lambda$, degree-independent (\S\ref{sec:immunity}) & $q_i > \Gamma k_i^{\gamma}$, \textbf{degree-dependent} (averse $+$ poorly connected) --- arguably more realistic \\
-Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & not yet run \\
+Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & \textbf{run as robustness} (\code{06f}): premium 4.0--8.8 pp, positive everywhere (\S\ref{sec:mechanisms}) \\
 Hub behavior & bounded ($\Ee \le 1$) & at high $\gamma$, a saturated hub receives reinforcement $\sim k^{\gamma}$ --- may over-fire on dense networks \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-\paragraph{Recommendation.} Use the \textbf{linear-fractional variant as the primary
-operationalization} (run on the full design, Valente-compatible, microeconomically
-clean, $\lambda$ swept rather than calibrated), and the \textbf{$\gamma$-form as the
-formal bridge to Tur and as a robustness check}: present the exact nesting
-(\S\ref{sec:turnesting}) in the text, and run a short $\gamma$ sweep --- never borrowing
-Tur's numbers --- to show that the conclusions do not hinge on the
-additive-vs-multiplicative composition. This keeps the best of both: the tradition of
-the linear form, and the exact nesting as an argument, without inheriting $\gamma$'s
-transportability trap.
+\paragraph{Recommendation (updated 2026-11-10).} Use the \textbf{linear-fractional
+variant as the primary operationalization}, defended by mechanism, not by convention
+(\S\ref{sec:mechanisms}): peers contribute a utility of their own that does not depend on
+quality; if it grows with quality (box 2) the result holds; pure learning (box 3) is outside
+the scope of the model. Keep the \textbf{$\gamma$-form as the formal bridge to Tur and as a
+robustness check}: the exact nesting (\S\ref{sec:turnesting}) in the text, and the
+$\gamma$ sweep of \code{06f} --- with $\gamma$ chosen for our degree scale, never Tur's
+numbers --- in the supplement, next to the $\lambda(\Gamma)$ paths. Both done: the
+conclusions do not hinge on the additive-vs-multiplicative composition.
 
 % ============================================================================
 \section{Side-by-side with the current model and Tur}
@@ -750,9 +915,9 @@ Main risk & Bianchi critique & distance-blind & results depend on the free $\lam
     bug), so it compared two invalid surfaces, and the study does not need a calibrated
     $\lambda$. Neither $\lambda \approx 0.7$ nor $-0.850$ should be cited (retired
     2026-11-02).
-  \item Still pending: the mirror $\gamma$-form sweep (count threshold
-    $\lceil (q_i/\Gamma)^{1/\gamma} \rceil$ on the same machinery). The ATP/innovation
-    system is swept since PR \#4 (\S\ref{sec:pr4}).
+  \item The mirror $\gamma$-form sweep (count threshold $(q_i/\Gamma)^{1/\gamma}$ on the
+    same machinery) was run on 2026-11-10 (\code{06f}, \S\ref{sec:mechanisms}). The
+    ATP/innovation system is swept since PR \#4 (\S\ref{sec:pr4}).
 \end{itemize}
 
 \subsection{The structural premium survives the unified rule}
@@ -1509,6 +1674,10 @@ depends on the surface basis (\S\ref{sec:premiumresult}).
   \item[$\square$] Whether Tur 2024's homophily-rewiring $\rho$ has a formal analogue we
     should cite when claiming nesting (their $\rho$ $\approx$ our imputation; not
     identical constructs).
+  \item[$\boxtimes$] Whether the additive composition has more than conventional support.
+    \emph{Resolved 2026-11-10} (\S\ref{sec:mechanisms}): it is the best-response form of
+    conformity and coordination games; learning does not give Tur's form; no study measures
+    the cross-partial; the premium survives both complementary forms.
   \item[$\square$] The random-utility framing sentence for IUL (already drafted in
     \code{JOURNAL\_FIT\_ANALYSIS.md}, \S 4d) composes cleanly with the
     situational-utility framing: $U_i(t) = \Gamma + \lambda \Ee_i$ is a private valuation
