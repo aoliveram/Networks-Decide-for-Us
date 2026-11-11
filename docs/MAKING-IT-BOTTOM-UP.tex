@@ -30,7 +30,7 @@
 %   recommendation and sec:brockdurlauf updated.
 %   2026-11-11 (PR #5): new section sec:pr5 (ELSOC 2016-2023 and GSS 2014: aversion indices,
 %   ELSOC case-control homophily, networks calibrated by education, held-out validation,
-%   GSS 2014 indices and degree target, panel test of the mechanism, sweep and analysis);
+%   GSS 2014 indices and degree target, sweep and analysis);
 %   the consolidation table of sec:consolidation extended to the new surveys.
 % Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
 % ============================================================================
@@ -1918,45 +1918,6 @@ nodes at relative degree 0.88 instead of 0.68) give the same premium: base expos
 $\lambda$-mean 6.97 pp $[6.53, 7.35]$ against 7.19 $[6.89, 7.44]$, a paired difference of $-0.22$
 $[-0.61, +0.11]$, with the same small negative difference at every $\lambda$. The race activity
 target is a second-order input; the GSS 2004 confidants stay the target (as for GSS and ATP).
-
-% ----------------------------------------------------------------------------
-\subsection{A descriptive test of the mechanism with the ELSOC panel}
-\label{sec:pr5panel}
-
-(\code{scripts/10\_ELSOC\_panel\_mechanism.R}.) The 2019 wave was fielded after the outburst of
-18 October 2019 (670 respondents name it as the movement they value most; attending a march at least
-``almost never'' rose from 12\% in 2017 to 26\%). Did participation rise more among respondents whose
-2017 confidants were similar to them or among those whose confidants were diverse? Sample: 1{,}520
-respondents with $\ge 2$ confidants in 2017 (ideology and religion known) and \code{c08} in 2017
-and 2019. Outcomes in 2019, with the 2017 outcome, sex, age, education, religion, ideology and the
-number of confidants as controls; network measures standardized (one sd):
-
-\begin{center}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccc@{}}
-\toprule
- & \code{c08} index (0--1) & march (logit) & cacerolazo (logit) \\
-\midrule
-Blau diversity of confidants' ideology & \ci{+0.006}{-0.002}{+0.013} & \ci{+0.18}{+0.03}{+0.32} & \ci{+0.14}{+0.01}{+0.27} \\
-Blau diversity of their religion & \ci{-0.002}{-0.009}{+0.006} & \ci{-0.05}{-0.20}{+0.11} & \ci{+0.04}{-0.09}{+0.18} \\
-\quad + share of left confidants: diversity & \ci{+0.003}{-0.006}{+0.011} & \ci{+0.13}{-0.03}{+0.29} & \ci{+0.08}{-0.06}{+0.22} \\
-\quad \phantom{+ }share of left confidants & \ci{+0.009}{-0.001}{+0.019} & \ci{+0.13}{-0.03}{+0.30} & \ci{+0.19}{+0.05}{+0.34} \\
-same ideology as ego (share; similarity) & \ci{+0.000}{-0.009}{+0.009} & \ci{-0.13}{-0.29}{+0.04} & \ci{-0.08}{-0.23}{+0.07} \\
-same religion as ego (share) & \ci{+0.001}{-0.008}{+0.009} & \ci{-0.04}{-0.21}{+0.14} & \ci{-0.01}{-0.17}{+0.14} \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\noindent \textbf{The sign is not that of similarity.} Ideologically diverse confidants go with more
-marching and more cacerolazos in 2019, similar ones with slightly less (not significant), and
-religion does nothing. But the diversity association is mostly composition: diverse networks have
-more left-wing confidants (correlation 0.42), and with the share of left confidants in the model the
-diversity coefficient falls by a quarter (march) to a half (cacerolazo) and its interval includes zero, while the left share keeps a positive
-association. The \code{c08} index (petition, march, strike, social media) does not move. It does
-not identify influence (confidants are chosen; the network is measured once): it says that the data
-do not favour a ``similar sources convince'' reading of the outburst, and that what the confidants
-\emph{are} matters more than how varied they are.
 
 % ----------------------------------------------------------------------------
 \subsection{Diffusion on the new networks}
