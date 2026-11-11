@@ -35,10 +35,12 @@ output/06f_rule_robustness/*/gamma_*.rds
 plots/**/_ergm96/
 
 # Smoke-test sandboxes (--test) and the networks of the held-out validation
-# (scripts/09_network_validation.R rebuilds them in ~2 min)
+# (scripts/09_network_validation.R rebuilds them in ~2 min) and of the GSS14 degree-target
+# sensitivity (scripts/06g_GSS14_degree_target.R rebuilds them in ~30 s)
 output/**/_test/
 data/02_calibrated_networks/_test/
 data/02_calibrated_networks/holdout/
+data/02_calibrated_networks/peocntct/
 
 # Ignore playground (scratch / exploratory work)
 playground/
