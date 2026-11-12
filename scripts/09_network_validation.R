@@ -89,7 +89,9 @@ RACES <- c("White", "Black", "Hispanic", "Asian", "Other")
 RELIG <- c("Protestant", "Catholic", "Jewish", "None", "OtherRelig")
 CFG <- survey_config(SURVEY); GROUP <- CFG$group                 # calibrated group: race (GSS), educ (ELSOC)
 ALL_GROUPS <- CFG$groups; CAL_GROUPS <- ALL_GROUPS[CFG$cal]; GROUPS <- c(CAL_GROUPS, "All")
-GROUPS_X <- if (IS_GSS) GROUPS else c(GROUPS, paste0("ideol:", IDE3))     # ELSOC: also by ideology of ego
+# also by group of ego of every other calibrated dimension ("attr:level"; GSS: religion, sex; ELSOC: ideology, religion, sex)
+EXTRA_DIMS <- CFG$dims[-1]
+GROUPS_X <- c(GROUPS, unlist(lapply(EXTRA_DIMS, function(d) paste0(d$attr, ":", d$levels))))
 CATS <- if (IS_GSS) c("race", "sex", "relig") else c("educ", "sex", "relig", "ideol")    # same_* features
 BLAU_V <- if (IS_GSS) c("race", "relig", "sex") else c("educ", "relig", "ideol", "sex")  # Blau diversity of k contacts
 CLOSURE <- IS_GSS                                                 # alter-alter ties: GSS 2004 only
@@ -128,8 +130,9 @@ EG <- data.table(gss_id = num(g4$id), race = race_gss(g4), numgiven = num(g4$num
                  age = ifelse(num(g4$age) %in% c(98, 99), NA_real_, num(g4$age)),
                  educ_cat = educ_cat_of(yrs, num(g4$degree)))
 EDUC_CAT <- setNames(EG$educ_cat, EG$gss_id)                 # every respondent, for the network nodes
-EG <- EG[!is.na(numgiven) & !is.na(race)]
-EG[, `:=`(eid = gss_id, rid = gss_id, grp = race)]
+EG[, w := num(g4$wtssnr)]
+EG <- EG[!is.na(numgiven) & !is.na(race) & !is.na(w)]
+EG[, `:=`(eid = gss_id, rid = gss_id, grp = race, g_sex = c("Male", "Female")[sex], w = w / mean(w))]   # WTSSNR, as the targets
 AL <- rbindlist(lapply(1:5, function(k) data.table(
   gss_id = num(g4$id), k = k, race = c("Asian", "Black", "Hispanic", "White", "Other")[num(g4[[paste0("race", k)]])],
   sex = num(g4[[paste0("sex", k)]]), relig = RELIG[num(g4[[paste0("relig", k)]])], age = num(g4[[paste0("age", k)]]),
@@ -178,9 +181,7 @@ NODE_ID <- if (IS_GSS) "gss_id" else "elsoc_id"
 # the networks must come from this split: nodes from half B, targets equal to half A's
 stopifnot(all(unlist(lapply(NETS, function(L) lapply(L, function(g) vertex_attr(g, NODE_ID)))) %in% STRATUM[half == "B", rid]))
 tgA <- fread(file.path("output/02_calibrated_networks", TAG, if (IS_GSS) "gss2004_targets.csv" else "elsoc_targets.csv"))
-chkA <- if (IS_GSS) merge(EG[half == "A", .(n = .N, deg = mean(numgiven)), by = .(ego = grp)],
-              merge(AL[!is.na(get(GROUP))], EG[half == "A", .(eid, ego = grp)], by = "eid")[, .(same = mean(get(GROUP) == ego)), by = ego],
-              by = "ego") else merge(EG[half == "A", .(n = .N), by = .(ego = grp)],
+chkA <- merge(EG[half == "A" & numgiven <= 6, .(n = .N), by = .(ego = grp)],
               merge(AL[!is.na(get(GROUP))], EG[half == "A", .(eid, w, ego = grp)], by = "eid")[, .(same = weighted.mean(get(GROUP) == ego, w)), by = ego],
               by = "ego")
 chkA <- merge(chkA, tgA[, .(ego, n_t = n, same_t = same)], by = "ego")
@@ -223,8 +224,12 @@ FEATS <- c(setNames(lapply(CATS, function(v) c(paste0("s_", v), paste0("n_", v))
            if (CLOSURE) list(closure_know = c("p_know", "p_all"), closure_close = c("p_close", "p_all")))
 SHARE_F <- c(paste0("same_", CATS), "age_diff", "educ_diff")
 MATCHED <- c(paste0("blau_", BLAU_V), if (CLOSURE) c("closure_know", "closure_close"))
-gmask <- function(gr) if (gr == "All") rep(1, N_E) else if (startsWith(gr, "ideol:")) as.numeric(EB$ideol %in% sub("ideol:", "", gr)) else
-  as.numeric(EB$grp == gr)
+gmask <- function(gr) {
+  if (gr == "All") return(rep(1, N_E))
+  if (!grepl(":", gr)) return(as.numeric(EB$grp == gr))
+  a <- sub(":.*", "", gr); col <- if (paste0("g_", a) %in% names(EB)) EB[[paste0("g_", a)]] else EB[[a]]
+  as.numeric(col %in% sub("^[^:]*:", "", gr))
+}
 SIZES <- c("2", "3", "4", "5", "6+")
 
 # bootstrap weights: respondents within stratum (W, B x egos: every row of a respondent gets the
@@ -237,7 +242,7 @@ for (r in unique(RB$stratum)) { ii <- which(RB$stratum == r)
 W <- CW[, match(EB$rid, RB$rid), drop = FALSE]
 V <- t(vapply(seq_len(B_BOOT), function(b) tabulate(sample.int(N_NETS, N_NETS, TRUE), N_NETS), numeric(N_NETS)))
 W <- rbind(1, W); V <- rbind(1, V)
-if (!IS_GSS) W <- sweep(W, 2, EB$w, `*`)                  # ELSOC: every ego carries its survey weight
+W <- sweep(W, 2, EB$w, `*`)                               # every ego carries its survey weight (WTSSNR, ponderador02)
 
 obs_feature <- function(f, gr, mask = gmask(gr)) {
   cols <- FEATS[[f]]
@@ -280,10 +285,11 @@ net_stats <- function(g, seed) {
                         list(age_diff = abs(va$age[i] - va$age[j]), educ_diff = abs(va$educ_cat[i] - va$educ_cat[j]))))
   all_c <- rbind(te[, lapply(.SD, mean), by = r, .SDcols = -"r"], te[, lapply(.SD, mean), .SDcols = -"r"][, r := "All"])
   all_c <- merge(all_c, data.table(r = c(ALL_GROUPS, "All"), rel_deg = c(tapply(deg, factor(va[[GROUP]], ALL_GROUPS), mean) / mean(deg), 1)), by = "r")
-  if (!IS_GSS) {                                            # ELSOC: the same by ideology of ego
-    te2 <- copy(te)[, r := paste0("ideol:", va$ideol[i])]
+  for (dd in EXTRA_DIMS) {                                  # the same by group of ego of the other calibrated dimensions
+    te2 <- copy(te)[, r := paste0(dd$attr, ":", va[[dd$attr]][i])]
     all_c <- rbind(all_c, merge(te2[, lapply(.SD, mean), by = r, .SDcols = -"r"],
-                                data.table(r = paste0("ideol:", IDE3), rel_deg = as.numeric(tapply(deg, factor(va$ideol, IDE3), mean)) / mean(deg)),
+                                data.table(r = paste0(dd$attr, ":", dd$levels),
+                                           rel_deg = as.numeric(tapply(deg, factor(va[[dd$attr]], dd$levels), mean)) / mean(deg)),
                                 by = "r"), use.names = TRUE)
   }
   lc <- transitivity(g, "local"); q5 <- cut(deg, unique(quantile(deg, 0:5 / 5)), include.lowest = TRUE, labels = FALSE)
@@ -402,7 +408,8 @@ cat("\nStructure of the validation networks (means over networks):\n"); print(ST
 # compact table for the paper: all egos (and same-race by group), x1 / x2 / x2g
 pick <- rbind(TAB[group == "All" & source == "all contacts" & feature %in% SHARE_F],
               TAB[group %in% CAL_GROUPS & source == "all contacts" & feature %in% c("rel_deg", paste0("same_", GROUP))],
-              if (!IS_GSS) TAB[startsWith(group, "ideol:") & source == "all contacts" & feature %in% c("rel_deg", "same_ideol")],
+              rbindlist(lapply(EXTRA_DIMS, function(dd) TAB[startsWith(group, paste0(dd$attr, ":")) & source == "all contacts" &
+                                                                feature == paste0("same_", dd$attr)])),
               TAB[group == "All" & feature %in% MATCHED & source %in% RULES])[level %in% SHOW_LV]
 lab_f <- c(rel_deg = "Relative degree", same_race = "Same race", same_educ = "Same education", same_sex = "Same sex",
            same_relig = "Same religion", same_ideol = "Same ideology",
@@ -410,7 +417,7 @@ lab_f <- c(rel_deg = "Relative degree", same_race = "Same race", same_educ = "Sa
            blau_race = "Blau diversity, race", blau_educ = "Blau diversity, education", blau_relig = "Blau diversity, religion",
            blau_ideol = "Blau diversity, ideology", blau_sex = "Blau diversity, sex",
            closure_know = "Pairs who know each other", closure_close = "Pairs especially close")
-pick[, row := paste0(lab_f[feature], ifelse(group == "All", "", paste0(", ", sub("ideol:", "ideology ", group))), ifelse(source == "all contacts", "", paste0(" (", source, ")")))]
+pick[, row := paste0(lab_f[feature], ifelse(group == "All", "", paste0(", ", sub("^[^:]*:", "", group))), ifelse(source == "all contacts", "", paste0(" (", source, ")")))]
 tex <- dcast(pick, row + feature + group + source + observed + obs_lo + obs_hi ~ level, value.var = c("predicted", "rel_err", "fits"))
 tex <- tex[order(match(feature, names(lab_f)), match(group, GROUPS_X), match(source, c("all contacts", RULES)))]
 cell <- function(p, e, ok) sprintf("%.3f & %s%+.0f\\%%%s", p, if (ok) "" else "\\textbf{", 100 * e, if (ok) "" else "}")

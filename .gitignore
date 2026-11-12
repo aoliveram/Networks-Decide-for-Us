@@ -72,3 +72,7 @@ output/**/_qinverted/
 
 # Local Claude Code context (not shared)
 CLAUDE.md
+
+# Intermediate networks of 06h_calibration_steps.R (02 --tag=steps/<x> rebuilds them)
+data/02_calibrated_networks/steps/
+output/02_calibrated_networks/steps/

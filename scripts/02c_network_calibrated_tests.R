@@ -12,9 +12,9 @@
 #   2. group mixing: share of the ties of each ego group that go to each group,
 #      confidants vs the networks. Only the diagonal is a target; the
 #      off-diagonal shares follow from group sizes and activity
-#      ELSOC also: same sex and religion (single case-control coefficients, untargeted by
-#      group) and same ideology (calibrated for Left and Right), overall and by group of ego, confidants
-#      of 2017 (weighted by the ego's ponderador02) vs the networks: ELSOC_same_shares.csv
+#      also the same-attribute shares of the other calibrated dimensions (GSS family: religion, sex;
+#      ELSOC: ideology, religion, sex), overall and by group of ego, confidants (weighted) vs the
+#      networks: <S>_same_shares.csv
 #   3. structure of every level found (<S>_x1.rds, <S>_x2.rds and any other
 #      rewired level, e.g. x2n): transitivity, local clustering by degree
 #      tercile, degree assortativity, mean distance, giant component, homophily
@@ -53,13 +53,17 @@ race_gss <- function(d) with(d, case_when(hispanic %in% c(2:6, 10, 15, 20:24, 30
                                           racecen1 == 1 ~ "White", racecen1 == 2 ~ "Black",
                                           racecen1 %in% c(3, 11, 15) ~ "Other", racecen1 %in% c(4:10) ~ "Asian",
                                           racecen1 == 16 ~ "Hispanic", TRUE ~ NA_character_))
-resp <- data.table(id = seq_len(nrow(g4)), ego = race_gss(g4), numgiven = as.numeric(g4$numgiven))[!is.na(ego) & !is.na(numgiven)]
+numz <- function(x) as.numeric(zap_labels(x))
+resp <- data.table(id = seq_len(nrow(g4)), ego = race_gss(g4), numgiven = numz(g4$numgiven), w = numz(g4$wtssnr),
+                   e_relig = RELIG_US[pmin(numz(g4$relig), 5)], e_sex = SEX2[numz(g4$sex)])[!is.na(ego) & !is.na(numgiven) & !is.na(w)]
+resp[, w := w / mean(w)]                                    # WTSSNR, as the targets of 02
 alt <- rbindlist(lapply(1:5, function(k) data.table(id = seq_len(nrow(g4)),
-  alter = c("Asian", "Black", "Hispanic", "White", "Other")[as.numeric(g4[[paste0("race", k)]])])))[!is.na(alter)]
-alt <- merge(alt, resp[, .(id, ego)], by = "id")
+  alter = c("Asian", "Black", "Hispanic", "White", "Other")[numz(g4[[paste0("race", k)]])],
+  relig = RELIG_US[numz(g4[[paste0("relig", k)]])], sex = SEX2[numz(g4[[paste0("sex", k)]])])))[!is.na(alter)]
+alt <- merge(alt, resp[, .(id, ego, w, e_relig, e_sex)], by = "id")
 mix_table <- function(al, ids, lv) {
   a <- al[.(ids), on = "id", nomatch = 0L, allow.cartesian = TRUE]
-  if (!"w" %in% names(a)) a[, w := 1]                       # ELSOC: weight of the ego
+  # every confidant carries the weight of its ego
   a[, .(N = sum(w)), by = .(ego, alter)][, share := N / sum(N), by = ego][CJ(ego = lv, alter = lv), on = .(ego, alter)][is.na(share), share := 0][]
 }
 mix_ref <- function(al, ids, lv, seed) {
@@ -69,17 +73,23 @@ mix_ref <- function(al, ids, lv, seed) {
         by = c("ego", "alter"))
 }
 MIX_REF <- list()
-if (any(vapply(SURVEYS, function(S) survey_config(S)$group == "race", TRUE))) MIX_REF$race <- mix_ref(alt, resp$id, RACES, 2004)
+# same-attribute shares of the confidants, overall and by group of ego, for the other calibrated dimensions
+same_obs <- function(a, vars) rbindlist(lapply(vars, function(v) {
+  a <- a[!is.na(get(v)) & !is.na(get(paste0("e_", v)))]
+  rbind(a[, .(attribute = v, ego_group = "All", observed = weighted.mean(get(v) == get(paste0("e_", v)), w), n_alters = .N)],
+        a[, .(attribute = v, observed = weighted.mean(get(v) == get(paste0("e_", v)), w), n_alters = .N), by = .(ego_group = get(paste0("e_", v)))])
+}))
+OBS_SAME <- list()
+if (any(vapply(SURVEYS, function(S) survey_config(S)$group == "race", TRUE))) {
+  MIX_REF$race <- mix_ref(alt[, .(id, ego, alter, w)], resp$id, RACES, 2004)
+  OBS_SAME$race <- same_obs(alt, c("relig", "sex"))
+}
 # ELSOC 2017, weighted (education); also the same-sex, religion and ideology shares
 if ("ELSOC" %in% SURVEYS) {
   eg_e <- elsoc_egos(2); al_e <- merge(elsoc_alters(2), eg_e[, .(idencuesta, ola, w, e_educ = educ, e_sex = sex, e_relig = relig, e_ideol = ideol)],
                                        by = c("idencuesta", "ola"))
   MIX_REF$educ <- mix_ref(al_e[!is.na(educ) & !is.na(e_educ), .(id = idencuesta, ego = e_educ, alter = educ, w)], unique(eg_e$idencuesta), EDU5, 2017)
-  obs_same <- rbindlist(lapply(c("sex", "relig", "ideol"), function(v) {
-    a <- al_e[!is.na(get(v)) & !is.na(get(paste0("e_", v)))]
-    rbind(a[, .(attribute = v, ego_group = "All", observed = weighted.mean(get(v) == get(paste0("e_", v)), w), n_alters = .N)],
-          a[, .(attribute = v, observed = weighted.mean(get(v) == get(paste0("e_", v)), w), n_alters = .N), by = .(ego_group = get(paste0("e_", v)))])
-  }))[, targeted := attribute == "ideol" & ego_group %in% c("Left", "Right")]
+  OBS_SAME$educ <- same_obs(al_e, c("ideol", "relig", "sex"))
 }
 
 # ---- per network statistics ---------------------------------------------------------------------
@@ -136,14 +146,18 @@ for (S in SURVEYS) {
   mx <- merge(MIX_REF[[GROUP]], mx[, .(ego = as.character(ego), alter = as.character(alter), net)], by = c("ego", "alter"), all.x = TRUE)
   mx[is.na(net), net := 0]
   fwrite(mx, file.path(OUT, paste0(S, "_mixing.csv")))
-  if (S == "ELSOC") {                          # same-attribute shares: sex, religion (common coefficients), ideology (calibrated)
+  {                                            # same-attribute shares of the other calibrated dimensions
+    obs <- OBS_SAME[[GROUP]]; vars <- unique(obs$attribute)
+    hom_lv <- unlist(lapply(CFG$dims[-1], function(d) if (isTRUE(d$pooled)) NULL else paste(d$attr, d$levels[d$hom])))
+    obs[, targeted := paste(attribute, ego_group) %in% hom_lv]
     ns <- rbindlist(lapply(NETS$x1, function(g) { el <- as_edgelist(g, names = FALSE); i <- c(el[, 1], el[, 2]); j <- c(el[, 2], el[, 1])
-      rbindlist(lapply(c("sex", "relig", "ideol"), function(v) { x <- vertex_attr(g, v); d <- data.table(e = x[i], s = x[i] == x[j])
+      rbindlist(lapply(vars, function(v) { x <- vertex_attr(g, v); d <- data.table(e = x[i], s = x[i] == x[j])
         rbind(d[, .(attribute = v, ego_group = "All", net = mean(s))], d[, .(attribute = v, net = mean(s)), by = .(ego_group = e)]) })) }))
-    sh <- merge(obs_same, ns[, .(net = mean(net), net_min = min(net), net_max = max(net)), by = .(attribute, ego_group)], by = c("attribute", "ego_group"))
+    sh <- merge(obs, ns[, .(net = mean(net), net_min = min(net), net_max = max(net)), by = .(attribute, ego_group)], by = c("attribute", "ego_group"))
     sh[, rel_err := net / observed - 1]
-    fwrite(sh, file.path(OUT, "ELSOC_same_shares.csv"))
-    cat("\nELSOC: same-attribute shares, confidants 2017 (weighted) vs networks (x1 = x2; ideology by group is a target):\n"); print(sh, digits = 3)
+    fwrite(sh, file.path(OUT, paste0(S, "_same_shares.csv")))
+    cat("\n", S, ": same-attribute shares, ", SRC, " confidants (weighted) vs networks (x1 = x2; targeted = own homophily term):\n", sep = "")
+    print(sh, digits = 3)
   }
 
   # 3. structure by level

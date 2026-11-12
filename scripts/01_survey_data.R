@@ -27,7 +27,9 @@
 #          and sex; the weight the ELSOC manual recommends). Egos of 2017 weight the targets and
 #          the case-control; the 2018 nodes are drawn with probability proportional to w.
 #   GSS14  WTSSNR (non-respondent subsampling and area non-response) of the 2014 cross-section.
-#   GSS 2004 and ATP 2014 are not weighted (the networks of PR #4).
+#   GSS    WTSSNR of GSS 2004 (nodes and the confidant targets of GSS, ATP and GSS14).
+#   ATP    weight_ATP (nodes).
+#   (Until 2026-11-11 GSS 2004 and ATP were not weighted: the networks of PR #4.)
 #
 # ELSOC recodes (alters have coarser categories than egos; egos are mapped to them):
 #   education  ego m01 (10 levels) and alter r13_educ (5) -> Primary (basica or less),
@@ -60,9 +62,21 @@ GSS04_FILE <- "data/02_GSS_network_ergm/GSS_2004_NORC.dta"
 #   group      vertex attribute calibrated by group (activity + homophily, Newton)
 #   groups     its levels; cal = the calibrated ones (the rest: relative degree 1 and the
 #              common coefficient coef_group, as 'Other' in GSS)
-#   group2     (optional) a second calibrated attribute (ELSOC: ideology), solved jointly with the
-#   groups2    first: activity of every level; homophily of the levels cal2 (ELSOC: Left and
-#   cal2       Right; Neither, a residual category, has no homophily term)
+#   dims       the attributes calibrated BY GROUP, solved jointly by Newton (02), following Smith
+#              (2012): every categorical dimension of the confidant data gets its own terms. Each:
+#                attr, levels
+#                act     TRUE: activity by group (relative number of confidants)
+#                pooled  TRUE: ONE homophily term whose target is the total within-group ties (sex:
+#                        with two groups, degrees and both within-group shares cannot all hold in an
+#                        undirected network, because confidant reports are directed and do not
+#                        balance: ELSOC men's confidants are 41% women, women's 32% men)
+#                act_lv  levels whose activity target comes from the data (the rest: 1)
+#                hom     levels with their own homophily term (within-group share as target)
+#                uncal_common  TRUE: the levels outside hom keep the common coefficient inside
+#                        their group (GSS 'Other' race, 18 respondents); FALSE: no within-group
+#                        term (ELSOC Neither: residual, see 02)
+#              dims[[1]] is 'group' (its levels = groups, hom = cal); continuous age and education
+#              distance keep one common coefficient (02_GSS_homophily.R, 02_ELSOC_homophily.R)
 #   cats       categorical attributes whose mixing matrices the x2 rewiring keeps EXACT
 #   nums       continuous attributes kept within 1% by the rewiring
 #   blau       inputs of the Gower distance d_ij of the gate (05_unified_engine.R)
@@ -73,14 +87,23 @@ EDU5  <- c("Primary", "SecondaryInc", "Secondary", "Technical", "University")
 EDU_YEARS <- c(Primary = 6, SecondaryInc = 10, Secondary = 12, Technical = 14, University = 16)
 REL5_CL <- c("Catholic", "Evangelical", "None", "AtheistAgnostic", "Other")
 IDE3  <- c("Left", "Neither", "Right")
+RELIG_US <- c("Protestant", "Catholic", "Jewish", "None", "OtherRelig")
+SEX2 <- c("Male", "Female")
 US_CONFIG <- list(group = "race", groups = RACES, cal = 1:4, cats = c("race", "sex", "relig"), nums = c("age", "educ_num"),
                   blau = c("age", "educ_num", "race", "relig", "sex"), cell = c("race", "relig"), ideol = FALSE,
-                  targets = "GSS 2004", weights = FALSE)
+                  targets = "GSS 2004", weights = TRUE,
+                  dims = list(list(attr = "race", levels = RACES, act = TRUE, act_lv = 1:4, hom = 1:4, uncal_common = TRUE),
+                              list(attr = "relig", levels = RELIG_US, act = TRUE, act_lv = 1:5, hom = 1:5, uncal_common = FALSE),
+                              list(attr = "sex", levels = SEX2, act = TRUE, act_lv = 1:2, hom = 1:2, uncal_common = FALSE, pooled = TRUE)))
 SURVEY_CONFIG <- list(
   GSS   = US_CONFIG,
   ATP   = US_CONFIG,
-  GSS14 = modifyList(US_CONFIG, list(ideol = TRUE, weights = TRUE)),
-  ELSOC = list(group = "educ", groups = EDU5, cal = 1:5, group2 = "ideol", groups2 = IDE3, cal2 = c(1, 3),
+  GSS14 = modifyList(US_CONFIG, list(ideol = TRUE)),
+  ELSOC = list(group = "educ", groups = EDU5, cal = 1:5,
+               dims = list(list(attr = "educ", levels = EDU5, act = TRUE, act_lv = 1:5, hom = 1:5, uncal_common = FALSE),
+                           list(attr = "ideol", levels = IDE3, act = TRUE, act_lv = 1:3, hom = c(1, 3), uncal_common = FALSE),
+                           list(attr = "relig", levels = REL5_CL, act = TRUE, act_lv = 1:5, hom = 1:5, uncal_common = FALSE),
+                           list(attr = "sex", levels = SEX2, act = TRUE, act_lv = 1:2, hom = 1:2, uncal_common = FALSE, pooled = TRUE)),
                cats = c("educ", "sex", "relig", "ideol"), nums = c("age", "educ_num"),
                blau = c("age", "educ_num", "sex", "relig", "ideol"), cell = c("educ", "relig"), ideol = TRUE,
                targets = "ELSOC 2017", weights = TRUE))
