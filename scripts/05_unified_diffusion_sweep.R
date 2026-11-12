@@ -11,7 +11,8 @@
 # Design (since 2026-11, PR #3 / #4):
 #   - Networks: data/02_calibrated_networks/<SURVEY>_<LEVEL>.rds (02_network_calibrated.R),
 #     24 per set, N = 1000, mean degree 30, nodes resampled per network.
-#     SURVEY: GSS (2004, collective action) or ATP (2014, new products).
+#     SURVEY: GSS (2004, collective action), ATP (2014, new products), GSS14 (2014,
+#     collective action, GSS 2004 targets) or ELSOC (2018 willingness, Chilean targets; PR #5).
 #     LEVEL:  x2 (main: calibrated + rewired to twice the triangles) or x1
 #             (calibrated, before the rewiring; same nodes, degrees and mixing).
 #   - Engine: Rcpp, FROZEN gate (one coin per tie per simulation, w = sigma((h - d_ij)/0.02));
@@ -20,7 +21,8 @@
 #     two dials; EXPOSURE_CONDITIONS in 05_unified_engine.R): independent
 #     reinforcement theta (race x religion circles) and cohesive reinforcement kappa
 #     (pairs of contacts who know each other), at c = -1, -0.5, +0.5, +1, each with
-#     its permuted control.
+#     its permuted control. Networks with 'ideol' (ELSOC, GSS14) add the theta arm with
+#     ideology circles (c = -1, -0.5 and permuted controls): 13 conditions.
 #   - Grid: IUL Gamma 0..1 by 0.025 (41), MSP h 0..1 by 1/24 (25), lambda 0.5..1.0 by 0.1.
 #   - Seeding: one strategy per invocation (--seeding=) picks the PRIMARY node:
 #       random    a uniformly drawn node
@@ -64,15 +66,11 @@ source("scripts/05_unified_engine.R")
 ARGS <- commandArgs(trailingOnly = TRUE)
 arg <- function(k, d) { a <- grep(paste0("^--", k, "="), ARGS, value = TRUE); if (length(a)) sub(".*=", "", a[1]) else d }
 TEST_MODE <- "--test" %in% ARGS
-SURVEY  <- toupper(arg("survey", "GSS")); stopifnot(SURVEY %in% c("GSS", "ATP"))
+SURVEY  <- toupper(arg("survey", "GSS")); stopifnot(SURVEY %in% c("GSS", "ATP", "GSS14", "ELSOC"))
 LEVEL   <- tolower(arg("level", "x2"))    # x2 (main), x1; other rewired levels of 02 (e.g. x2n) if their file exists
 SEEDING <- arg("seeding", "random")
 stopifnot(SEEDING %in% c("random", "central", "marginal", "closeness", "eigen"))
 COND_ARG <- arg("conditions", "all")
-CONDS <- if (COND_ARG == "all") EXPOSURE_CONDITIONS else EXPOSURE_CONDITIONS[strsplit(COND_ARG, ",")[[1]]]
-if (any(vapply(CONDS, is.null, logical(1))) || !"base" %in% names(CONDS))
-  stop("--conditions must include 'base' and only names of EXPOSURE_CONDITIONS: ",
-       paste(names(EXPOSURE_CONDITIONS), collapse = ", "))
 SET <- paste0(SURVEY, "_", LEVEL)
 
 # ------------------------------- configuration -------------------------------
@@ -89,12 +87,16 @@ H_SWEEP   <- if (TEST_MODE) seq(0, 1, by = 0.25) else seq(0, 1, by = 1/24)
 LAMBDAS   <- if (TEST_MODE) c(0.7) else c(0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
 TOPOLOGIES <- c("NET", "DP")
 OUTS <- c("num_adopters", "num_adopted_rational", "t50", "num_steps")
-for (d in c(CKPT_DIR, PLOTS_OUT, file.path(CKPT_DIR, names(CONDS))))
-  dir.create(d, showWarnings = FALSE, recursive = TRUE)
+for (d in c(CKPT_DIR, PLOTS_OUT)) dir.create(d, showWarnings = FALSE, recursive = TRUE)
 
 if (!file.exists(NET_FILE)) stop("Missing ", NET_FILE, ": run scripts/02_network_calibrated.R --survey=", SURVEY,
                                  if (!LEVEL %in% c("x1", "x2")) paste0(" with the options of level ", LEVEL))
 nets <- readRDS(NET_FILE)
+ALL_CONDS <- exposure_conditions(nets[[1]])          # + the ideology theta arm if the nodes carry 'ideol'
+CONDS <- if (COND_ARG == "all") ALL_CONDS else ALL_CONDS[strsplit(COND_ARG, ",")[[1]]]
+if (any(vapply(CONDS, is.null, logical(1))) || !"base" %in% names(CONDS))
+  stop("--conditions must include 'base' and only names of the network's conditions: ", paste(names(ALL_CONDS), collapse = ", "))
+for (d in file.path(CKPT_DIR, names(CONDS))) dir.create(d, showWarnings = FALSE, recursive = TRUE)
 DP_FILE <- file.path("data/02_calibrated_networks", paste0(SURVEY, "_x2.rds"))   # the twins come from x2
 dp_nets <- if (LEVEL == "x2") nets else readRDS(DP_FILE)
 stopifnot(length(nets) >= N_RUNS, length(dp_nets) >= N_RUNS)

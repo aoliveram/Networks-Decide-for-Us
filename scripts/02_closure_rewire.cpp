@@ -3,25 +3,49 @@
 //   rewire_closure_node()  every node toward target_factor x its own triangles: level x2 (main)
 //   rewire_closure()       the TOTAL triangles toward target_factor x: level x2g (validation only)
 //
+// Attributes (one row per node):
+//   cats  integer matrix of categorical attributes (GSS/ATP/GSS14: race, sex, religion;
+//         ELSOC: education group, sex, religion, ideology)
+//   nums  numeric matrix of continuous attributes (age, education in years)
+// Since PR #5 the attributes come as matrices (until then: race, sex, relig, age, educ as
+// separate vectors). The checks consume no random numbers, so GSS and ATP networks are
+// bit-identical to the earlier version.
+//
 // rewire_closure():
 // Swap: edges (a,b),(c,d) -> (a,d),(c,b). Every node keeps its degree. The swap is allowed only if,
-// for race, sex and religion separately, x(b) == x(d) or x(a) == x(c): then the multiset of attribute
-// pairs over edges is unchanged, so the race mixing matrix (and same-sex, same-religion counts) stay
-// exactly as they were. The total |age| and |educ| differences over edges must stay within `tol`
-// (relative) of their starting values. Moves are accepted toward a target number of triangles
-// (Metropolis on |T - T*|, temperature `temp`); neutral moves are accepted. After T* is reached, a
-// mixing phase of `mix_props` more proposals keeps |T - T*| small while the network keeps changing.
-// With degrees fixed, the number of connected triples is fixed, so transitivity scales with T.
+// for every categorical attribute separately, x(b) == x(d) or x(a) == x(c): then the multiset of
+// attribute pairs over edges is unchanged, so the mixing matrix of each attribute (and its
+// same-attribute count) stays exactly as it was. The total |difference| of every continuous attribute
+// over edges must stay within `tol` (relative) of its starting value. Moves are accepted toward a
+// target number of triangles (Metropolis on |T - T*|, temperature `temp`); neutral moves are accepted.
+// After T* is reached, a mixing phase of `mix_props` more proposals keeps |T - T*| small while the
+// network keeps changing. With degrees fixed, the number of connected triples is fixed, so
+// transitivity scales with T.
 #include <Rcpp.h>
 #include <vector>
 #include <cmath>
 using namespace Rcpp;
 
+// the swap (a,b),(c,d) -> (a,d),(c,b) keeps every categorical mixing matrix
+static inline bool cats_ok(const IntegerMatrix& cats, int a, int b, int c, int d) {
+  for (int k = 0; k < cats.ncol(); k++)
+    if (!(cats(b, k) == cats(d, k) || cats(a, k) == cats(c, k))) return false;
+  return true;
+}
+// new totals of |difference| of every continuous attribute; false if one leaves the tolerance
+static inline bool nums_ok(const NumericMatrix& x, int a, int b, int c, int d, const std::vector<double>& s,
+                           const std::vector<double>& s0, double tol, std::vector<double>& ns) {
+  for (int m = 0; m < x.ncol(); m++) {
+    ns[m] = s[m] - std::fabs(x(a, m) - x(b, m)) - std::fabs(x(c, m) - x(d, m)) + std::fabs(x(a, m) - x(d, m)) + std::fabs(x(c, m) - x(b, m));
+    if (std::fabs(ns[m] - s0[m]) > tol * s0[m]) return false;
+  }
+  return true;
+}
+
 // [[Rcpp::export]]
-List rewire_closure(IntegerMatrix el, int n, IntegerVector race, IntegerVector sex, IntegerVector relig,
-                    NumericVector age, NumericVector educ, double target_factor, double tol,
+List rewire_closure(IntegerMatrix el, int n, IntegerMatrix cats, NumericMatrix nums, double target_factor, double tol,
                     double max_props, double temp, double mix_props) {
-  const int m = el.nrow();
+  const int m = el.nrow(), M = nums.ncol();
   std::vector<int> A(m), B(m);
   std::vector<unsigned char> adj((size_t)n * n, 0);
   std::vector<std::vector<int> > nb(n);
@@ -43,14 +67,16 @@ List rewire_closure(IntegerMatrix el, int n, IntegerVector race, IntegerVector s
     std::vector<int>& L = nb[u];
     for (size_t i = 0; i < L.size(); i++) if (L[i] == v) { L[i] = L.back(); L.pop_back(); break; }
   };
-  double T = 0, sa0 = 0, se0 = 0;
+  double T = 0;
+  std::vector<double> s0(M, 0.0), ns(M, 0.0);
   for (int e = 0; e < m; e++) {
     T += cn(A[e], B[e]);
-    sa0 += std::fabs(age[A[e]] - age[B[e]]); se0 += std::fabs(educ[A[e]] - educ[B[e]]);
+    for (int k = 0; k < M; k++) s0[k] += std::fabs(nums(A[e], k) - nums(B[e], k));
   }
   T /= 3.0;
   const double T0 = T, Tstar = target_factor * T0;
-  double sa = sa0, se = se0, props = 0;
+  std::vector<double> s = s0;
+  double props = 0;
   long acc = 0;
   RNGScope scope;
   // phase 1: climb to T*; phase 2 (mix_props proposals after reaching T*): keep |T - T*| small while mixing
@@ -63,13 +89,8 @@ List rewire_closure(IntegerMatrix el, int n, IntegerVector race, IntegerVector s
     if (R::unif_rand() < 0.5) { int t = c; c = d; d = t; }
     if (a == c || a == d || b == c || b == d) continue;
     if (adj[(size_t)a * n + d] || adj[(size_t)c * n + b]) continue;
-    if (!(race[b] == race[d] || race[a] == race[c])) continue;
-    if (!(sex[b] == sex[d] || sex[a] == sex[c])) continue;
-    if (!(relig[b] == relig[d] || relig[a] == relig[c])) continue;
-    double nsa = sa - std::fabs(age[a] - age[b]) - std::fabs(age[c] - age[d]) + std::fabs(age[a] - age[d]) + std::fabs(age[c] - age[b]);
-    if (std::fabs(nsa - sa0) > tol * sa0) continue;
-    double nse = se - std::fabs(educ[a] - educ[b]) - std::fabs(educ[c] - educ[d]) + std::fabs(educ[a] - educ[d]) + std::fabs(educ[c] - educ[b]);
-    if (std::fabs(nse - se0) > tol * se0) continue;
+    if (!cats_ok(cats, a, b, c, d)) continue;
+    if (!nums_ok(nums, a, b, c, d, s, s0, tol, ns)) continue;
     int lost = cn(a, b) + cn(c, d);
     int gain = (cn(a, d) - adj[(size_t)b * n + d] - adj[(size_t)c * n + a]) +
                (cn(c, b) - adj[(size_t)d * n + b] - adj[(size_t)a * n + c]);
@@ -81,13 +102,15 @@ List rewire_closure(IntegerMatrix el, int n, IntegerVector race, IntegerVector s
     rm_nb(a, b); rm_nb(b, a); rm_nb(c, d); rm_nb(d, c);
     nb[a].push_back(d); nb[d].push_back(a); nb[c].push_back(b); nb[b].push_back(c);
     A[e1] = a; B[e1] = d; A[e2] = c; B[e2] = b;
-    T += dT; sa = nsa; se = nse; acc++;
+    T += dT; s = ns; acc++;
     if (T >= Tstar) reached = true;
   }
   IntegerMatrix out(m, 2);
   for (int e = 0; e < m; e++) { out(e, 0) = A[e] + 1; out(e, 1) = B[e] + 1; }
+  NumericVector rel(M);
+  for (int k = 0; k < M; k++) rel[k] = s[k] / s0[k] - 1;
   return List::create(_["edges"] = out, _["T0"] = T0, _["T"] = T, _["accepted"] = (double)acc,
-                      _["proposals"] = props, _["age_rel_change"] = sa / sa0 - 1, _["educ_rel_change"] = se / se0 - 1);
+                      _["proposals"] = props, _["num_rel_change"] = rel);
 }
 
 // Variant "node": the same swaps and constraints, but the target is per node: every node i
@@ -97,10 +120,9 @@ List rewire_closure(IntegerMatrix el, int n, IntegerVector race, IntegerVector s
 // is multiplied by the same factor, so the clustering-degree profile of the starting network is
 // kept. Phase 1 ends when E <= e_tol x sum_i t_i*; then `mix_props` proposals as above.
 // [[Rcpp::export]]
-List rewire_closure_node(IntegerMatrix el, int n, IntegerVector race, IntegerVector sex, IntegerVector relig,
-                         NumericVector age, NumericVector educ, double target_factor, double tol,
+List rewire_closure_node(IntegerMatrix el, int n, IntegerMatrix cats, NumericMatrix nums, double target_factor, double tol,
                          double max_props, double temp, double mix_props, double e_tol) {
-  const int m = el.nrow();
+  const int m = el.nrow(), M = nums.ncol();
   std::vector<int> A(m), B(m);
   std::vector<unsigned char> adj((size_t)n * n, 0);
   std::vector<std::vector<int> > nb(n);
@@ -124,12 +146,14 @@ List rewire_closure_node(IntegerMatrix el, int n, IntegerVector race, IntegerVec
   }
   for (int i = 0; i < n; i++) t[i] /= 3;            // each triangle was seen from its 3 edges
   std::vector<double> ts(n);
-  double Ets = 0, E = 0, T = 0, sa0 = 0, se0 = 0;
+  double Ets = 0, E = 0, T = 0;
   for (int i = 0; i < n; i++) { ts[i] = target_factor * t[i]; Ets += ts[i]; E += std::fabs(t[i] - ts[i]); T += t[i]; }
   T /= 3.0;
   const double T0 = T, E0 = E;
-  for (int e = 0; e < m; e++) { sa0 += std::fabs(age[A[e]] - age[B[e]]); se0 += std::fabs(educ[A[e]] - educ[B[e]]); }
-  double sa = sa0, se = se0, props = 0;
+  std::vector<double> s0(M, 0.0), ns(M, 0.0);
+  for (int e = 0; e < m; e++) for (int k = 0; k < M; k++) s0[k] += std::fabs(nums(A[e], k) - nums(B[e], k));
+  std::vector<double> sv = s0;
+  double props = 0;
   long acc = 0;
   std::vector<int> dlt(n, 0), touched;
   std::vector<char> in_t(n, 0);
@@ -154,13 +178,8 @@ List rewire_closure_node(IntegerMatrix el, int n, IntegerVector race, IntegerVec
     if (R::unif_rand() < 0.5) { int tt = c; c = d; d = tt; }
     if (a == c || a == d || b == c || b == d) continue;
     if (adj[(size_t)a * n + d] || adj[(size_t)c * n + b]) continue;
-    if (!(race[b] == race[d] || race[a] == race[c])) continue;
-    if (!(sex[b] == sex[d] || sex[a] == sex[c])) continue;
-    if (!(relig[b] == relig[d] || relig[a] == relig[c])) continue;
-    double nsa = sa - std::fabs(age[a] - age[b]) - std::fabs(age[c] - age[d]) + std::fabs(age[a] - age[d]) + std::fabs(age[c] - age[b]);
-    if (std::fabs(nsa - sa0) > tol * sa0) continue;
-    double nse = se - std::fabs(educ[a] - educ[b]) - std::fabs(educ[c] - educ[d]) + std::fabs(educ[a] - educ[d]) + std::fabs(educ[c] - educ[b]);
-    if (std::fabs(nse - se0) > tol * se0) continue;
+    if (!cats_ok(cats, a, b, c, d)) continue;
+    if (!nums_ok(nums, a, b, c, d, sv, s0, tol, ns)) continue;
     // triangle changes per node: remove (a,b) and (c,d), then add (a,d) and (c,b)
     int dT = 0;
     dT -= each_cn(a, b, -1, -1, -1);
@@ -178,12 +197,14 @@ List rewire_closure_node(IntegerMatrix el, int n, IntegerVector race, IntegerVec
     rm_nb(a, b); rm_nb(b, a); rm_nb(c, d); rm_nb(d, c);
     nb[a].push_back(d); nb[d].push_back(a); nb[c].push_back(b); nb[b].push_back(c);
     A[e1] = a; B[e1] = d; A[e2] = c; B[e2] = b;
-    T += dT; E += dE; sa = nsa; se = nse; acc++;
+    T += dT; E += dE; sv = ns; acc++;
     if (E <= e_tol * Ets) reached = true;
   }
   IntegerMatrix out(m, 2);
   for (int e = 0; e < m; e++) { out(e, 0) = A[e] + 1; out(e, 1) = B[e] + 1; }
+  NumericVector rel(M);
+  for (int k = 0; k < M; k++) rel[k] = sv[k] / s0[k] - 1;
   return List::create(_["edges"] = out, _["T0"] = T0, _["T"] = T, _["accepted"] = (double)acc,
-                      _["proposals"] = props, _["age_rel_change"] = sa / sa0 - 1, _["educ_rel_change"] = se / se0 - 1,
+                      _["proposals"] = props, _["num_rel_change"] = rel,
                       _["E0_rel"] = E0 / Ets, _["E_rel"] = E / Ets, _["reached"] = reached);
 }
