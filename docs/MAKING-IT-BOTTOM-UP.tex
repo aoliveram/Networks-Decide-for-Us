@@ -3,10 +3,11 @@
 % Internal design note.
 % Companion scripts: scripts/02_network_calibrated.R (networks), 05_unified_engine.{cpp,R}
 %   (Rcpp engine), 05_unified_diffusion_sweep.R (sweep), 06_premium_sensitivity.R,
-%   06b_premium_bootstrap.R, 06c_exposure_axis.R, 06d_closure_contrast.R, 06f_rule_robustness.R,
-%   07, 09 (analysis)
-% (The former minimal-test script was removed 2026-08-31; its tau*
-%  diagnostic now lives in script 10.)
+%   06b_premium_bootstrap.R, 06c_exposure_axis.R, 06d_closure_contrast.R, 06e_consolidation.R,
+%   06f_rule_robustness.R, 06g_GSS14_degree_target.R, 06h_calibration_steps.R, 07, 09 (analysis);
+%   PR #5: 01_survey_data.R, 02_ELSOC_homophily.R, 02_GSS_homophily.R, 03_ELSOC_MUR_calculation.R,
+%   03_GSS14_MUR_calculation.R
+% (The former minimal-test script was removed 2026-08-31; script 10 was removed 2026-11-11.)
 % History: written 2026-08-11 (markdown); Tur's exact functional form
 %   u_t = u_0 (1/a_t)^gamma incorporated 2026-08-13; ported to LaTeX 2026-08-13;
 %   2026-08-31: former Options 2 (kernel) and 3 (percolation) removed to focus
@@ -27,6 +28,15 @@
 %   against the literature; the defense of the additive rule reframed); the gamma form and
 %   complements in shares run as robustness (scripts/06f_rule_robustness.R); verdict table,
 %   recommendation and sec:brockdurlauf updated.
+%   2026-11-11 (PR #5): new section sec:pr5 (ELSOC 2016-2023 and GSS 2014: aversion indices,
+%   ELSOC case-control homophily, networks calibrated by education, held-out validation,
+%   GSS 2014 indices and degree target, sweep and analysis);
+%   the consolidation table of sec:consolidation extended to the new surveys.
+%   2026-11-12 (PR #5, the recipe of 2026-11-11): sec:pr5 rewritten for the new networks of the four
+%   surveys (every categorical dimension by group, survey weights, own GSS 2004 coefficients),
+%   ELSOC homophily from 2017 only, weighted validations, the relaunch of the four surveys and the
+%   decomposition of 06h; sec:pr4 kept as the record of the PR #4 networks; sec:consolidation and the
+%   06f numbers of sec:mechanisms updated.
 % Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
@@ -52,7 +62,7 @@
 
 \title{Making NDFU bottom-up:\\ the unified adoption rule and its two variants}
 \author{NDFU internal design note}
-\date{2026-08-11, updated 2026-11-05 \\[4pt]
+\date{2026-08-11, updated 2026-11-12 \\[4pt]
 \normalsize Status: the unified rule is the engine of 05 (Rcpp since PR \#4, \S\ref{sec:pr4}).\\
 \normalsize Companion scripts: \code{02\_network\_calibrated.R}, \code{05\_unified\_diffusion\_sweep.R},
 \code{06*}, \code{07}, \code{09}}
@@ -782,12 +792,13 @@ adoption in the network minus its DP twin, in pp, with 95\% run-bootstrap interv
 \textbf{Level 2}, $\Gamma\cdot\Acount^{\gamma} \ge q$\\[2pt]
 \input{../output/06f_rule_robustness/table_gamma.tex}
 \end{center}
-\noindent The premium is positive everywhere: 4.6--8.5 pp on the $\lambda(\Gamma)$ paths over
-all four sets and five seedings (lowest lower bound 4.4), and 4.0--8.8 pp under the
-$\gamma$-form (lowest lower bound 3.9; positive in all 24 networks in 118 of 120
-set $\times$ seeding $\times$ $\gamma$ combinations, in 23 in the other two). As with the
-linear rule, a region of the plane favors the DP twin (4--17\% of the cells in GSS $\times2$,
-by $\gamma$) without changing the sign of the average. At low $\gamma$ many agents are immune
+\noindent The premium is positive everywhere: 5.5--10.8 pp on the $\lambda(\Gamma)$ paths over
+all four sets and five seedings (lowest lower bound 5.2), and 4.6--10.3 pp under the
+$\gamma$-form (lowest lower bound 4.3; positive in all 24 networks in all 120
+set $\times$ seeding $\times$ $\gamma$ combinations). As with the
+linear rule, a region of the plane favors the DP twin (2--21\% of the cells in GSS $\times2$,
+by $\gamma$ and seeding) without changing the sign of the average. (Numbers on the networks of
+2026-11-11, \S\ref{sec:pr5recipe}; with the networks of PR \#4 they were 4.6--8.5 and 4.0--8.8 pp.) At low $\gamma$ many agents are immune
 (29\% at $\gamma = 0.2$, 1\% at $\gamma = 1$), and immunity depends on degree
 (\S\ref{sec:immunity}). Not yet run: boxes 2 or 4 crossed with $\theta$ or $\kappa$.
 
@@ -854,7 +865,7 @@ Exposure tradition & \checkmark\ Valente/Granovetter fractional; \code{netdiffus
 Preferences-fixed framing & \checkmark\ clean (``situational utility rises''; Brock--Durlauf) & defensible, but against the grain of the very citation it borrows (\S\ref{sec:preferences}) \\
 Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$): conformity, safety, pure coordination (box 1) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$), unbounded; no mechanism yields it, not even learning (box 4, \S\ref{sec:mechanisms}) \\
 Immunity & $q_i > \Gamma + \lambda$, degree-independent (\S\ref{sec:immunity}) & $q_i > \Gamma k_i^{\gamma}$, \textbf{degree-dependent} (averse $+$ poorly connected) --- arguably more realistic \\
-Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & \textbf{run as robustness} (\code{06f}): premium 4.0--8.8 pp, positive everywhere (\S\ref{sec:mechanisms}) \\
+Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & \textbf{run as robustness} (\code{06f}): premium 4.6--10.8 pp, positive everywhere (\S\ref{sec:mechanisms}) \\
 Hub behavior & bounded ($\Ee \le 1$) & at high $\gamma$, a saturated hub receives reinforcement $\sim k^{\gamma}$ --- may over-fire on dense networks \\
 \bottomrule
 \end{tabularx}
@@ -1219,6 +1230,17 @@ The same recipe builds networks for the GSS 2004 sample (collective action) and 
 ATP 2014 sample (new products). ATP has no ego networks, so its networks use the GSS 2004
 targets, as the ERGM of 02 used the GSS-based coefficients of Smith et al.\ (2014).
 
+\paragraph{Status (2026-11-12): the record of PR \#4.} On 2026-11-11 the recipe of the networks
+changed for every survey (\S\ref{sec:pr5recipe}: every categorical dimension of the confidants
+calibrated by group, survey weights, own GSS 2004 coefficients) and GSS and ATP were run again
+with the four-survey relaunch (\S\ref{sec:pr5results}). This section keeps the numbers of the PR \#4
+networks (race by group, Smith et al.'s coefficients, no weights; in git history up to commit
+\code{fc3da84}) as the record of that step; the figures in \code{plots/} are now those of the new
+networks. Exceptions, updated to the new networks: the consolidation table
+(\S\ref{sec:consolidation}) and the rule robustness of \S\ref{sec:mechanisms}. The new recipe moves
+the GSS premium from 6.60 to 7.07 pp and the ATP premium from 6.80 to 8.05 pp; nothing qualitative
+changes.
+
 % ----------------------------------------------------------------------------
 \subsection{Networks: calibrated by race, then twice the triangles of every node}
 \label{sec:networks}
@@ -1582,39 +1604,66 @@ for the deeper corner is the frozen gate (not isolated here): a tie that is clos
 averse, homophily keeps the resistant among the resistant (the mechanism of
 \S\ref{sec:premiumresult}).
 
-\paragraph{Why the corner is a GSS feature: consolidation} \label{sec:consolidation}
-(\code{scripts/06e\_consolidation.R}; x2, base exposure, random seeding, the seeds of 05).
-In GSS, aversion is tied to the Blau attributes: age, sex, education, race and religion explain
-19\% of the variance of $q$, and $q$ is assortative over ties (0.076). In ATP they explain 2.7\%
-(assortativity 0.022; $q$ also has only 7 values, 10\% of nodes at $q = 1$). Two manipulations
-separate association from distribution: permuting $q$ across nodes (same distribution, no
-association) and mapping $q$ by rank onto the other survey's distribution (same association):
+\paragraph{Where the corner comes from: consolidation} \label{sec:consolidation}
+(\code{scripts/06e\_consolidation.R}; x2, base exposure, random seeding, the seeds of 05; updated
+2026-11-12 to the networks of \S\ref{sec:pr5recipe}). In GSS, aversion is tied to the Blau attributes:
+age, sex, education, race and religion explain 18\% of the variance of $q$ over the nodes of the
+networks, and $q$ is assortative over ties (0.081). In ATP they explain 2.8\% (assortativity 0.028;
+$q$ also has only 7 values, 9\% of nodes at $q = 1$). Two manipulations separate association from
+distribution: permuting $q$ across nodes (same distribution, no association) and mapping $q$ by
+rank onto another survey's distribution (same association):
 
 \begin{center}
-\small
-\begin{tabular}{@{}llccc@{}}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccllll@{}}
 \toprule
- & & \multicolumn{3}{c}{robust corner cells (DP ahead $> 2$ pp, $z > 3.5$)} \\
-survey & $q$ & $\lambda = 0.5$ & $0.6$ & $0.7$ \\
+ & & & & \multicolumn{3}{c}{robust corner cells (DP ahead $> 2$ pp, $z > 3.5$)} \\
+survey & $R^2$ of $q$ & $q$ assort. & $q$ & $\lambda = 0.5$ & $0.6$ & $0.7$ \\
 \midrule
-GSS & real & 33 & 26 & 10 \\
-GSS & permuted & 0 & 0 & 0 \\
-GSS & ATP distribution, same ranks & 18 & 35 & 27 \\
-ATP & real & 0 & 0 & 0 \\
-ATP & GSS distribution, same ranks & 11 & 0 & 0 \\
+GSS 2004 & 0.175 & 0.081 & real & 30 & 30 & 15 \\
+ & & & permuted & 0 & 0 & 0 \\
+ & & & ATP distribution & 22 (30) & 35 & 31 \\
+ & & & both & 0 (7) & 0 (7) & 0 (6) \\
+\midrule
+GSS 2014 & 0.232 & 0.104 & real & 35 (46) & 43 & 31 \\
+ & & & permuted & 5 & 0 & 0 \\
+ & & & ATP distribution & 15 (34) & 34 & 36 \\
+ & & & both & 0 & 0 (6) & 0 \\
+\midrule
+ELSOC 2018 & 0.243 & 0.158 & real & 0 (23) & 0 (18) & 11 (13) \\
+ & & & permuted & 0 & 0 & 0 \\
+ & & & GSS 2004 distribution & 20 & 11 & 0 \\
+ & & & both & 0 & 0 & 0 \\
+\midrule
+ATP 2014 & 0.028 & 0.028 & real & 7 & 7 & 0 \\
+ & & & permuted & 0 & 4 (10) & 0 \\
+ & & & GSS 2004 distribution & 13 & 13 & 0 \\
+ & & & both & 5 & 6 & 0 \\
 \bottomrule
 \end{tabular}
 \end{center}
+\noindent Cells of the GSS 2004 corner ($h \ge 0.6$, $\Gamma$ 0.275--0.45); in parentheses, when it
+differs, the count over the whole upper half ($h \ge 0.6$, every $\Gamma$), where the ELSOC corner sits
+(DP ahead by up to 27, 33 and 35 pp at $\Gamma$ 0.60, 0.525 and 0.45). $R^2$: Blau attributes of each
+survey (ELSOC: age, sex, education, religion, ideology) over the nodes of the 24 networks, which are
+now drawn with the survey weights; assortativity of $q$ over the ties of x2. GSS 2014 and ATP are mapped
+by rank onto each other's distribution (same ranks), ELSOC onto GSS 2004's; ``both'' = permuted and
+mapped. GSS 2014 and ELSOC: PR \#5 (\S\ref{sec:pr5results}).
 
-\noindent Permuting $q$ removes the GSS corner; changing its distribution does not. The corner is
-a consolidation effect: when aversion is socially patterned, homophily seats the averse among the
-averse, and where the gate is open and $\lambda$ low nobody reaches them; the DP twin mixes them
-with adopters. In ATP aversion is barely patterned, so there is no trap. The premium itself
-survives permuting $q$ (GSS 5.2, 6.2, 6.9 pp at $\lambda = 0.5, 0.7, 1.0$, against 5.0, 6.4, 8.1
-with the real $q$; ATP 5.2, 6.2, 7.4 against 5.5, 6.5, 8.1): it comes from homophily through the
-gate, and consolidation only shifts it (down at low $\lambda$, up at high $\lambda$). The same
-three checks (association, corner $2 \times 2$, premium with permuted $q$) are to be run on every
-new survey (ELSOC, GSS 2014).
+\noindent Permuting $q$ removes the corner in every survey; changing its distribution does not. The
+corner is a consolidation effect: when aversion is socially patterned, homophily seats the averse among
+the averse, and where the gate is open and $\lambda$ low nobody reaches them; the DP twin mixes them with
+adopters. The three surveys with patterned aversion ($R^2$ 0.18--0.24) have deep robust corners (DP
+ahead by up to 12 pp in GSS 2004, 17 in GSS 2014, 35 in ELSOC); ATP, where aversion is barely patterned,
+has only a shallow one (up to 3.7--6.9 pp, 7 cells; with the PR \#4 networks it had none), which
+permuting $q$ also removes at $\lambda = 0.5$. The distribution decides \emph{where} the corner sits: ELSOC's
+more averse population is reached only at higher $\Gamma$; mapped onto the GSS 2004 distribution, its corner
+moves to $\Gamma \approx 0.30$--$0.35$, where the GSS corner is. The premium itself survives permuting $q$
+(GSS 5.6, 6.7, 7.7 pp at $\lambda = 0.5, 0.7, 1.0$, against 5.4, 6.8, 8.5 with the real $q$; ATP 6.2, 7.6,
+9.3 against 6.4, 7.7, 9.7; GSS 2014 5.9, 7.2, 8.3 against 5.6, 6.9, 8.9; ELSOC 5.5, 6.7, 8.1 against 5.4,
+6.6, 8.7): it comes from homophily through the gate, and consolidation only shifts it (down at low
+$\lambda$, up at high $\lambda$).
 
 \paragraph{What breaking the network destroys} (\code{07\_structural\_diagnosis.R}; means over
 24 networks, GSS; ATP within a few percent). From x2 to x1 only closure changes: global and
@@ -1653,6 +1702,501 @@ depends on the surface basis (\S\ref{sec:premiumresult}).
   \item The level of closure is a choice: x2 sits inside the GSS 2004 band only if
     confidants are the most embedded contacts.
 \end{itemize}
+
+% ============================================================================
+\section{PR \#5: two new surveys and the recipe of 2026-11-11}
+\label{sec:pr5}
+
+Branch \code{new-surveys} (PR \#5, stacked on PR \#3) adds two cases of the model and changes how the
+networks of all four surveys are built. The engine, the rule, the frozen gate, the base exposure plus
+the exposure axis, the grid, the $\lambda$ range, the seeding strategies and the seed budget are those
+of PR \#4 (\S\ref{sec:pr4}).
+\begin{itemize}
+  \item \textbf{ELSOC} (COES, Chile, annual panel 2016--2023): ego networks \emph{and} collective
+    action in the same respondents. Its own homophily (up to five confidants per ego, from the 2017
+    wave, the last before the outburst of October 2019) and its own Blau space: no race, with ideology.
+  \item \textbf{GSS 2014}: collective action only (8 of the 9 ISSP items of 2004). It replicates the
+    GSS index ten years later in the same Blau space; homophily comes from GSS 2004, as for ATP.
+  \item \textbf{The recipe of 2026-11-11} (\S\ref{sec:pr5recipe}), for all four surveys: every
+    categorical dimension of the confidant data calibrated by group (Smith 2012), survey weights from
+    the start (node draws and targets), and own weighted GSS 2004 coefficients for the common terms
+    instead of Smith et al.\ (2014).
+\end{itemize}
+Recodes, weights and the configuration of each survey (a list called \code{SURVEY\_CONFIG}) are
+in \code{01\_survey\_data.R}. The four surveys were run again on 11 and 12 November 2026
+(\S\ref{sec:pr5results}); the numbers of \S\ref{sec:pr4} are the record of the PR \#4 networks.
+
+% ----------------------------------------------------------------------------
+\subsection{ELSOC: aversion}
+\label{sec:pr5q}
+
+Two candidate blocks ask about the same four acts (sign a petition, attend a march, take part in a
+strike, give opinions on social media): \emph{willingness} \code{c09} (1 not at all willing \dots\ 5
+totally willing; 2016, 2018, 2022) and \emph{frequency} \code{c08} (1 never \dots\ 5 very often; every
+wave but 2021; the cacerolazo from 2019):
+
+\begin{center}
+\small
+\begin{tabular}{@{}llrcccc@{}}
+\toprule
+index & wave & $n$ & $\alpha$ & item--rest $r$ & mean $q$ & share at $q = 1$ \\
+\midrule
+willingness \code{c09} & 2016 & 2{,}843 & 0.804 & 0.57--0.68 & 0.727 & 25\% \\
+ & \textbf{2018} & \textbf{3{,}694} & \textbf{0.828} & 0.63--0.70 & \textbf{0.757} & \textbf{31\%} \\
+ & 2022 & 2{,}318 & 0.812 & 0.58--0.70 & 0.782 & 35\% \\
+frequency \code{c08} (4 acts) & 2017 & 2{,}473 & 0.679 & 0.44--0.57 & 0.905 & 57\% \\
+ & 2019 & 3{,}411 & 0.700 & 0.45--0.59 & 0.873 & 49\% \\
+ & 2022 & 2{,}726 & 0.629 & 0.42--0.54 & 0.924 & 62\% \\
+frequency \code{c08} (+ cacerolazo) & 2019 & 3{,}410 & 0.784 & 0.46--0.70 & 0.864 & 45\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{Decision} (with the user, 2026-11-11): $q = 1 - p$ with
+$p = (\sum_k c09_k - 4)/16$, from the \textbf{2018} wave. Willingness measures aversion directly,
+as the ``would never do it'' of the ISSP items of GSS 2004, and is reliable ($\alpha$ 0.80--0.83,
+as GSS 2004's 0.82); frequency is participation history, less reliable, with half of the
+respondents at ``never'' on every act. The two correlate 0.65--0.67 in the same wave; willingness
+is moderately stable over the panel (0.46 from 2016 to 2018, 0.50 from 2018 to 2022). The 2018
+questionnaire asks ``¿en qué medida estaría usted dispuesto a participar\ldots'' and names a ``marcha o
+manifestación política'' (the label in the data file says ``peaceful''). 2018 is the largest wave
+(original and refresh samples). Nodes and their attributes come from 2018, homophily from the
+confidants of 2017 (82\% of the 2017 network respondents have a 2018 record). The node pool:
+3{,}600 respondents with \code{c09} and the five Blau attributes, drawn with the 2018 weight
+\code{ponderador02} (Kish effective $n$ 1{,}625); mean $q$ 0.755 (weighted 0.731; GSS 2004 0.578,
+weighted 0.573), 17 values, 31\% at $q = 1$ (28\% weighted: ``not at all willing'' on all four acts).
+Aversion is socially patterned: age, sex, education, religion and ideology explain 24\% of its variance
+(GSS 2004: 18\%); education ($-0.018$ per year), age ($+0.003$ per year), ideology (the left less averse)
+and religion (atheists and agnostics the least averse) carry it. Most of the mass at $q = 1$ comes from the
+format of the block (willingness only, a floor at ``not at all willing'', four items): scored like the GSS
+items on three comparable acts, the ELSOC mean equals GSS 2004's (0.59 vs.\ 0.60; the note
+\code{accion\_colectiva\_en\_los\_datos.pdf} in \code{playground/PR5-new-surveys/}).
+(\code{scripts/03\_ELSOC\_MUR\_calculation.R}.)
+
+% ----------------------------------------------------------------------------
+\subsection{Homophily among confidants: ELSOC 2017 and GSS 2004, weighted}
+\label{sec:pr5homophily}
+
+\paragraph{ELSOC data.} The 2017 wave only (decided with the user: the last wave before the outburst of
+October 2019; the 2017--2019 shift in ideological homophily is left for a separate paper). 2{,}472
+respondents named one to five confidants (8{,}066; 3.3 on average) with the confidant's sex, age,
+education (5 levels), religion (5), perceived ideology and relation; there are no alter--alter ties.
+Every statistic is weighted by the ego's \code{ponderador02}, the weight the ELSOC manual recommends
+(selection, non-response, regional population and sex; Kish effective $n$ 1{,}011). Education and
+religion of the egos (10 and 9 categories) are mapped to the confidants' categories. \textbf{Ideology}:
+the ego places themself on 0--10 (plus independent and none); the confidant's ideology is perceived
+(right, centre-right, centre, centre-left, left, none). Three groups (decided with the user): Left (ego
+0--3; confidant left or centre-left), Right (7--10; right or centre-right) and Neither (4--6,
+independent or none; confidant centre or none). ``Neither'' is not a centre: only 5\% of confidants
+are perceived as ``centre'', so a separate centre group would create false heterophily. With this cut
+the weighted marginals of egos and confidants agree (Left 18\% vs.\ 19\%, Neither 66\% vs.\ 64\%, Right
+16\% vs.\ 18\%).
+
+\paragraph{Case-control estimates} (\code{scripts/02\_ELSOC\_homophily.R}, \code{02\_GSS\_homophily.R};
+the design of Smith et al.\ 2014: cases are ego--confidant pairs weighted by the ego's weight, controls
+20 random respondents per ego drawn with probability proportional to their weight; bootstrap of
+respondents that rebuilds cases and controls, $B = 1000$; education difference in years). Log-odds of a
+tie, against Smith et al.'s 2004 effects (their Table 3, models 2 and 4):
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{all confidants} & \multicolumn{3}{c}{non-kin confidants} \\
+ & ELSOC 2017 & GSS 2004 & Smith 2004 & ELSOC 2017 & GSS 2004 & Smith 2004 \\
+\midrule
+same race & -- & \ci{1.887}{1.630}{2.108} & 1.695 & -- & \ci{1.461}{1.187}{1.751} & -- \\
+same religion & \ci{0.990}{0.876}{1.116} & \ci{1.498}{1.368}{1.661} & 1.485 & \ci{0.658}{0.458}{0.820} & \ci{0.942}{0.761}{1.175} & 1.057 \\
+same sex & \ci{0.467}{0.393}{0.565} & \ci{0.267}{0.175}{0.362} & 0.229 & \ci{1.459}{1.315}{1.675} & \ci{1.060}{0.875}{1.269} & 1.066 \\
+same ideology & \ci{0.528}{0.381}{0.691} & -- & -- & \ci{0.408}{0.215}{0.602} & -- & -- \\
+age difference (year) & \ci{-0.030}{-0.035}{-0.024} & \ci{-0.052}{-0.058}{-0.045} & $-0.052$ & \ci{-0.089}{-0.099}{-0.078} & \ci{-0.126}{-0.139}{-0.111} & $-0.126$ \\
+education difference (year) & \ci{-0.195}{-0.211}{-0.170} & \ci{-0.187}{-0.220}{-0.155} & $-0.201$ & \ci{-0.278}{-0.317}{-0.239} & \ci{-0.233}{-0.285}{-0.182} & $-0.225$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent GSS 2004: 1{,}411 egos (Kish effective $n$ 1{,}060), 2{,}513 cases. Our GSS estimates land on
+Smith et al.'s (unweighted: race 1.92, religion 1.42, sex 0.31, age $-0.052$, education $-0.194$; weights
+change little). Against the United States in 2004, Chilean confidants sort more on sex, less on religion
+and less on age (more confidants across generations); education sorts about as much. In the networks only
+age and education keep a common coefficient (ELSOC $-0.030$ and $-0.195$; GSS family $-0.052$ and
+$-0.187$), plus the same-race term for ``Other'' race; the other dimensions are calibrated by group.
+
+\paragraph{ELSOC by group of ego} (2017, weighted; 95\% intervals over respondents; ratio = same-group
+share over the group's share among egos):
+
+\begin{center}
+\small
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+ & group & relative degree & same-group share & share of egos & ratio \\
+\midrule
+education & Primary (basic or less) & \ci{0.912}{0.861}{0.961} & \ci{0.333}{0.294}{0.372} & 0.178 & 1.86 \\
+ & Secondary, incomplete & \ci{0.900}{0.845}{0.971} & \ci{0.170}{0.130}{0.210} & 0.121 & 1.41 \\
+ & Secondary & \ci{0.978}{0.932}{1.020} & \ci{0.475}{0.435}{0.517} & 0.257 & 1.85 \\
+ & Technical & \ci{1.015}{0.965}{1.063} & \ci{0.313}{0.269}{0.362} & 0.193 & 1.62 \\
+ & University & \ci{1.122}{1.069}{1.165} & \ci{0.624}{0.581}{0.667} & 0.251 & 2.49 \\
+\midrule
+ideology & Left & \ci{1.112}{1.054}{1.168} & \ci{0.455}{0.385}{0.519} & 0.181 & 2.51 \\
+ & Neither & \ci{0.964}{0.942}{0.983} & \ci{0.752}{0.720}{0.785} & 0.663 & 1.14 \\
+ & Right & \ci{1.024}{0.964}{1.089} & \ci{0.445}{0.385}{0.506} & 0.156 & 2.85 \\
+\midrule
+religion & Catholic & \ci{0.980}{0.954}{1.003} & \ci{0.789}{0.762}{0.814} & 0.529 & 1.49 \\
+ & Evangelical & \ci{0.980}{0.931}{1.030} & \ci{0.544}{0.496}{0.602} & 0.189 & 2.88 \\
+ & None & \ci{0.991}{0.941}{1.040} & \ci{0.313}{0.269}{0.358} & 0.194 & 1.61 \\
+ & Atheist or agnostic & \ci{1.214}{1.106}{1.303} & \ci{0.274}{0.185}{0.372} & 0.058 & 4.68 \\
+ & Other & \ci{1.138}{0.967}{1.292} & \ci{0.500}{0.355}{0.666} & 0.029 & 17.5 \\
+\midrule
+sex & Male & \ci{0.980}{0.951}{1.005} & \ci{0.586}{0.559}{0.618} & 0.495 & 1.18 \\
+ & Female & \ci{1.020}{0.996}{1.048} & \ci{0.681}{0.660}{0.703} & 0.505 & 1.35 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Homophily differs strongly by group on every axis, as it does by race in the GSS: university
+graduates, the left and the right, evangelicals and the small religious groups sort far above their
+share; ``Neither'' barely above it. In log-odds on top of the other terms: same ideology 1.51 (left), 0.32
+(neither) and 1.35 (right); same education beyond the distance term from 0.04 (primary) to 0.80
+(university).
+
+% ----------------------------------------------------------------------------
+\subsection{The recipe of 2026-11-11: every categorical dimension by group, with weights}
+\label{sec:pr5recipe}
+
+\paragraph{Why.} Until 2026-11-11 the GSS-family networks calibrated race by group, took the other terms
+from Smith et al.\ (2014) as single coefficients and used no weights; the first ELSOC networks calibrated
+education only. Single coefficients leave misfits wherever homophily differs by group (\code{02c}: same
+religion $-20\%$ for GSS Catholics and $-82\%$ for Jews; ELSOC evangelicals $-34\%$, same ideology $-10\%$).
+Smith (2012), whose method this is, includes a homophily term for every categorical dimension of the
+ego-network data (\code{nodemix}) and absolute differences for the continuous ones. And the surveys come
+with weights: \code{ponderador02} (ELSOC; the manual recommends it), \code{WTSSNR} (GSS 2004 and 2014),
+\code{weight\_ATP} (ATP).
+
+\paragraph{The model} (\code{scripts/02\_network\_calibrated.R}). For dimensions $d = 1, \dots, D$ with
+groups $g_d(i)$,
+\begin{equation*}
+  \operatorname{logit} p_{ij} = \sum_{d=1}^{D} \Big( \delta^{d}_{g_d(i)} + \delta^{d}_{g_d(j)}
+  + \gamma^{d}_{g}\,\mathbf{1}[g_d(i) = g_d(j) = g] \Big)
+  + \beta_{\text{age}}\, |a_i - a_j| + \beta_{\text{educ}}\, |y_i - y_j| ,
+\end{equation*}
+with the activities $\delta^d$ (the first dimension carries the constant; the others drop their first
+level) and the homophilies $\gamma^d$ solved jointly by damped Newton over the cells (combinations of
+levels), so that every group's expected degree sum and within-group ties equal its weighted targets for the
+network's own nodes (mean degree 30 times the group's relative number of confidants; the group's
+same-group share). This is the maximum likelihood estimate of the dyad-independent model with
+\code{nodefactor} and \code{nodematch(diff = TRUE)} on every dimension.
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}ll>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{3.2cm}l@{}}
+\toprule
+nodes & targets & calibrated by group & common terms & weight \\
+\midrule
+GSS 2004 & GSS 2004 confidants & race (4), religion (5), sex (pooled) & age, education; same race (``Other'') & \code{WTSSNR} \\
+ATP 2014 & GSS 2004 confidants & the same & the same & \code{weight\_ATP} \\
+GSS 2014 & GSS 2004 confidants & the same & the same & \code{WTSSNR} \\
+ELSOC 2018 & ELSOC 2017 confidants & education (5), ideology (3), religion (5), sex (pooled) & age, education & \code{ponderador02} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Three exceptions:
+\begin{itemize}
+  \item \textbf{Sex}: activity by sex and \emph{one} pooled homophily term. With two groups the degrees
+    and both same-sex shares cannot hold at once in an undirected network, because confidant reports
+    are directed and do not balance: in ELSOC 41\% of men's confidants are women, but only 32\% of
+    women's are men, and the two counts of cross-sex ties disagree. Fitting both shares pushed men's
+    degree 13\% below its target. The pooled term fits the overall share exactly; by sex the networks
+    are off by $-6\%$ (men) and $+4\%$ (women) in GSS 2004 and by $+7\%$ and $-6\%$ in ELSOC.
+  \item \textbf{ELSOC ``Neither''} has activity but no homophily term: the targets imply almost no
+    left--right ties, which leaves a flat direction (Newton diverged on the validation halves). Its
+    same share is fitted to $-0.3\%$ anyway.
+  \item \textbf{Small groups}: the density within a group is capped at 90\%; with 1{,}000 nodes a group
+    of 25 cannot keep 77\% of 30 contacts inside. Capped: Jews (GSS 2004: 0.63 against 0.76; ATP and
+    GSS 2014, with fewer Jewish nodes, 0.32 and 0.41), Asians in GSS 2014, ELSOC ``other religion''
+    (0.46 against 0.50). ``Other'' race (18 GSS respondents) stays uncalibrated, with the common
+    same-race term.
+\end{itemize}
+Newton converges in 9--16 iterations to a relative gap below $10^{-6}$, and every other calibrated group
+hits its targets (\code{scripts/02c\_network\_calibrated\_tests.R}). Node draws use probabilities
+proportional to the weight (Kish effective $n$ of the pools: GSS 2004 1{,}068 of 1{,}422, ATP 1{,}041 of
+1{,}723, GSS 2014 830 of 1{,}080, ELSOC 1{,}625 of 3{,}600); targets are weighted means. x2 rewires toward
+twice the triangles of every node keeping \emph{every} categorical mixing matrix exact and the age and
+education differences within 1\% (per-node error 1--5\%). Options \code{--dims=} and \code{--weights=0}
+build the intermediate steps of \S\ref{sec:pr5results}.
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{GSS 2004} & \multicolumn{2}{c}{ATP 2014} & \multicolumn{2}{c}{GSS 2014} & \multicolumn{2}{c}{ELSOC 2018} \\
+ & x1 & x2 & x1 & x2 & x1 & x2 & x1 & x2 \\
+\midrule
+transitivity & 0.094 & 0.185 & 0.100 & 0.199 & 0.095 & 0.187 & 0.061 & 0.121 \\
+local clustering, low degree tercile & 0.099 & 0.188 & 0.113 & 0.215 & 0.108 & 0.204 & 0.049 & 0.096 \\
+local clustering, high degree tercile & 0.091 & 0.181 & 0.092 & 0.184 & 0.089 & 0.178 & 0.067 & 0.133 \\
+degree assortativity & 0.19 & 0.21 & 0.21 & 0.25 & 0.18 & 0.23 & 0.14 & 0.20 \\
+degree sd (mean maximum) & \multicolumn{2}{c}{9.4 (58)} & \multicolumn{2}{c}{9.5 (59)} & \multicolumn{2}{c}{9.3 (58)} & \multicolumn{2}{c}{7.0 (58)} \\
+same race / education & \multicolumn{2}{c}{0.890} & \multicolumn{2}{c}{0.858} & \multicolumn{2}{c}{0.873} & \multicolumn{2}{c}{0.429} \\
+same religion & \multicolumn{2}{c}{0.699} & \multicolumn{2}{c}{0.636} & \multicolumn{2}{c}{0.667} & \multicolumn{2}{c}{0.571} \\
+same sex & \multicolumn{2}{c}{0.583} & \multicolumn{2}{c}{0.582} & \multicolumn{2}{c}{0.584} & \multicolumn{2}{c}{0.635} \\
+same ideology & \multicolumn{2}{c}{--} & \multicolumn{2}{c}{--} & \multicolumn{2}{c}{0.37} & \multicolumn{2}{c}{0.647} \\
+age difference (years) & 11.6 & 11.7 & 12.0 & 12.1 & 12.0 & 12.1 & 13.2 & 13.4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Means over 24 networks, mean degree 30.0. With more homophily dimensions the x1 networks have
+more triangles (GSS transitivity 0.094 against 0.075 with the PR \#4 recipe), and x2 doubles them. ELSOC
+networks have about 65\% of the GSS clustering, and theirs rises with degree while the GSS's falls. GSS 2014
+sorts on ideology (\code{POLVIEWS}, not in the tie model) only through the Blau attributes (0.37 against 0.34
+by chance).
+
+% ----------------------------------------------------------------------------
+\subsection{Held-out validation}
+\label{sec:pr5validation}
+
+\code{09\_network\_validation.R} (GSS 2004, halves stratified by race) and \code{--survey=ELSOC}
+(2017, halves stratified by education; half-B nodes from their 2018 records), both weighted now:
+half-A targets are weighted means, half-B nodes are drawn with their weights and the half-B confidants
+are weighted. Tables in \code{output/09\_network\_validation/}; the GSS one is also input by the
+validation section of the paper (\code{paper-NDFU/sections/}\allowbreak\code{network\_validation.tex}).
+
+\paragraph{GSS 2004} (711 half-B egos; level x2). Every targeted feature falls inside its interval out of
+sample but two: relative degree and same race in every race (all egos: same race 0.886 vs.\ 0.892
+$[0.866, 0.915]$), same religion in every group but Catholics ($-11\%$), and the overall same-sex share
+($-4\%$; men $-12\%$, the limit of directed reports). Not targeted: age difference $+8\%$ and education
+difference $+12\%$, both outside ($+6\%$ and $+9\%$ with the PR \#4 networks). Closure: 82.1\% of half-B
+confidant pairs know each other and 44.7\% are especially close. With the $k$ most embedded contacts, x2
+gives 64\% (inside that band) and x1 44\%; random $k$ contacts give 8\% and 17\%. Profile (egos with
+$5+$ confidants minus egos with 2--3; observed $-2.8$ $[-9.2, +3.4]$ points): x1 and x2 agree with random
+and with the nearest contacts ($-1.9$ to $-8.7$), but with the embedded rule they now fall more steeply
+($-14$; difference $-11$, outside). x2g is still rejected under all three rules ($+15$ to $+17$), with
+degree assortativity 0.37 (x1 0.23, x2 0.25) and local clustering that rises with degree where x1 and x2
+fall.
+
+\paragraph{ELSOC 2017} (x2). Targeted features fall inside the intervals in most groups. The exceptions:
+relative degree of university graduates ($+8\%$), same education for secondary incomplete ($-29\%$, a
+small group), same ideology for the right ($+23\%$; overall $+0\%$, left $-8\%$, neither $-5\%$) and same
+sex for women ($-6\%$; overall $-1\%$). Every religion is inside (``other'' $-29\%$ with a wide interval).
+Not targeted: age difference $-1\%$, education difference $+4\%$. As in the GSS, random contacts are more
+diverse than confidants and the most embedded ones less diverse. There is no closure test (no
+alter--alter ties).
+
+% ----------------------------------------------------------------------------
+\subsection{GSS 2014}
+\label{sec:pr5gss14}
+
+(\code{scripts/03\_GSS14\_MUR\_calculation.R}.) \textbf{Collective action}: the seven acts and
+\code{ACTLAW}, $p = \sum (4 - x)/24$, asked only in the 2014 cross-section. $\alpha = 0.823$
+($n = 1{,}109$), as the 9 items of 2004 (0.821) and the same 8 items in 2004 (0.810). The
+distribution barely moved: mean $q$ 0.573 against 0.547 for the same 8 items in 2004
+(Kolmogorov--Smirnov $D = 0.065$); 2\% of the nodes at $q = 1$. Node pool: 1{,}080 respondents with
+the items, the five Blau attributes and \code{POLVIEWS}, drawn with \code{WTSSNR} (weighted mean $q$
+0.578); the attributes explain 23\% of $q$ (GSS 2004: 18\%). \textbf{Science attitudes} (\code{NEXTGEN},
+\code{TOOFAST}, \code{ADVFRONT}, \code{SCIBNFTS}): $\alpha = 0.47$ and only 682 respondents also answered
+the action block: not an innovation case; not used for networks. \textbf{\code{POLVIEWS}} (liberal 1--3,
+moderate 4, conservative 5--7): 28/39/33\% of the nodes, mean $q$ 0.49/0.64/0.57. It is not in the tie
+model (GSS 2014 has no ego networks; decided with the user not to add it, as Smith et al.\ leave ideology
+out for lack of alter data), so the ideology circles of the $\theta$ arm are nearly random in GSS 2014.
+\textbf{Networks}: GSS 2004 targets and coefficients with GSS 2014 nodes, as for ATP.
+
+\paragraph{Does the degree target matter?} (\code{scripts/06g\_GSS14\_degree\_target.R}.) \code{PEOCNTCT}
+(contacts on a typical weekday, weighted) gives flatter ratios by race than the GSS 2004 confidants (White
+1.04, Black 0.87, Hispanic 0.95, Asian 0.70; confidants 1.07, 0.77, 0.87, 0.86). GSS 2014 x2 networks rebuilt
+with these ratios (same nodes, seeds and other targets) give the same premium: base exposure, random
+seeding, $\lambda$-mean 7.45 pp $[7.00, 7.85]$ against 7.26 $[6.82, 7.67]$, a paired difference of $+0.19$
+$[-0.19, +0.57]$, within $\pm 0.25$ pp at every $\lambda$. The race activity target is a second-order
+input; the GSS 2004 confidants stay the target.
+
+% ----------------------------------------------------------------------------
+\subsection{Diffusion on the four surveys}
+\label{sec:pr5results}
+
+The runner \code{05\_unified\_diffusion\_sweep\_main.R} with all four surveys (2026-11-11/12, after
+\code{02c} and both validations): four surveys, levels x2 and x1, five seeding strategies, 9 exposure
+conditions (13 for ELSOC and GSS 2014, with the $\theta$ arm on ideology circles), six $\lambda$, the
+$41 \times 25$ grid and 24 networks per set; then 06, 06b ($B = 1000$), 06c, 06d, 06e, 06f (GSS and ATP)
+and 07, and 06g. About 3.5 hours on 8 cores. Run-bootstrap intervals as in \S\ref{sec:pr4results}.
+
+\paragraph{The premium} (x2, base exposure, random seeding, $\lambda$-mean; the rational and social
+channels split the gap; $MSP_c$: the first MSP at which half adopt, averaged over $\Gamma$):
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lcccccccc@{}}
+\toprule
+ & \hd{$\beta_{\text{DP}}$}{te $12 \times 12$} & \hd{odds}{drop}
+  & \hd{gap (pp)}{$\lambda$-mean} & \hd{gap (pp)}{$\lambda = 0.5 \to 1.0$}
+  & \hd{rational /}{social (pp)} & \hd{\% of plane}{gap $> 0.10$} & \hd{$MSP_c$}{net / DP} & \hd{$\Phi$ (\%)}{net / DP} \\
+\midrule
+GSS 2004 & \ci{-1.207}{-1.258}{-1.153} & $-70\%$ & \ci{7.07}{6.74}{7.39} & 5.37 $\to$ 8.54 & 2.28 / 4.80 & \ci{26.1}{24.2}{26.7} & 0.15 / 0.24 & 64.5 / 57.5 \\
+ATP 2014 & \ci{-1.140}{-1.197}{-1.088} & $-68\%$ & \ci{8.05}{7.61}{8.49} & 6.38 $\to$ 9.65 & 2.76 / 5.30 & \ci{26.8}{24.8}{27.4} & 0.21 / 0.31 & 62.3 / 54.3 \\
+GSS 2014 & \ci{-1.116}{-1.167}{-1.059} & $-67\%$ & \ci{7.26}{6.80}{7.66} & 5.64 $\to$ 8.92 & 2.33 / 4.93 & \ci{27.7}{25.4}{28.9} & 0.18 / 0.26 & 64.3 / 57.0 \\
+ELSOC 2018 & \ci{-0.993}{-1.021}{-0.961} & $-63\%$ & \ci{6.95}{6.78}{7.09} & 5.42 $\to$ 8.66 & 2.43 / 4.52 & \ci{23.1}{22.6}{23.8} & 0.26 / 0.37 & 48.7 / 41.8 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent\textbf{The premium replicates in all four surveys}, at every $\lambda$, seeding and level, and no
+interval comes near zero (6.0 to 9.3 pp over the 40 survey $\times$ level $\times$ seeding combinations, $\lambda$-mean). It
+grows with $\lambda$; the rational channel is flat in $\lambda$ and the social channel carries the growth;
+DP needs about 0.1 more openness to tip in every survey. ELSOC adopts less overall (mean $q$ 0.73) and its
+band covers less of the plane, but the premium is the same size: 6.95 pp against 7.07 in GSS 2004. With
+the PR \#4 recipe it was 6.60 (GSS) and 6.80 (ATP), and 6.02 (ELSOC) with the first ELSOC networks.
+
+\paragraph{What each change of the recipe does} (\code{scripts/06h\_calibration\_steps.R}; x2 networks of
+every step, base exposure, random seeding, $\lambda$-mean; differences paired by run):
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+ & step & premium (pp) & change (pp) \\
+\midrule
+GSS 2004 & PR \#4: race by group, Smith et al.\ coefficients, no weights & \ci{6.60}{6.43}{6.77} & \\
+ & own GSS 2004 coefficients & \ci{6.41}{6.12}{6.69} & \ci{-0.19}{-0.45}{0.04} \\
+ & + weights & \ci{6.74}{6.42}{7.06} & \ci{+0.33}{-0.17}{0.84} \\
+ & + religion and sex by group (main) & \ci{7.07}{6.72}{7.39} & \ci{+0.33}{-0.02}{0.70} \\
+\midrule
+ATP 2014 & PR \#4 & \ci{6.80}{6.36}{7.18} & \\
+ & own GSS 2004 coefficients & \ci{6.80}{6.25}{7.24} & \ci{0.00}{-0.23}{0.24} \\
+ & + weights & \ci{8.10}{7.78}{8.37} & \ci{+1.31}{0.89}{1.81} \\
+ & + religion and sex by group (main) & \ci{8.05}{7.63}{8.48} & \ci{-0.05}{-0.46}{0.34} \\
+\midrule
+GSS 2014 & race by group, Smith et al.\ coefficients, weighted & \ci{7.22}{6.96}{7.48} & \\
+ & own coefficients, religion and sex by group (main) & \ci{7.26}{6.80}{7.69} & \ci{+0.04}{-0.36}{0.42} \\
+\midrule
+ELSOC & education and ideology by group, weighted & \ci{6.52}{6.38}{6.66} & \\
+ & + religion by group & \ci{6.78}{6.61}{6.95} & \ci{+0.26}{0.11}{0.41} \\
+ & + sex (main) & \ci{6.95}{6.78}{7.10} & \ci{+0.16}{0.02}{0.31} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Every step moves the premium by less than half a point, except the weights in ATP ($+1.3$ pp); GSS 2014,
+already weighted, does not move.
+The ATP panel over-represents white and educated respondents: weighted, the nodes are 65\% white instead
+of 77\% (Hispanic 14\% instead of 8\%, Black 12\% instead of 8\%), less educated (14.2 against 15.2 years)
+and younger. A more diverse population gives homophily more to sort, so the DP twin destroys more; in the
+GSS the sample is closer to the population and the weights move the premium by $+0.3$. The PR \#4 networks run
+through the current pipeline give exactly their PR \#4 premium (GSS 6.60), so the changes come from the
+networks alone.
+
+\paragraph{Seeding strategies} ($\lambda$-mean, pp):
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+strategy & GSS 2004 & ATP 2014 & GSS 2014 & ELSOC 2018 \\
+\midrule
+central & \ci{7.23}{7.05}{7.41} & \ci{7.87}{7.64}{8.10} & \ci{7.30}{7.05}{7.57} & \ci{6.32}{6.18}{6.47} \\
+closeness & \ci{7.71}{7.52}{7.94} & \ci{8.53}{8.32}{8.76} & \ci{8.06}{7.86}{8.26} & \ci{7.18}{7.07}{7.28} \\
+eigen & \ci{6.70}{6.35}{7.04} & \ci{7.79}{7.55}{8.00} & \ci{7.22}{7.04}{7.43} & \ci{6.02}{5.85}{6.19} \\
+random & \ci{7.07}{6.74}{7.39} & \ci{8.05}{7.61}{8.49} & \ci{7.26}{6.80}{7.66} & \ci{6.95}{6.78}{7.09} \\
+marginal & \ci{7.42}{7.16}{7.69} & \ci{8.42}{8.11}{8.71} & \ci{7.24}{6.76}{7.69} & \ci{6.99}{6.84}{7.13} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The strategy stays second order but matters a little more than in PR \#4. Closeness has the
+largest premium everywhere (closeness $-$ random $+0.2$ to $+0.8$ pp, every interval above zero) and eigen
+the smallest (closeness $-$ eigen $+0.7$ to $+1.2$ pp). Central $-$ random is null in the GSS family
+($-0.2$ to $+0.2$) and negative in ELSOC ($-0.63$ $[-0.81, -0.43]$, with eigen $-$ random $-0.93$; why is open).
+
+\paragraph{What closure does: x2 vs.\ x1} (\code{06d}; the same DP twin; $\lambda$-mean, pp; last column
+the selective half, $h \le 0.5$):
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+ & strategy & premium x2 & premium x1 & x2 $-$ x1 & relative & x2 $-$ x1, $h \le 0.5$ \\
+\midrule
+GSS & random & \ci{7.07}{6.71}{7.40} & \ci{7.85}{7.57}{8.12} & \ci{-0.77}{-1.08}{-0.44} & $-9.9\%$ & \ci{-1.11}{-1.65}{-0.56} \\
+GSS & eigen & \ci{6.70}{6.35}{7.05} & \ci{7.98}{7.74}{8.22} & \ci{-1.28}{-1.58}{-0.97} & $-16.0\%$ & \ci{-1.75}{-2.25}{-1.27} \\
+GSS & marginal & \ci{7.42}{7.14}{7.70} & \ci{7.81}{7.58}{8.04} & \ci{-0.39}{-0.64}{-0.16} & $-5.0\%$ & \ci{-0.62}{-1.12}{-0.18} \\
+ATP & random & \ci{8.05}{7.59}{8.43} & \ci{8.70}{8.30}{9.06} & \ci{-0.65}{-0.94}{-0.37} & $-7.5\%$ & \ci{-0.96}{-1.47}{-0.45} \\
+ATP & central & \ci{7.87}{7.64}{8.11} & \ci{9.24}{9.03}{9.43} & \ci{-1.37}{-1.60}{-1.12} & $-14.8\%$ & \ci{-2.31}{-2.71}{-1.86} \\
+ATP & marginal & \ci{8.42}{8.10}{8.72} & \ci{8.94}{8.72}{9.18} & \ci{-0.52}{-0.76}{-0.29} & $-5.8\%$ & \ci{-0.63}{-1.08}{-0.23} \\
+GSS14 & random & \ci{7.26}{6.81}{7.71} & \ci{8.15}{7.76}{8.50} & \ci{-0.89}{-1.22}{-0.60} & $-10.9\%$ & \ci{-1.47}{-2.08}{-0.92} \\
+GSS14 & eigen & \ci{7.22}{7.03}{7.42} & \ci{8.29}{8.11}{8.48} & \ci{-1.07}{-1.30}{-0.84} & $-12.9\%$ & \ci{-1.71}{-2.15}{-1.32} \\
+GSS14 & closeness & \ci{8.06}{7.85}{8.27} & \ci{8.62}{8.42}{8.83} & \ci{-0.56}{-0.79}{-0.33} & $-6.5\%$ & \ci{-0.79}{-1.20}{-0.38} \\
+ELSOC & random & \ci{6.95}{6.79}{7.09} & \ci{7.21}{7.08}{7.35} & \ci{-0.27}{-0.38}{-0.15} & $-3.7\%$ & \ci{-0.35}{-0.54}{-0.17} \\
+ELSOC & eigen & \ci{6.02}{5.86}{6.19} & \ci{6.60}{6.43}{6.76} & \ci{-0.58}{-0.79}{-0.38} & $-8.8\%$ & \ci{-0.80}{-1.15}{-0.46} \\
+ELSOC & closeness & \ci{7.18}{7.07}{7.29} & \ci{7.21}{7.02}{7.38} & \ci{-0.03}{-0.20}{0.16} & $-0.4\%$ & \ci{0.01}{-0.22}{0.27} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Random seeding plus the strategies with the largest and smallest effect in each survey (all
+twenty rows in \code{output/06d\_closure\_contrast/}). \textbf{Closure lowers the premium, never raises it}:
+by 5--16\% in GSS 2004, 6--15\% in ATP, 6--13\% in GSS 2014 and 0--9\% in ELSOC (closeness the only interval
+that includes zero), 1.5 times more in the selective half. ELSOC's x1 networks have less closure to begin
+with (transitivity 0.061 against 0.094), so doubling it adds fewer triangles inside homophilous groups.
+The premium goes with homophily, not with closure. The $\times 3$ sensitivity of \S\ref{sec:pr4results} was
+not rerun with the new recipe.
+
+\paragraph{The exposure axis} (\code{06c}; every seeding and $\lambda$). \textbf{The premium never changes
+sign}: 1.8 to 15.4 pp in GSS 2004, 2.5 to 14.9 in ATP, 2.0 to 14.9 in GSS 2014 and 2.0 to 14.4 in ELSOC (0 of
+270, 270, 390 and 390 intervals below zero). The pattern of PR \#4 holds: independent reinforcement
+(race $\times$ religion or education $\times$ religion circles) raises the premium against the base ($-0.6$
+to $+5.0$ pp), cohesive reinforcement lowers it to 2.3--5.9 pp, and the permuted controls move it as much or
+more (real $-$ permuted: $-3.3$ to $-0.7$ pp for $\theta$, $+0.3$ to $+2.0$ for $\kappa$, over the four
+surveys). \textbf{Ideology circles} add little of their own: real $-$ permuted is $-0.9$ to $-0.35$ pp in
+ELSOC, where the networks sort on ideology (assortativity 0.31), and $-0.4$ to $0.0$ in GSS 2014, where they
+barely do (0.04).
+
+\paragraph{The reverse-premium corner} (06b, one-sided max-$T$ per strategy $\times$ $\lambda$, robust DP wins
+over the whole plane; random seeding unless stated). \textbf{GSS 2004}: robust at $\lambda = 0.5$--$0.8$ (56,
+42, 15 and 6 cells), DP ahead by up to 12--13 pp (21 with eigen seeding at $\lambda = 0.6$), most inside
+the box ($h \ge 0.6$, $\Gamma$ 0.275--0.45). \textbf{GSS 2014}: robust at $\lambda = 0.5$--$0.9$ (62, 53, 44, 24, 9),
+up to 16--17 pp. \textbf{ELSOC}: robust at $\lambda = 0.5$--$0.9$ (23, 17, 13, 10, 6), DP ahead by up to 27--42 pp
+(50 with eigen seeding at $\lambda = 0.9$), at higher IUL: $\Gamma \approx 0.6$ at $\lambda = 0.5$, entering the
+GSS box only from $\lambda = 0.7$. \textbf{ATP}: now robust too but shallow, at $\lambda = 0.5$--$0.7$ (38, 25,
+9 cells; 7, 13 and 9 inside the box), up to 3.7--6.9 pp. The figures still draw the GSS box (decided with the
+user). Consolidation explains the four (\S\ref{sec:consolidation}): permuting $q$ removes every deep corner,
+and mapping ELSOC's $q$ onto the GSS 2004 distribution moves its corner to $\Gamma \approx 0.30$--$0.35$.
+
+\paragraph{The rule} (\code{06f}, GSS and ATP; \S\ref{sec:mechanisms}): complements in shares and the
+$\gamma$-form keep the premium at 4.6--10.8 pp, positive in all 24 networks in every combination.
+
+\paragraph{What breaking the network destroys} (\code{07}). In all four surveys x2 $\to$ x1 halves clustering
+(GSS 0.185 $\to$ 0.094, ELSOC 0.121 $\to$ 0.061) and keeps every categorical assortativity exactly (age and
+education within 4\%); the DP twin brings clustering to 0.031--0.034 (what the degrees alone produce),
+attribute assortativity to 0 on every axis and modularity from 0.37--0.54 to 0.16. Rewiring raises the mean
+Gower distance over ties by 72\% in GSS 2004, 74\% in ATP and GSS 2014 and 47\% in ELSOC, whose Blau space is
+less sorted (assortativity: education 0.43, religion 0.37, age 0.35, ideology 0.31, sex 0.27; GSS race 0.70,
+religion 0.55).
+
+% ----------------------------------------------------------------------------
+\subsection{Still open}
+\label{sec:pr5open}
+
+\begin{itemize}
+  \item \textbf{ELSOC $q$}: willingness \code{c09} (main) or the GSS format of three comparable items, or
+    both as a sensitivity; the user decides. The non-normative $q$ (legitimacy of violence, \code{f05}) was
+    discarded: $\alpha = 0.45$ in 2018, and the good measure exists only for 2019, after the outburst.
+  \item \textbf{Directed reports}: the sex shares by group cannot be met in an undirected network (men
+    $-6$ to $-12\%$, women $+2$ to $+6\%$); a limitation, not a fix.
+  \item \textbf{Small groups}: Jews and ELSOC ``other religion'' are capped at 90\% within-group density
+    (with 1{,}000 nodes); ``Other'' race is not calibrated.
+  \item \textbf{Validation}: age and education differences $+8\%$ and $+12\%$ in GSS 2004 (slightly worse
+    than with the PR \#4 networks), ELSOC right $+23\%$; x1 and x2 fall more steeply than the observed
+    closure profile under the embedded rule.
+  \item The level of closure is a choice; the $\times 3$ sensitivity was not rerun with the new recipe.
+  \item \code{c22}--\code{c24} (participation of the respondent, family and friends in the movement they
+    value most) are not used yet; they are the closest measure of perceived exposure (Prompt 6.1).
+\end{itemize}
+
 
 % ============================================================================
 \section{To verify before writing any of this into the paper}

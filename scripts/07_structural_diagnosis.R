@@ -17,11 +17,12 @@
 #   B. Higher-order topology: clustering (global, average local), triangles,
 #      degree assortativity, mean path length, modularity (Louvain), giant component
 #   C. Homophily: attribute assortativity per Blau axis (race, sex, relig, age,
-#      educ) + the MEAN GOWER DISTANCE OVER EDGES (the model's own d_ij)
+#      educ; ELSOC: sex, relig, ideol, age, educ; GSS14 adds ideol, which is not in
+#      its tie model) + the MEAN GOWER DISTANCE OVER EDGES (the model's own d_ij)
 #
 # Significance: 24 vs 24 -> Mann-Whitney U (two-sided) + Cohen's d (x2 vs DP),
 # and Mann-Whitney x2 vs x1.
-# Outputs (<S> = GSS or ATP):
+# Outputs (<S> = GSS, ATP, GSS14 or ELSOC):
 #   output/07_structural_diagnosis/<S>/structural_diagnosis_{raw,summary}.csv
 #   plots/07_structural_diagnosis/<S>/structural_diagnosis_B.pdf  (3x2 grid, family B)
 #   plots/07_structural_diagnosis/<S>/structural_diagnosis_C.pdf  (assortativity + Gower distance)
@@ -36,7 +37,7 @@ suppressWarnings(suppressMessages({
 ARGS <- commandArgs(trailingOnly = TRUE)
 SURVEY <- toupper(sub("^--survey=", "", grep("^--survey=", ARGS, value = TRUE)))
 if (length(SURVEY) == 0) SURVEY <- "GSS"
-stopifnot(SURVEY %in% c("GSS", "ATP"))
+stopifnot(SURVEY %in% c("GSS", "ATP", "GSS14", "ELSOC"))
 NET_DIR  <- "data/02_calibrated_networks"
 SWAP_FAC <- 20                 # same niter factor as the DP twins of 05
 PLOTS    <- file.path("plots/07_structural_diagnosis", SURVEY)
@@ -45,9 +46,10 @@ dir.create(PLOTS, showWarnings = FALSE, recursive = TRUE)
 dir.create(DATA_OUT, showWarnings = FALSE, recursive = TRUE)
 TOPO_LV <- paste0(SURVEY, c(" x2", " x1", "-DP"))      # display order: main -> no extra closure -> no homophily
 
-BLAU_CAT <- c("race", "sex", "relig")    # categorical Blau axes
+BLAU_CAT <- switch(SURVEY, ELSOC = c("sex", "relig", "ideol"), GSS14 = c("race", "sex", "relig", "ideol"),
+                   c("race", "sex", "relig"))    # categorical Blau axes
 BLAU_NUM <- c("age", "educ_num")          # continuous Blau axes
-GOWER_VARS <- c("age", "educ_num", "race", "relig", "sex")  # = model's d_ij inputs
+AXIS_LAB <- c(race = "Race", sex = "Sex", relig = "Religion", ideol = "Ideology", age = "Age", educ = "Education")
 
 # DP twin of network k, identical to 05's (make_pair in 05_unified_engine.R)
 make_dp <- function(g, k) {
@@ -68,6 +70,7 @@ assort_attr <- function(g, attr, categorical) {
 
 # mean Gower distance over the existing edges (the model's d_ij on ties)
 mean_edge_gower <- function(g) {
+  if (is.null(g$blau)) {        # GSS, ATP: age, educ_num, race, relig, sex
   df <- data.frame(
     age      = as.numeric(igraph::vertex_attr(g, "age")),
     educ_num = as.numeric(igraph::vertex_attr(g, "educ_num")),
@@ -75,6 +78,10 @@ mean_edge_gower <- function(g) {
     relig    = factor(igraph::vertex_attr(g, "relig")),
     sex      = factor(igraph::vertex_attr(g, "sex"))
   )
+  } else {                      # the network's own Blau space (02 writes g$blau; as gower_of() of 05)
+    df <- as.data.frame(lapply(setNames(g$blau, g$blau), function(a) {
+      x <- igraph::vertex_attr(g, a); if (a %in% BLAU_NUM) as.numeric(x) else factor(x) }))
+  }
   D <- as.matrix(cluster::daisy(df, metric = "gower"))
   el <- igraph::as_edgelist(g, names = FALSE)
   mean(D[el], na.rm = TRUE)
@@ -95,10 +102,8 @@ stats_one <- function(g) {
     mean_path_length   = igraph::mean_distance(g, directed = FALSE),
     modularity         = { set.seed(1); igraph::modularity(igraph::cluster_louvain(g)) },
     giant_frac         = max(comps$csize) / igraph::vcount(g),
-    # C. homophily
-    assort_race        = assort_attr(g, "race",  TRUE),
-    assort_sex         = assort_attr(g, "sex",   TRUE),
-    assort_relig       = assort_attr(g, "relig", TRUE),
+    # C. homophily (GSS, ATP: assort_race, _sex, _relig, _age, _educ)
+    setNames(vapply(BLAU_CAT, function(a) assort_attr(g, a, TRUE), 0), paste0("assort_", BLAU_CAT)),
     assort_age         = assort_attr(g, "age",      FALSE),
     assort_educ        = assort_attr(g, "educ_num", FALSE),
     mean_edge_gower    = mean_edge_gower(g)
@@ -186,12 +191,12 @@ ggsave(file.path(PLOTS, "structural_diagnosis_B.pdf"), pB, width = 9, height = 5
 
 # --- Plot 2: family C, 1x2 (3 topologies). Left panel: dashed separators between
 #     Blau axes, per-box x2/x1/DP labels (no legend), compact. ---
-AXIS_ORDER <- c("Age", "Education", "Race", "Religion", "Sex")
+AX <- c(BLAU_CAT, "age", "educ")
+AXIS_ORDER <- sort(unname(AXIS_LAB[AX]))          # GSS: Age, Education, Race, Religion, Sex
 assort_long <- allstats %>%
-  select(topo, assort_race, assort_sex, assort_relig, assort_age, assort_educ) %>%
+  select(topo, all_of(paste0("assort_", AX))) %>%
   pivot_longer(-topo, names_to = "axis", values_to = "val") %>%
-  mutate(axis = factor(recode(axis, assort_race="Race", assort_sex="Sex", assort_relig="Religion",
-                       assort_age="Age", assort_educ="Education"), levels = AXIS_ORDER))
+  mutate(axis = factor(unname(AXIS_LAB[sub("^assort_", "", axis)]), levels = AXIS_ORDER))
 DODGE <- 0.7
 ytopC <- max(assort_long$val, na.rm = TRUE)
 # per-box vertical labels just above each of the 3 boxes in every axis group

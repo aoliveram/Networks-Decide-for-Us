@@ -11,6 +11,10 @@
 #      bisection on q, equals the values computed by hand (theta and kappa)
 #   5. every condition of EXPOSURE_CONDITIONS vs an independent R
 #      implementation (full recomputation every step), adopters cell by cell
+#   5b. PR #5: on ELSOC network 1 (if data/02_calibrated_networks/ELSOC_x2.rds exists),
+#      the conditions whose inputs come from the network's own attributes (Gower on
+#      age, education, sex, religion and ideology; education x religion circles;
+#      ideology circles) vs the same R implementation
 #   6. time per simulation
 #
 # Networks GSS 001..004 of 02_GSS_network_ergm (tracked, so the check does not
@@ -134,10 +138,42 @@ for (topo in c("NET", "DP")) {
   }
 }
 
+# ---- 5b: ELSOC network (graph attributes blau and cell; the ideology theta arm) -----------------------
+el_file <- "data/02_calibrated_networks/ELSOC_x2.rds"; n_el <- 0L; n_el_same <- 0L
+if (file.exists(el_file)) {
+  ge <- readRDS(el_file)[[1]]; nt <- make_pair(ge, 1L)
+  stopifnot(identical(ge$blau, c("age", "educ_num", "sex", "relig", "ideol")), !is.null(nt$DP$g$cell))
+  CE <- exposure_conditions(ge)[c("base", "theta_1", "theta_1_ideol", "theta_033_ideol", "theta_1_ideol_perm")]
+  for (topo in c("NET", "DP")) {
+    top <- nt[[topo]]; seeds <- draw_seeds(top, 1L, topo); W <- gate_matrix(top, H)
+    ctx <- build_exposure_ctx(top, 1L, as.integer(topo == "DP"), CE); ssm <- sim_seed_matrix(1L, lam, topo, H, G)
+    E <- length(top$src) %/% 2L
+    for (cn in names(CE)) {
+      cd <- CE[[cn]]; r <- run_condition(top, W, ctx, cd, nt$q, seeds, 1L, lam, topo, H, G)
+      got <- ref <- integer(nrow(cells))
+      for (j in seq_len(nrow(cells))) {
+        hi <- cells[j, 1]; gi <- cells[j, 2]; set.seed(ssm[hi, gi]); o <- as.numeric(runif(E) <= W[, hi])
+        ref[j] <- exposure_cascade_R(top, ctx[[cd$circles]], ctx[[paste0("pairs_", cd$pairs)]], cd$theta, cd$kappa_c,
+                                     cd$kappa_p, nt$q, G[gi], lam, seeds, c(o, o))
+        got[j] <- r[(hi - 1L) * length(G) + gi, "num_adopters"]
+      }
+      n_el <- n_el + length(got); n_el_same <- n_el_same + sum(got == ref)
+      message(sprintf("[5b] ELSOC %-4s %-20s c = %+.2f: %d/%d cells identical (adopters %d-%d)",
+                      topo, cn, cd$c, sum(got == ref), length(got), min(ref), max(ref)))
+    }
+  }
+  # the Gower distance of the ELSOC network uses its own Blau space (no race)
+  D <- gower_of(ge); i <- 1L; j <- 2L; va <- vertex_attr(ge)
+  hand <- mean(c(abs(va$age[i] - va$age[j]) / diff(range(va$age)), abs(va$educ_num[i] - va$educ_num[j]) / diff(range(va$educ_num)),
+                 va$sex[i] != va$sex[j], va$relig[i] != va$relig[j], va$ideol[i] != va$ideol[j]))
+  message(sprintf("[5b] ELSOC Gower d(1, 2): engine %.6f, by hand %.6f", D[i, j], hand))
+  n_el <- n_el + 1L; n_el_same <- n_el_same + (abs(D[i, j] - hand) < 1e-12)
+} else message("[5b] skipped: ", el_file, " not found")
+
 message(sprintf("[6] ms per simulation (one core): R loop %.1f, Rcpp %.2f (annealed); R cascade %.1f, Rcpp %.2f (frozen); sweep engine %.2f (frozen, base)",
                 1000 * tm[["R"]] / n_cells, 1000 * tm[["cpp"]] / n_cells,
                 1000 * tm[["frozen_R"]] / n_cells, 1000 * tm[["frozen_cpp"]] / n_cells, 1000 * tm[["grid"]] / n_grid))
 all_ok <- ok[["annealed_same"]] == n_cells && ok[["frozen_same"]] == n_cells && all(grid_same == n_grid) &&
-  star_ok && n_ref_same == n_ref
+  star_ok && n_ref_same == n_ref && n_el_same == n_el
 message(if (all_ok) "ALL ENGINE CHECKS PASSED" else "SOME ENGINE CHECKS FAILED")
 if (!all_ok) stop("the Rcpp engine does not match its reference")

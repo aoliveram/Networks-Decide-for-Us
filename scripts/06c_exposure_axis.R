@@ -12,6 +12,8 @@
 # Each arm level has a permuted control (same circle sizes / same number of
 # pairs per ego, random members): real - permuted is the part of the effect
 # that comes from WHERE the circles and pairs are, not from how many.
+# Sets whose nodes carry ideology (ELSOC, GSS14; PR #5) have a second theta arm,
+# arm "theta_ideol": circles = ideology groups (c = -1, -0.5, with permuted controls).
 #
 # Per set, seeding, lambda and condition (unit = network run, paired):
 #   premium_pp     mean over the plane of Phi_network - Phi_DP (pp)
@@ -51,8 +53,9 @@ per_run <- rbindlist(lapply(files, function(f) {
   }))[, `:=`(N = x$N)][]
 }))
 meta <- as.data.table(readRDS(files[1])$conditions)
-per_run <- merge(per_run, meta[, .(condition, theta, kappa, c, control_of)], by = "condition")
-per_run[, arm := fifelse(condition == "base", "base", fifelse(theta > 0, "theta", "kappa"))]
+per_run <- merge(per_run, meta[, .(condition, theta, kappa, c, control_of, circles)], by = "condition")
+per_run[, arm := fifelse(condition == "base", "base",
+                         fifelse(theta > 0, fifelse(grepl("^ideol", circles), "theta_ideol", "theta"), "kappa"))]
 per_run[, kind := fifelse(nzchar(control_of), "permuted", "real")]
 base <- per_run[condition == "base", .(seeding, lambda, run, base = premium)]
 per_run <- merge(per_run, base, by = c("seeding", "lambda", "run"))
@@ -93,8 +96,9 @@ p <- ggplot(pd, aes(c, premium_pp, color = arm, shape = kind)) +
                  position = position_dodge(width = 0.12)) +
   geom_point(size = 1.8, position = position_dodge(width = 0.12)) +
   facet_grid(seeding ~ lab) +
-  scale_color_manual(values = c(base = "black", theta = "#2166AC", kappa = "#B2182B"),
-                     labels = c(base = "base", theta = "θ (independent)", kappa = "κ (cohesive)"), name = NULL) +
+  scale_color_manual(values = c(base = "black", theta = "#2166AC", theta_ideol = "#1B7837", kappa = "#B2182B"),
+                     labels = c(base = "base", theta = "θ (independent)", theta_ideol = "θ, ideology circles", kappa = "κ (cohesive)"),
+                     name = NULL) +
   scale_shape_manual(values = c(real = 16, permuted = 1), name = NULL) +
   scale_x_continuous(breaks = c(-1, -0.5, 0, 0.5, 1)) +
   labs(title = sprintf("%s: structural premium along the exposure axis (95%% run-bootstrap CI)", SET),
