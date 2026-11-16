@@ -4,11 +4,11 @@
 #
 # The BAM standard errors of 05/06 (~5e-4) treat each of the 1025 (IUL, MSP)
 # cells of a run as an independent observation. They are not: the cells of run
-# k share the GSS network k, its DP twin and the primary seed. The unit of
-# replication is the RUN (96 per topology), and run k uses the same network,
+# k share the network k, its DP twin and the primary seed. The unit of
+# replication is the RUN (24 per set since 2026-11; 96 before), and run k uses the same network,
 # twin and primary draw in every seeding strategy, so contrasts between
-# strategies are PAIRED by run. This script resamples run_id (1..96) with
-# replacement — one set of weights shared by GSS, DP and every strategy — and
+# strategies are PAIRED by run. This script resamples run_id with
+# replacement — one set of weights shared by NET, DP and every strategy — and
 # refits.
 #
 # Model (decided 2026-10-10, see docs/MAKING-IT-BOTTOM-UP.tex §premium), per lambda:
@@ -20,7 +20,7 @@
 #     strategy's misfit leaks into the strategy x topology terms and flattens
 #     the contrasts (at lambda = 1, central - random falls from -0.21 to -0.08)
 #   - it does NOT vary by topology: beta_DP is defined as the constant logit
-#     shift between GSS and DP; a topology-specific surface would absorb the
+#     shift between NET and DP; a topology-specific surface would absorb the
 #     premium itself. Its shape (a shift of the tipping frontier) is what the
 #     link-free gap and the MSP_c shift of 06 describe
 #   - te(12, 12) is where beta_DP converges; the s(k = 10) surface of 05/06
@@ -46,31 +46,36 @@
 # rule (0.40 x degree of the primary) are archived in _superseded/; not used.
 #
 # Also reported:
-#   - the link-free premium: mean over the plane of Phi_GSS - Phi_DP, per run,
+#   - the link-free premium: mean over the plane of Phi_NET - Phi_DP, per run,
 #     with its bootstrap (and t) interval
-#   - the reverse-premium corner: per cell, the paired z over the 96 runs, and
+#   - the reverse-premium corner: per cell, the paired z over the runs, and
 #     a one-sided simultaneous (max-T) threshold per strategy x lambda panel
 #     from the same bootstrap; a cell is a ROBUST DP win only if it clears it
 #   - the statistics of 06, with intervals from the same bootstrap: the band
-#     (% of the plane where GSS leads by > 10 pp, and the mean gap there), the
+#     (% of the plane where NET leads by > 10 pp, and the mean gap there), the
 #     channel split (beta_DP and gap of rational and social adopters, k = 10
 #     surface as in 06) and the tipping shift (per IUL, the first MSP where
 #     Phi >= 0.5; averaged over the IUL levels where both topologies tip).
 #     MSP_c moves on the 1/24 grid, so its intervals are coarse
 #
-# Reads  output/05_unified_diffusion/unified_premium_results_<s>.csv
-# Writes output/06b_premium_bootstrap/premium_bootstrap_{beta,gap,contrasts}.csv
-#        output/06b_premium_bootstrap/premium_reverse_corner{,_cells}.csv
-#        output/06b_premium_bootstrap/premium_bootstrap_band.csv
-#        output/06b_premium_bootstrap/premium_bootstrap_replicates.csv
-#        plots/06b_premium_bootstrap/premium_bootstrap.pdf
+# One network set per call (--set=, default GSS_x2; GSS_x1, ATP_x2, ATP_x1).
+# NET is the network with empirical homophily (whatever the survey) and DP its
+# degree-preserving twin (results written before 2026-11 call NET "GSS": read as NET).
+#
+# Reads  output/05_unified_diffusion/<set>/unified_premium_results_<s>.csv
+# Writes output/06b_premium_bootstrap/<set>/premium_bootstrap_{beta,gap,contrasts}.csv
+#        output/06b_premium_bootstrap/<set>/premium_reverse_corner{,_cells}.csv
+#        output/06b_premium_bootstrap/<set>/premium_bootstrap_band.csv
+#        output/06b_premium_bootstrap/<set>/premium_bootstrap_replicates.csv
+#        plots/06b_premium_bootstrap/<set>/premium_bootstrap.pdf
 #
 # Usage (from the repo root):
-#   Rscript scripts/06b_premium_bootstrap.R               # B = 1000, 8 cores
+#   Rscript scripts/06b_premium_bootstrap.R               # GSS_x2, B = 1000, 8 cores
+#   Rscript scripts/06b_premium_bootstrap.R --set=ATP_x2
 #   Rscript scripts/06b_premium_bootstrap.R --B=10        # timing run (sandbox)
 #   Rscript scripts/06b_premium_bootstrap.R --B=500 --cores=4
 #   Rscript scripts/06b_premium_bootstrap.R --plots-only  # redraw from the CSVs
-# With B < 200 everything goes to output/06b_premium_bootstrap/_test.
+# With B < 200 everything goes to output/06b_premium_bootstrap/_test/<set>.
 # Runtime: ~1 min of loading + joint fits, then ~6.5 s per replicate and core
 # (B = 1000 on 8 cores: ~14 min).
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,9 +97,11 @@ TEST_MODE <- B < 200
 PLOTS_ONLY <- "--plots-only" %in% ARGS
 BOOT_SEED <- 20261010
 
-RES_DIR   <- "output/05_unified_diffusion"
-DATA_OUT  <- if (TEST_MODE) "output/06b_premium_bootstrap/_test" else "output/06b_premium_bootstrap"
-PLOTS_OUT <- if (TEST_MODE) "output/06b_premium_bootstrap/_test" else "plots/06b_premium_bootstrap"
+SET <- sub("^--set=", "", grep("^--set=", ARGS, value = TRUE))
+if (length(SET) == 0) SET <- "GSS_x2"
+RES_DIR   <- file.path("output/05_unified_diffusion", SET)
+DATA_OUT  <- file.path(if (TEST_MODE) "output/06b_premium_bootstrap/_test" else "output/06b_premium_bootstrap", SET)
+PLOTS_OUT <- file.path(if (TEST_MODE) "output/06b_premium_bootstrap/_test" else "plots/06b_premium_bootstrap", SET)
 dir.create(DATA_OUT,  showWarnings = FALSE, recursive = TRUE)
 dir.create(PLOTS_OUT, showWarnings = FALSE, recursive = TRUE)
 
@@ -158,7 +165,7 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
   p_beta <- strat_plot(bm, "beta", "Premium on the odds scale (te12), run-bootstrap 95% CI",
                        expression(beta[DP]))
   p_gap  <- strat_plot(gm, "gap_pp", "Premium on the probability scale, run-bootstrap 95% CI",
-                       expression(bar(Phi)[GSS] - bar(Phi)[DP] ~ "(pp)"))
+                       expression(bar(Phi)[network] - bar(Phi)[DP] ~ "(pp)"))
 
   shown <- c("central - random", "random - marginal", "central - closeness",
              "central - eigen", "closeness - eigen")
@@ -176,7 +183,7 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
          x = "λ", y = NULL) +
     base_theme + theme(strip.placement = "outside", strip.text = element_text(size = 8))
 
-  # where DP robustly beats GSS
+  # where DP robustly beats the network
   cc <- cell_tab[gap_pp < 0]
   cc[, `:=`(dp_pp = -gap_pp, row = factor(variant, intersect(V, unique(variant))),
             col = paste0("λ = ", num_l(lambda)))]
@@ -186,12 +193,12 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
     facet_grid(row ~ col) +
     scale_fill_gradient(low = "#C7E9C0", high = "#00441B", trans = "sqrt",
                         breaks = c(0.05, 0.5, 2, 5, 10), labels = c("0.05", "0.5", "2", "5", "10"),
-                        name = "Φ(DP) − Φ(GSS), pp") +
+                        name = "Φ(DP) − Φ(network), pp") +
     scale_x_continuous(limits = c(-0.0125, 1.0125), breaks = c(0, 0.5, 1),
                        labels = c("0", ".5", "1"), expand = c(0, 0)) +
     scale_y_continuous(limits = c(-1 / 48, 1 + 1 / 48), breaks = c(0, 0.5, 1),
                        labels = c("0", ".5", "1"), expand = c(0, 0)) +
-    labs(title = "Cells where DP beats GSS (fill); dot = robust DP win (one-sided max-T, familywise 5%, run bootstrap)",
+    labs(title = paste0("Cells where DP beats the network (", sub("_", " ", SET), "; fill); dot = robust DP win (one-sided max-T, familywise 5%, run bootstrap)"),
          x = "IUL (Γ)", y = "MSP (h)") +
     theme_minimal(base_size = 8) +
     theme(panel.grid = element_blank(), panel.background = element_rect(fill = "grey96", color = NA),
@@ -213,19 +220,20 @@ if (PLOTS_ONLY) {
   quit(save = "no")
 }
 
-# ----------------- load: one (2 x 1025) x 96 count matrix per panel -----------
+# ----------------- load: one (2 x 1025) x runs count matrix per panel ---------
 message(format(Sys.time(), "%H:%M:%S"), "  Loading ", length(V), " variants: ",
         paste(V, collapse = ", "))
 N_NODES <- NULL; LAMBDAS <- NULL; RUNS <- NULL
-Y <- list()      # Y[[v]][[l]]: adopters, rows = cells (GSS then DP), cols = runs
+Y <- list()      # Y[[v]][[l]]: adopters, rows = cells (NET then DP), cols = runs
 YR <- list(); YS <- list()   # the same for rational and social adopters
-CELLS <- NULL    # the (G, h) of the 1025 GSS rows (identical order in DP rows)
+CELLS <- NULL    # the (G, h) of the 1025 NET rows (identical order in DP rows)
 for (i in seq_len(nrow(VARIANTS))) {
   v <- VARIANTS$variant[i]
   d <- fread(VARIANTS$path[i], select = c("topology", "lambda", "run_id", "social_distance_h",
                                           "innovation_iul_Gamma", "num_adopters",
                                           "num_adopted_rational", "num_adopted_social", "N_nodes"))
   setnames(d, c("social_distance_h", "innovation_iul_Gamma"), c("h", "G"))
+  d[topology == "GSS", topology := "NET"]                 # label used until 2026-11
   stopifnot(uniqueN(d$N_nodes) == 1,
             d[, .N, by = .(topology, lambda, run_id, G, h)][, all(N == 1)])
   if (is.null(N_NODES)) {
@@ -237,11 +245,11 @@ for (i in seq_len(nrow(VARIANTS))) {
   for (l in LAMBDAS) {
     to_mat <- function(col) {
       wd <- dcast(d[lambda == l], topology + G + h ~ run_id, value.var = col)
-      wd[, topology := factor(topology, c("GSS", "DP"))]
+      wd[, topology := factor(topology, c("NET", "DP"))]
       setorder(wd, topology, G, h)
       m <- as.matrix(wd[, as.character(RUNS), with = FALSE])
       stopifnot(!anyNA(m), nrow(m) %% 2 == 0)
-      cg <- wd[topology == "GSS", .(G, h)]
+      cg <- wd[topology == "NET", .(G, h)]
       stopifnot(isTRUE(all.equal(cg, wd[topology == "DP", .(G, h)], check.attributes = FALSE)))
       if (is.null(CELLS)) CELLS <<- cg else stopifnot(isTRUE(all.equal(CELLS, cg)))
       m
@@ -255,7 +263,7 @@ for (i in seq_len(nrow(VARIANTS))) {
 N_RUNS  <- length(RUNS)
 N_CELLS <- nrow(CELLS)
 L <- as.character(LAMBDAS)
-FRAME <- data.frame(topology = factor(rep(c("GSS", "DP"), each = N_CELLS), c("GSS", "DP")),
+FRAME <- data.frame(topology = factor(rep(c("NET", "DP"), each = N_CELLS), c("NET", "DP")),
                     G = rep(CELLS$G, 2), h = rep(CELLS$h, 2))
 message(sprintf("  %d runs x %d cells x 2 topologies x %d lambdas per variant; N = %d.",
                 N_RUNS, N_CELLS, length(L), N_NODES))
@@ -327,7 +335,7 @@ message(sprintf("  One replicate takes %.1f s; B = %d on %d cores -> ~%.0f min."
 set.seed(BOOT_SEED)
 W <- t(replicate(B, tabulate(sample.int(N_RUNS, N_RUNS, replace = TRUE), N_RUNS)))
 message(format(Sys.time(), "%H:%M:%S"), "  Bootstrap: B = ", B, " run resamples (shared by ",
-        "GSS, DP and every variant), ", N_CORES, " cores...")
+        "NET, DP and every variant), ", N_CORES, " cores...")
 t_b <- Sys.time()
 reps <- mclapply(seq_len(B), function(b) betas_for(W[b, ]), mc.cores = N_CORES)
 bad <- vapply(reps, function(x) inherits(x, "try-error") || is.null(x), logical(1))
@@ -361,7 +369,7 @@ beta_tab <- merge(beta_tab, joint[, .(variant, lambda, spec, bam_se, dev_expl)],
 beta_tab[, se_inflation := boot_se / bam_se]
 
 # ---- link-free premium: mean plane gap per run ------------------------------
-# D[[v]][[l]]: cells x runs paired differences Phi_GSS - Phi_DP
+# D[[v]][[l]]: cells x runs paired differences Phi_NET - Phi_DP
 D <- lapply(Y, function(yv) lapply(yv, function(m)
   (m[seq_len(N_CELLS), , drop = FALSE] - m[N_CELLS + seq_len(N_CELLS), , drop = FALSE]) / N_NODES))
 GAPR <- sapply(V, function(v) sapply(L, function(l) colMeans(D[[v]][[l]])), simplify = "array")
@@ -407,9 +415,9 @@ message(format(Sys.time(), "%H:%M:%S"), "  Band, channel and tipping-shift stati
 WA <- rbind(rep(1, N_RUNS), W)                       # (B + 1) x runs
 HS <- sort(unique(CELLS$h)); NH <- length(HS); NG <- N_CELLS / NH
 stopifnot(NG == uniqueN(CELLS$G), all(CELLS$h == rep(HS, NG)))   # sorted by G, then h
-cell_means <- function(m) {                          # -> list(GSS, DP), cells x (B + 1)
+cell_means <- function(m) {                          # -> list(NET, DP), cells x (B + 1)
   p <- sweep(m %*% t(WA), 2, N_NODES * rowSums(WA), "/")
-  list(GSS = p[seq_len(N_CELLS), , drop = FALSE], DP = p[N_CELLS + seq_len(N_CELLS), , drop = FALSE])
+  list(NET = p[seq_len(N_CELLS), , drop = FALSE], DP = p[N_CELLS + seq_len(N_CELLS), , drop = FALSE])
 }
 # per IUL level, the first MSP where Phi >= 0.5 (NA if it never tips): NG x (B + 1)
 first_tip <- function(p) {
@@ -425,17 +433,17 @@ for (v in V) {
   per_l <- list()
   for (l in L) {
     pt <- cell_means(Y[[v]][[l]]); pr <- cell_means(YR[[v]][[l]]); ps <- cell_means(YS[[v]][[l]])
-    gap <- pt$GSS - pt$DP
+    gap <- pt$NET - pt$DP
     big <- gap > 0.10
-    tg <- first_tip(pt$GSS); td <- first_tip(pt$DP)
+    tg <- first_tip(pt$NET); td <- first_tip(pt$DP)
     both <- !is.na(tg) & !is.na(td)
     tg[!both] <- NA; td[!both] <- NA
     per_l[[l]] <- rbind(
       band_pct        = 100 * colMeans(big),
       band_gap_pp     = 100 * colSums(gap * big) / colSums(big),
-      gap_rational_pp = 100 * colMeans(pr$GSS - pr$DP),
-      gap_social_pp   = 100 * colMeans(ps$GSS - ps$DP),
-      mspc_gss        = colMeans(tg, na.rm = TRUE),
+      gap_rational_pp = 100 * colMeans(pr$NET - pr$DP),
+      gap_social_pp   = 100 * colMeans(ps$NET - ps$DP),
+      mspc_net        = colMeans(tg, na.rm = TRUE),
       mspc_dp         = colMeans(td, na.rm = TRUE),
       mspc_shift      = colMeans(td - tg, na.rm = TRUE),
       mspc_ratio      = colMeans(td, na.rm = TRUE) / colMeans(tg, na.rm = TRUE))

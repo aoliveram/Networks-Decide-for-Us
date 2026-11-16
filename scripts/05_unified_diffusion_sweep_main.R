@@ -1,35 +1,43 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Runner: the unified diffusion sweep across ALL seeding strategies
+# Runner: the whole relaunch, from networks to diagnostics
 # 05_unified_diffusion_sweep_main.R
 #
-# Calls scripts/05_unified_diffusion_sweep.R once per seeding strategy, each in
-# its own R session, and then the sensitivity analysis for that strategy. Every
-# strategy writes to its own checkpoint directory and its own result files, so
-# nothing overwrites anything.
+# Each step runs in its own R session; every step is resumable or cheap:
+#   1. 02_network_calibrated.R  per survey (skipped if the networks exist)
+#   2. 05_engine_check.R        once (exactness of the engine; ~1 min) and
+#      05_netdiffuser_reference.R once (same adopters as netdiffuseR; ~1 min)
+#   3. 05 sweep                 per survey x level x seeding, all exposure conditions
+#                               (checkpoints per condition and network: an interrupted
+#                               run resumes where it stopped)
+#   4. 06                       per set and seeding (lambda sensitivity)
+#   5. 06b                      per set (joint BAM + run bootstrap, B = 1000)
+#   6. 06c                      per set (exposure axis)
+#   7. 06d                      per survey, with both levels (x2 - x1 against the same DP twin)
+#   8. 06e                      consolidation: q vs Blau attributes, corner 2 x 2, premium with permuted q
+#   9. 06f                      rule robustness: complements in shares (lambda(Gamma) paths) and
+#                               Tur's gamma form (new base-exposure sweep, ~2.5 min for 4 sets x 5 seedings)
+#  10. 07                       per survey (structural diagnosis: x2, x1, DP)
+# Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP; LEVEL in x2 (main), x1.
 #
-# Fully resumable: the sweep skips (topology, lambda) combinations whose
-# checkpoint already exists, so re-running this script after an interruption
-# only computes what is missing. The `random` strategy is already complete, so
-# it is skipped in seconds (it still re-fits its BAM and re-draws its plots).
+# Cost on 8 performance cores (2026-11-05: 99 min in all): ~1.2 min per survey x
+# level x seeding with all 9 conditions (~25 min for 2 x 2 x 5); 06b ~17 min per set
+# (B = 1000); the rest a few minutes.
 #
-# Cost: ~50 min per strategy on 8 cores; ~3.5 h for the four that remain.
-#
-# Usage:
-#   Rscript scripts/05_unified_diffusion_sweep_main.R                  # all five
-#   Rscript scripts/05_unified_diffusion_sweep_main.R central marginal # a subset
-#   NDFU_SKIP_SENSITIVITY=1 Rscript scripts/05_unified_diffusion_sweep_main.R
+# Usage (repo root; log with 2>&1 | tee logs/05_main.log):
+#   Rscript scripts/05_unified_diffusion_sweep_main.R
+#   Rscript scripts/05_unified_diffusion_sweep_main.R --surveys=GSS --levels=x2 --seedings=random,central
+#   Rscript scripts/05_unified_diffusion_sweep_main.R --skip-analysis      # only steps 1-3
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-ALL_SEEDINGS <- c("random", "central", "marginal", "closeness", "eigen")
-
-args     <- commandArgs(trailingOnly = TRUE)
-seedings <- if (length(args) > 0) args else ALL_SEEDINGS
-unknown  <- setdiff(seedings, ALL_SEEDINGS)
-if (length(unknown) > 0)
-  stop("Unknown seeding strategy: ", paste(unknown, collapse = ", "),
-       "\nValid: ", paste(ALL_SEEDINGS, collapse = ", "))
-
-RUN_SENSITIVITY <- !nzchar(Sys.getenv("NDFU_SKIP_SENSITIVITY"))
+ARGS <- commandArgs(trailingOnly = TRUE)
+arg_list <- function(k, d) { a <- grep(paste0("^--", k, "="), ARGS, value = TRUE)
+  if (length(a)) strsplit(sub(".*=", "", a[1]), ",")[[1]] else d }
+SURVEYS  <- toupper(arg_list("surveys", c("GSS", "ATP")))
+LEVELS   <- tolower(arg_list("levels", c("x2", "x1")))
+SEEDINGS <- arg_list("seedings", c("random", "central", "marginal", "closeness", "eigen"))
+stopifnot(all(SURVEYS %in% c("GSS", "ATP")), all(LEVELS %in% c("x1", "x2")),
+          all(SEEDINGS %in% c("random", "central", "marginal", "closeness", "eigen")))
+SKIP_ANALYSIS <- "--skip-analysis" %in% ARGS
+ALL_FIVE <- setequal(SEEDINGS, c("random", "central", "marginal", "closeness", "eigen"))
 
 rscript <- file.path(R.home("bin"), "Rscript")
 banner  <- function(...) {
@@ -37,26 +45,45 @@ banner  <- function(...) {
   message(format(Sys.time(), "%H:%M:%S"), "  ", ...)
   message(paste(rep("=", 78), collapse = ""))
 }
-
+run <- function(script, args = character(0), fatal = TRUE) {
+  st <- system2(rscript, c(file.path("scripts", script), args))
+  if (st != 0) { msg <- paste0(script, " ", paste(args, collapse = " "), " failed (exit ", st, ")")
+                 if (fatal) stop(msg) else warning(msg) }
+  invisible(st)
+}
 t_all <- Sys.time()
-for (s in seedings) {
-  banner("SEEDING: ", toupper(s), "   (", match(s, seedings), "/", length(seedings), ")")
 
-  st <- system2(rscript, c("scripts/05_unified_diffusion_sweep.R",
-                           paste0("--seeding=", s)))
-  if (st != 0) stop("Sweep failed for seeding '", s, "' (exit ", st, ")")
-
-  if (RUN_SENSITIVITY) {
-    message("\n--- lambda sensitivity for seeding '", s, "' ---")
-    st <- system2(rscript, c("scripts/06_premium_sensitivity.R",
-                             paste0("--seeding=", s)))
-    if (st != 0) warning("Sensitivity analysis failed for seeding '", s,
-                         "' (exit ", st, ") — the sweep results are still saved.")
+for (s in SURVEYS) {
+  if (!all(file.exists(file.path("data/02_calibrated_networks", paste0(s, c("_x1.rds", "_x2.rds")))))) {
+    banner("NETWORKS: ", s); run("02_network_calibrated.R", paste0("--survey=", s))
   }
 }
+banner("ENGINE CHECK"); run("05_engine_check.R")
+banner("netdiffuseR REFERENCE"); run("05_netdiffuser_reference.R")
 
-banner("ALL DONE in ",
-       round(as.numeric(difftime(Sys.time(), t_all, units = "mins")), 1), " min")
-message("Results:  output/05_unified_diffusion/unified_premium_{results,bam}_<seeding>.csv")
-message("Premium:  output/06_premium_sensitivity/premium_lambda_sensitivity_<seeding>.csv")
-message("Figures:  plots/05_unified_diffusion/ and plots/06_premium_sensitivity/")
+for (s in SURVEYS) for (l in LEVELS) for (sd in SEEDINGS) {
+  banner("SWEEP ", s, "_", l, " | seeding ", toupper(sd))
+  run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), paste0("--level=", l), paste0("--seeding=", sd)))
+}
+
+if (!SKIP_ANALYSIS) {
+  for (s in SURVEYS) for (l in LEVELS) {
+    set <- paste0(s, "_", l)
+    for (sd in SEEDINGS) { banner("06 ", set, " | ", sd); run("06_premium_sensitivity.R", c(paste0("--set=", set), paste0("--seeding=", sd)), fatal = FALSE) }
+    if (ALL_FIVE) { banner("06b ", set); run("06b_premium_bootstrap.R", paste0("--set=", set), fatal = FALSE) }
+    banner("06c ", set); run("06c_exposure_axis.R", paste0("--set=", set), fatal = FALSE)
+  }
+  if (all(c("x1", "x2") %in% LEVELS))
+    for (s in SURVEYS) { banner("06d ", s); run("06d_closure_contrast.R", paste0("--survey=", s), fatal = FALSE) }
+  if ("x2" %in% LEVELS) { banner("06e consolidation"); run("06e_consolidation.R", paste0("--surveys=", paste(SURVEYS, collapse = ",")), fatal = FALSE) }
+  banner("06f rule robustness")
+  run("06f_rule_robustness.R", c(paste0("--sets=", paste(outer(SURVEYS, LEVELS, paste, sep = "_"), collapse = ",")),
+                                 paste0("--seedings=", paste(SEEDINGS, collapse = ","))), fatal = FALSE)
+  for (s in SURVEYS) { banner("07 ", s); run("07_structural_diagnosis.R", paste0("--survey=", s), fatal = FALSE) }
+}
+
+banner("ALL DONE in ", round(as.numeric(difftime(Sys.time(), t_all, units = "mins")), 1), " min")
+message("Sweep:    output/05_unified_diffusion/<set>/  (unified_premium_results_<seeding>.csv, exposure_axis_<seeding>.rds)")
+message("Premium:  output/06_premium_sensitivity/<set>/, output/06b_premium_bootstrap/<set>/, output/06c_exposure_axis/<set>/,")
+message("          output/06d_closure_contrast/, output/06e_consolidation/, output/06f_rule_robustness/")
+message("Figures:  plots/05_unified_diffusion/<set>/, plots/06*/<set>/, plots/07_structural_diagnosis/<survey>/")

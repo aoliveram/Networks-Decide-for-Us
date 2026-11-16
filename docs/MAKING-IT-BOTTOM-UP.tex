@@ -1,8 +1,10 @@
 % ============================================================================
 % Making NDFU bottom-up: the unified adoption rule and its two variants
-% Internal design note — NO changes to the engine have been made.
-% Companion scripts: scripts/05_unified_diffusion_sweep.R (engine + structural premium),
-%                    06_premium_sensitivity.R and 06b_premium_bootstrap.R (analysis)
+% Internal design note.
+% Companion scripts: scripts/02_network_calibrated.R (networks), 05_unified_engine.{cpp,R}
+%   (Rcpp engine), 05_unified_diffusion_sweep.R (sweep), 06_premium_sensitivity.R,
+%   06b_premium_bootstrap.R, 06c_exposure_axis.R, 06d_closure_contrast.R, 06f_rule_robustness.R,
+%   07, 09 (analysis)
 % (The former minimal-test script was removed 2026-08-31; its tau*
 %  diagnostic now lives in script 10.)
 % History: written 2026-08-11 (markdown); Tur's exact functional form
@@ -17,6 +19,14 @@
 %   scripts/06b_premium_bootstrap.R (joint BAM, te(12,12) surface per strategy,
 %   strategy contrasts, robust vs. noise reverse corner); immunity table of
 %   sec:immunity recomputed from mur_score.
+%   2026-11-05 (PR #4): new section sec:pr4 (calibrated networks, x2 with twice the
+%   triangles of every node, held-out validation, frozen gate, Rcpp engine, exposure
+%   axis, rerun of 05-07 for GSS and ATP). sec:premiumresult kept as the record of the
+%   96 ERGM networks with the annealed gate.
+%   2026-11-10 (Prompt 6): new subsection sec:mechanisms (substitutes or complements, read
+%   against the literature; the defense of the additive rule reframed); the gamma form and
+%   complements in shares run as robustness (scripts/06f_rule_robustness.R); verdict table,
+%   recommendation and sec:brockdurlauf updated.
 % Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
@@ -42,9 +52,10 @@
 
 \title{Making NDFU bottom-up:\\ the unified adoption rule and its two variants}
 \author{NDFU internal design note}
-\date{2026-08-11, updated 2026-10-10 \\[4pt]
-\normalsize Status: design document --- no changes to the engine have been made.\\
-\normalsize Companion scripts: \code{10\_unified\_model\_sweep.R}, \code{12\_unified\_premium\_sweep.R}}
+\date{2026-08-11, updated 2026-11-05 \\[4pt]
+\normalsize Status: the unified rule is the engine of 05 (Rcpp since PR \#4, \S\ref{sec:pr4}).\\
+\normalsize Companion scripts: \code{02\_network\_calibrated.R}, \code{05\_unified\_diffusion\_sweep.R},
+\code{06*}, \code{07}, \code{09}}
 
 \begin{document}
 \maketitle
@@ -615,18 +626,176 @@ social proof falls steeply with quality,
 an elasticity of $-1/\gamma$ --- e.g.\ at $\gamma = 0.5$, doubling the product's quality
 divides the required count of similar adopters by four.
 
-So the honest summary of the user's point: it \emph{can} be framed as
-preferences-fixed either way, but the multiplicative interaction is a substantive
-behavioral commitment (quality--social-proof complementarity), not just bookkeeping ---
-and since Tur themselves present the form as requirement-lowering, adopting their exact
-form and citation invites the ``preferences change'' reading unless a paragraph defends
-the other bookkeeping.
+So it \emph{can} be framed as preferences-fixed either way, but the multiplicative
+interaction is a substantive behavioral commitment (quality--social-proof
+complementarity), not just bookkeeping --- and since Tur themselves present the form as
+requirement-lowering, adopting their exact form and citation invites the ``preferences
+change'' reading unless a paragraph defends the other bookkeeping.
+
+\paragraph{The prediction that tells them apart.} The social proof needed to convert $i$
+depends on the \emph{difference} $q_i - \Gamma$ under the linear form and on the
+\emph{ratio} $q_i / \Gamma$ under the $\gamma$-form. Because $q_i$ and $\Gamma$ live on
+a survey-index scale, the distinction is cardinal: in logs the $\gamma$-form is additive
+too (\S\ref{sec:turnesting}). What is scale-free is the shape of the indifference curves
+between quality and social proof: parallel lines (linear) or hyperbolas that blow up as
+$\Gamma \to 0$ ($\gamma$-form). Which composition is right is a question about the
+\emph{mechanism} by which peers matter; \S\ref{sec:mechanisms} reads the literature on
+it.
+
+% ----------------------------------------------------------------------------
+\subsection{Substitutes or complements? What the mechanisms imply}
+\label{sec:mechanisms}
+
+Until 2026-11 the only support for the linear form was the modelling convention of Brock \&
+Durlauf (2001). This subsection reads twelve papers against the question of
+\S\ref{sec:preferences}: does a given adopting neighborhood contribute the same whatever the
+quality (substitutes), or more for better products (complements)? The organizing frame is
+Young (2009, AER 99(5):1899--1924), who sorts diffusion models by \emph{why} prior adoption
+matters: contagion, social influence (conformity) and social learning. The working
+hypothesis was: if social proof is a payoff for conforming it adds (substitutes); if it is
+information about quality it combines multiplicatively (complements), which would suggest
+substitutes for the collective action of the GSS and complements for the technology of the
+ATP. The reading confirms the first half and corrects the second.
+
+\paragraph{Conformity and coordination: every model adds, in shares.}
+\begin{itemize}
+  \item Bass (1969, Mgmt.\ Sci.\ 15(5)), pp.~216--217: the hazard of a first purchase is
+    $p + q F(T)$, ``a linear function of the number of previous buyers''.
+  \item Morris (2000, RES 67(1)), pp.~58, 60; Ellison (1993, Econometrica 61(5)), p.~1049;
+    Blume (1993, GEB 5(3)), p.~391 and Eq.~(2.3): each player sums the payoffs of a
+    $2\times2$ coordination game over her neighbors, so action 1 is a best response when the
+    \emph{proportion} of neighbors playing it exceeds a critical value set by the payoffs.
+    That is the derived threshold \eqref{eq:taustar}, obtained rather than assumed.
+  \item Brock \& Durlauf (2001, RES 68(2)), Eq.~(1), p.~238: private plus social utility
+    plus a shock. The authors adopt the parametric forms because they ``render our model
+    both theoretically and econometrically tractable'' (p.~238), and their
+    ``complementarity'' ($\partial^2 S/\partial\omega_i\partial\bar m = J$, Eq.~3) is between
+    one's action and the others', not between quality and social proof. NDFU is their
+    model at zero temperature with heterogeneous private utility $h_i = \Gamma - q_i$, a
+    case they allow (\S5.3, Eq.~37).
+  \item Soetevent (2006, J.\ Econ.\ Surveys 20(2)), pp.~197, 200: the linear form is
+    \emph{assumed} in the empirical literature, and the behavioral motive is almost never
+    identified. P.~222 proposes, as an unexplored extension, interaction weights that depend
+    on the characteristics of both parties, $\gamma_{ij} = \gamma(x_i, x_j)$: NDFU's
+    similarity gate.
+  \item Young (2009), p.~1905: in the social-influence model adoption depends on
+    popularity, ``rather than on how good or desirable the innovation has proven to be''.
+\end{itemize}
+
+\paragraph{Learning does not yield Tur's product.}
+\begin{itemize}
+  \item Bikhchandani, Hirshleifer \& Welch (1992, JPE 100(5)): agents adopt if
+    $E[V\mid\text{history}] \ge C$ (p.~996). Evidence adds in log-odds --- the difference
+    between adoptions and rejections is a sufficient statistic (n.~23, p.~1009) --- and it
+    \emph{saturates}: once a cascade starts further adoptions are uninformative, whereas
+    under conformity uniformity ``becomes more robust as the number of adopters increases''
+    (p.~1004).
+  \item Young (2009), Eqs.~(13), (16), pp.~1911--1912: under learning from outcomes the
+    evidence $i$ needs is her prior deficit divided by the true margin of quality over her
+    cost. There is complementarity, but agents whose cost exceeds the true quality never
+    adopt; Young analyses only $\{i: \mu > c_i\}$ (p.~1912).
+\end{itemize}
+Tur's $\Gamma\cdot\Acount^{\gamma}$ cannot be learning: it is unbounded in the count, and
+learning can never persuade an agent that a product is better than it is. It is a reduced
+form, with axioms but no mechanism (\S\ref{sec:gammastatus}).
+
+\paragraph{The experiments establish the channel, not the functional form.} Salganik,
+Dodds \& Watts (2006, Science 311) show that a social signal makes success more unequal and
+the quality--success mapping more convex (Fig.~3), but this is an aggregate market-share
+result. Krumme et al.\ (2012, PLoS ONE 7(5)), p.~2, separate sampling (where the social
+signal and appeal \emph{add}) from downloading (driven by quality alone); the product is
+\emph{between} stages, which NDFU already has as its awareness condition. Cai, Chen \& Fang
+(2009, AER 99(3)) find that a top-five ranking raises demand by 13--20\% (Tables 3, 5), more
+so among infrequent customers (Table 8), and cannot separate learning from conformity
+(n.~8, p.~865). Tucker \& Zhang (2011, Mgmt.\ Sci.\ 57(5)) find that popularity helps
+narrow-appeal vendors more, with an additive utility (p.~829). \textbf{None of them estimates
+the sign of $\partial^2 U / \partial\Gamma\,\partial\Ee$ at the individual level.} (Manski
+1993 is cited only through Brock \& Durlauf and Soetevent.)
+
+\paragraph{Where quality lives (our derivation from Morris's game).} In a two-action game
+with each neighbor, the advantage of adopting is always $-a + (a + b)\,\Ee$, with $a$ the loss
+from adopting when the neighbor did not and $b$ the gain when she did. It is linear in the
+share. If quality is value that does not need others, it lowers $a$ and shifts the line:
+\emph{substitutes}. If quality is value realized only jointly (a network good, a protest that
+needs a crowd), it raises $b$ and tilts the line: \emph{complements, bounded and in shares},
+$\Gamma + (\lambda_0 + \varphi\Gamma)\Ee \ge q$, not Tur's form.
+
+\paragraph{Four boxes.}
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.1cm}@{}}
+\toprule
+Box & Why peers matter & Composition ($\partial^2F/\partial\Gamma\partial\Ee$) & Status in NDFU \\
+\midrule
+1. Conformity & legitimacy, safety in numbers, fashion, pure coordination: utility that does not depend on quality & sum, $\Gamma + \lambda\Ee$ (0) & main rule \\
+2. Joint value & the behavior pays only if others adopt too & bounded product in shares, $\Gamma + (\lambda_0 + \varphi\Gamma)\Ee$ ($\varphi$) & robustness, level 1 \\
+3. Learning & peers inform about an uncertain quality & evidence that adds and saturates, capped by true quality & out of scope \\
+4. Tur & none (reduced form) & unbounded product in counts, $\Gamma\cdot\Acount^{\gamma}$ ($\gamma\Acount^{\gamma-1}$) & robustness, level 2 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+The exposure axis of \S\ref{sec:pr4} is a second, independent knob: \emph{how} adopters are
+counted into $\Ee_i$ before being combined with $\Gamma$. Its two arms have natural
+mechanisms too: the independent reinforcement $\theta$ (redundant sources discounted) is the
+logic of box~3, and the cohesive reinforcement $\kappa$ (pairs of adopters who know each
+other) the logic of boxes 1--2.
+
+\paragraph{By survey.} GSS (collective action): legitimacy and safety are box~1, the
+efficacy of a protest that needs a crowd is box~2; the sum is the natural rule. ATP
+(technology): learning (box~3), network effects (box~2) and fashion (box~1); the sum is a
+reasonable simplification, and box~3 is a stated limitation --- technology adoption is the
+textbook case of learning (Ryan and Gross's hybrid corn, the running example of Young 2009).
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\textbf{The defense of the additive rule.} Quality and social
+proof add because peers contribute a utility of their own that does not depend on quality
+(legitimacy, safety, pure coordination). If that utility grows with quality (box~2), the
+result holds. Pure learning (box~3) is outside the scope of the model. Two reasons beyond
+the convention: (i) it is the best-response form of every local-interaction game; (ii) it is
+what the model needs, because everything interesting happens to agents with $q_i > \Gamma$
+who adopt through their peers --- if peers only informed about a common quality, those agents
+would learn not to adopt.}}
+\end{center}
+
+\paragraph{Robustness.} The premium does not depend on the composition. The numbers come from
+the script \code{06f\_rule\_robustness.R} (about 2.5 min), with base exposure and the
+networks, twins, seeds and frozen gate of 05. Premium = mean over the $\Gamma \times h$ plane of
+adoption in the network minus its DP twin, in pp, with 95\% run-bootstrap intervals
+($B = 2000$); random seeding.
+\begin{itemize}
+  \item \textbf{Level 1, box 2, no new simulation.} For each $\Gamma$ the rule
+    $\Gamma + (\lambda_0 + \varphi\Gamma)\Ee \ge q$ \emph{is} the main rule with
+    $\lambda(\Gamma) = \lambda_0 + \varphi\Gamma$: a diagonal path through the
+    $(\Gamma, \lambda)$ grid already swept, interpolated linearly in $\lambda$ and clamped to
+    $[0.5, 1]$ (a pure network good, $\lambda_0 = 0$, is out of range).
+  \item \textbf{Level 2, box 4, new sweep.} $\Gamma\cdot\Acount^{\gamma} \ge q$ is one more
+    vector of node thresholds, $\Ee_i \ge (q_i/\Gamma)^{1/\gamma}/k_i$, so the engine runs it
+    unchanged. Checks: the trick reproduces the main rule cell by cell, the engine equals an
+    independent R cascade by counts in 2016/2016 cells, and six hand-solved cases hold.
+    $\gamma \in \{0.2, 0.25, 1/3, 0.5, 0.75, 1\}$, chosen for degree $\approx 30$ (Tur's values
+    are for degree 4); $\Gamma \in [0.025, 1]$ ($\Gamma = 0$ is undefined).
+\end{itemize}
+\begin{center}
+\small
+\textbf{Level 1}, $\Gamma + \lambda(\Gamma)\,\Ee \ge q$\\[2pt]
+\input{../output/06f_rule_robustness/table_level1.tex}\\[8pt]
+\textbf{Level 2}, $\Gamma\cdot\Acount^{\gamma} \ge q$\\[2pt]
+\input{../output/06f_rule_robustness/table_gamma.tex}
+\end{center}
+\noindent The premium is positive everywhere: 4.6--8.5 pp on the $\lambda(\Gamma)$ paths over
+all four sets and five seedings (lowest lower bound 4.4), and 4.0--8.8 pp under the
+$\gamma$-form (lowest lower bound 3.9; positive in all 24 networks in 118 of 120
+set $\times$ seeding $\times$ $\gamma$ combinations, in 23 in the other two). As with the
+linear rule, a region of the plane favors the DP twin (4--17\% of the cells in GSS $\times2$,
+by $\gamma$) without changing the sign of the average. At low $\gamma$ many agents are immune
+(29\% at $\gamma = 0.2$, 1\% at $\gamma = 1$), and immunity depends on degree
+(\S\ref{sec:immunity}). Not yet run: boxes 2 or 4 crossed with $\theta$ or $\kappa$.
 
 % ----------------------------------------------------------------------------
 \subsection{The Brock--Durlauf microfoundation of the linear form}
 \label{sec:brockdurlauf}
 
-The linear variant is not ad hoc: it is the deterministic limit of the canonical
+The linear variant is the deterministic limit of the canonical
 discrete-choice-with-social-interactions model of Brock \& Durlauf (2001,
 \emph{Review of Economic Studies} 68(2):235--260). In their setup, agent $i$ chooses a
 binary action and derives utility
@@ -644,7 +813,9 @@ $J \ge 0$ is the social-interaction (conformity) coefficient. Three points of co
 
 \begin{enumerate}
   \item \textbf{Additive separability of private and social utility is the standard
-    assumption} of that literature --- exactly the structure of the linear rule. Mapping:
+    assumption} of that literature --- exactly the structure of the linear rule --- adopted
+    for tractability (p.~238); the substantive reasons for it are in
+    \S\ref{sec:mechanisms}. Mapping:
     the private net utility of adopting is $\Gamma - q_i$; the social term is
     $\lambda \Ee_i$, with $\Ee_i$ playing $\bar{m}_i^{e}$ (the adoption rate of the
     reference group) and $\lambda$ playing $J$. Adoption when total utility is
@@ -677,27 +848,27 @@ $J \ge 0$ is the social-interaction (conformity) coefficient. Three points of co
  & \textbf{Linear-fractional} --- $\Gamma + \lambda \Ee_i \ge q_i$ & \textbf{$\gamma$-form (count)} --- $\Gamma \cdot \Acount_i^{\gamma} \ge q_i$ \\
 \midrule
 Answer to Bianchi & \checkmark\ equally bottom-up (threshold derived from measured $q$) & \checkmark\ equally bottom-up \\
-Backing of the coupling & $\lambda$ with Brock--Durlauf microfoundation (additive private $+$ social utility; \S\ref{sec:brockdurlauf}); its magnitude still needs arguing & $\gamma$ with Tur precedent (axioms $+$ concavity), but \textbf{no empirical calibration and no transportability} across degree scales (\S\ref{sec:gammastatus}) \\
+Backing of the coupling & $\lambda$: best-response form of local-interaction games when peers give utility of their own (\S\ref{sec:mechanisms}); Brock--Durlauf microfoundation (\S\ref{sec:brockdurlauf}); its magnitude still needs arguing & $\gamma$ with Tur precedent (axioms $+$ concavity), but \textbf{no empirical calibration and no transportability} across degree scales (\S\ref{sec:gammastatus}) \\
 Nesting in Tur 2024 & only qualitative & \textbf{exact, on any graph} (gate off; $\xi{=}\Gamma$, $u_0{=}q$, same $\gamma$) \\
 Exposure tradition & \checkmark\ Valente/Granovetter fractional; \code{netdiffuseR} native & counts (Centola--Macy/Watts); Valente exposure only as ex-post reporting (\S\ref{sec:exposuretrad}) \\
 Preferences-fixed framing & \checkmark\ clean (``situational utility rises''; Brock--Durlauf) & defensible, but against the grain of the very citation it borrows (\S\ref{sec:preferences}) \\
-Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$) --- strong assumption, but interesting and testable \\
+Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$): conformity, safety, pure coordination (box 1) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$), unbounded; no mechanism yields it, not even learning (box 4, \S\ref{sec:mechanisms}) \\
 Immunity & $q_i > \Gamma + \lambda$, degree-independent (\S\ref{sec:immunity}) & $q_i > \Gamma k_i^{\gamma}$, \textbf{degree-dependent} (averse $+$ poorly connected) --- arguably more realistic \\
-Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & not yet run \\
+Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & \textbf{run as robustness} (\code{06f}): premium 4.0--8.8 pp, positive everywhere (\S\ref{sec:mechanisms}) \\
 Hub behavior & bounded ($\Ee \le 1$) & at high $\gamma$, a saturated hub receives reinforcement $\sim k^{\gamma}$ --- may over-fire on dense networks \\
 \bottomrule
 \end{tabularx}
 \end{center}
 
-\paragraph{Recommendation.} Use the \textbf{linear-fractional variant as the primary
-operationalization} (run on the full design, Valente-compatible, microeconomically
-clean, $\lambda$ swept rather than calibrated), and the \textbf{$\gamma$-form as the
-formal bridge to Tur and as a robustness check}: present the exact nesting
-(\S\ref{sec:turnesting}) in the text, and run a short $\gamma$ sweep --- never borrowing
-Tur's numbers --- to show that the conclusions do not hinge on the
-additive-vs-multiplicative composition. This keeps the best of both: the tradition of
-the linear form, and the exact nesting as an argument, without inheriting $\gamma$'s
-transportability trap.
+\paragraph{Recommendation (updated 2026-11-10).} Use the \textbf{linear-fractional
+variant as the primary operationalization}, defended by mechanism, not by convention
+(\S\ref{sec:mechanisms}): peers contribute a utility of their own that does not depend on
+quality; if it grows with quality (box 2) the result holds; pure learning (box 3) is outside
+the scope of the model. Keep the \textbf{$\gamma$-form as the formal bridge to Tur and as a
+robustness check}: the exact nesting (\S\ref{sec:turnesting}) in the text, and the
+$\gamma$ sweep of \code{06f} --- with $\gamma$ chosen for our degree scale, never Tur's
+numbers --- in the supplement, next to the $\lambda(\Gamma)$ paths. Both done: the
+conclusions do not hinge on the additive-vs-multiplicative composition.
 
 % ============================================================================
 \section{Side-by-side with the current model and Tur}
@@ -744,13 +915,19 @@ Main risk & Bianchi critique & distance-blind & results depend on the free $\lam
     bug), so it compared two invalid surfaces, and the study does not need a calibrated
     $\lambda$. Neither $\lambda \approx 0.7$ nor $-0.850$ should be cited (retired
     2026-11-02).
-  \item Still pending: the mirror $\gamma$-form sweep (count threshold
-    $\lceil (q_i/\Gamma)^{1/\gamma} \rceil$ on the same machinery) and the
-    ATP/innovation system.
+  \item The mirror $\gamma$-form sweep (count threshold $(q_i/\Gamma)^{1/\gamma}$ on the
+    same machinery) was run on 2026-11-10 (\code{06f}, \S\ref{sec:mechanisms}). The
+    ATP/innovation system is swept since PR \#4 (\S\ref{sec:pr4}).
 \end{itemize}
 
 \subsection{The structural premium survives the unified rule}
 \label{sec:premiumresult}
+
+\noindent\fbox{\parbox{0.97\linewidth}{\small \textbf{Record of the previous design.} This
+subsection reports the 96 ERGM networks of 02 (the same 1000 agents) with the
+\emph{annealed} gate. Since PR \#4 the sweep uses calibrated networks (x2 main, x1) and the
+frozen gate: see \S\ref{sec:pr4}, which also compares the two.}}
+\medskip
 
 \begin{sloppypar}
 Run by \code{scripts/05\_unified\_diffusion\_sweep.R}: GSS vs.\ genuine
@@ -1023,6 +1200,461 @@ seeded $0.40 \times$ the degree of the primary, so central is the like-for-like 
 \end{itemize}
 
 % ============================================================================
+\section{PR \#4: calibrated networks, frozen gate and the exposure axis}
+\label{sec:pr4}
+
+The results of \S\ref{sec:premiumresult} were computed on the 96 ERGM networks of
+\code{02\_GSS\_network\_ergm.R} with the annealed gate. Branch \code{rcpp-engine} (PR \#4,
+stacked on PR \#3) changes three things and keeps the rest (the rule, $q = $
+\code{mur\_score}, the $41 \times 25$ grid, $\lambda \in \{0.5, \dots, 1.0\}$, the five
+seeding strategies and the common seed budget):
+\begin{enumerate}
+  \item \textbf{the networks}: calibrated by race to the GSS 2004 ego networks (level x1),
+    then rewired to twice the triangles of every node (level x2, the main networks);
+  \item \textbf{the gate}: frozen (one coin per tie and simulation) instead of annealed;
+  \item \textbf{the exposure}: the main text keeps the base exposure $E_i = a_i/d_i$; a
+    robustness axis with one formula and two dials goes to the supplement.
+\end{enumerate}
+The same recipe builds networks for the GSS 2004 sample (collective action) and for the
+ATP 2014 sample (new products). ATP has no ego networks, so its networks use the GSS 2004
+targets, as the ERGM of 02 used the GSS-based coefficients of Smith et al.\ (2014).
+
+% ----------------------------------------------------------------------------
+\subsection{Networks: calibrated by race, then twice the triangles of every node}
+\label{sec:networks}
+
+\paragraph{What was wrong with the ERGM networks.} The ERGM of 02 is dyad independent with
+one race coefficient and no degree term. Its degree by race is an artifact (whites 33.9,
+blacks 16.8, Hispanics 10.0, Asians 7.5 contacts, against GSS 2004 ratios of confidants
+1.09\,:\,0.68\,:\,0.90\,:\,0.84), it has almost no closure (transitivity 0.065, about twice the
+density), and its 100 networks share the same 1000 agents.
+
+\paragraph{Level x1} (\code{scripts/02\_network\_calibrated.R}). For every network the 1000
+nodes are resampled with replacement from the survey's complete cases. Ties are independent
+coins with
+\begin{equation*}
+  \operatorname{logit} p_{ij} = \delta_{r(i)} + \delta_{r(j)} + \gamma_{r}\,\mathbf{1}[r(i) = r(j) = r]
+  + \beta^{\top} x_{ij},
+\end{equation*}
+where $\beta^{\top} x_{ij}$ holds the sex, religion, age and education terms of Smith et al.\
+(2014), the activity $\delta$ (five groups) and the homophily $\gamma$ (White, Black,
+Hispanic, Asian) are solved by damped Newton so that the \emph{expected} degree sum and the
+expected within-group ties of each group equal the GSS 2004 targets for the network's own
+nodes: mean degree 30 (Boase et al.\ 2006) times the relative number of confidants, and
+the share of same-race confidants. This moment matching is the maximum likelihood estimate
+of the dyad-independent model (what \code{ergm.ego} estimates for
+\code{nodefactor} $+$ \code{nodematch(race, diff = TRUE)}); it converges in 9--11 iterations
+to a relative gap below $10^{-6}$. ``Other'' (18 GSS respondents; 1.1\% of the GSS nodes,
+2.4\% of the ATP nodes) is not calibrated: its degree target ($0.49$ $[0.25, 0.79]$ of the
+mean) is too noisy and homophily inside a residual category is not meaningful, so it gets
+relative degree 1 and the common race coefficient. All four calibrated groups reproduce
+their targets inside the 95\% bootstrap intervals (\code{02c\_network\_calibrated\_tests.R};
+in ATP the ratios between groups are those of the GSS, while degree relative to the ATP
+mean shifts with the composition).
+
+\paragraph{Level x2.} Degree-preserving swaps $(a,b),(c,d) \to (a,d),(c,b)$ that keep the
+race mixing matrix and the numbers of same-sex and same-religion ties \emph{exactly} and
+the total age and education differences within 1\%, accepted (Metropolis) toward twice the
+triangles of \emph{every} node of x1, $\sum_i |t_i - 2\,t_i^{x1}|$, and then $5 \times
+10^7$ more proposals that keep that error small while the network mixes
+(\code{02\_closure\_rewire.cpp}, \code{rewire\_closure\_node()}; a few seconds per network). The
+per-node error ends at 1.0\%. x1 and x2 have the same nodes, degrees and mixing; they
+differ only in closure:
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{GSS 2004 nodes} & \multicolumn{2}{c}{ATP 2014 nodes} \\
+ & x1 & x2 & x1 & x2 \\
+\midrule
+transitivity & 0.075 & 0.149 & 0.070 & 0.140 \\
+local clustering, lowest degree tercile & 0.080 & 0.149 & 0.091 & 0.172 \\
+local clustering, middle tercile & 0.080 & 0.159 & 0.075 & 0.149 \\
+local clustering, highest tercile & 0.072 & 0.144 & 0.064 & 0.128 \\
+degree assortativity & 0.31 & 0.39 & 0.26 & 0.32 \\
+mean distance & 2.49 & 2.54 & 2.46 & 2.52 \\
+same race (share of ties) & \multicolumn{2}{c}{0.893} & \multicolumn{2}{c}{0.887} \\
+same sex & \multicolumn{2}{c}{0.564} & \multicolumn{2}{c}{0.555} \\
+same religion & \multicolumn{2}{c}{0.688} & \multicolumn{2}{c}{0.597} \\
+age difference (years) & 11.72 & 11.83 & 12.18 & 12.30 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Means over 24 networks; degree 30.0 on average (sd 12.5 GSS, 10.7 ATP; maximum
+67 and 65). The age and education constraints bind: both totals end about 1\% higher.
+x2 is not a draw from a probability model. It is the main set because real personal
+networks are clustered (81\% of the pairs of GSS 2004 confidants know each other) and a
+graph of independent ties has almost no closure; the factor 2 is a choice, and it costs
+the premium a little (below), so it does not inflate the result.
+
+\paragraph{Why every node, not the total.} The first version of the rewiring targeted the
+total number of triangles (now level x2g, \code{--closure-mode=global}). The cheapest
+triangles are among high-degree nodes, so x2g concentrated them there: local clustering
+0.08 in the lowest degree quintile and 0.21 in the highest, degree assortativity
+$0.33 \to 0.46$. The held-out GSS 2004 ego networks reject that profile
+(\S\ref{sec:validation}): closure among confidants is flat to falling with the size of the
+ego network, while in x2g it rises by 16--28 points. Doubling every node's triangles keeps
+the clustering--degree profile of x1 and reproduces the observed one.
+
+\paragraph{Exploratory alternatives} (\code{playground/PR4-rcpp-engine/generacion\_de\_redes.pdf}).
+An ERGM with GWESP could not be fitted with the race calibration: MCMLE did not converge,
+stochastic approximation reached the GWESP target but destabilized the small groups
+(Hispanics $+36$--$41\%$ off their targets; Asians bistable around a clique of 27 nodes),
+and $\times 3$ degenerated with every method tried. \code{ergm.ego} with the GSS 2004
+alter--alter ties did not converge either. The constrained rewiring keeps everything
+calibrated exactly and is cheap; what it gives up is a probability model for x2.
+
+% ----------------------------------------------------------------------------
+\subsection{Held-out validation}
+\label{sec:validation}
+
+\code{scripts/09\_network\_validation.R} splits the 1{,}424 respondents of the GSS 2004
+network module in two halves stratified by race, computes the targets from half A, builds
+24 networks per level from half-B nodes, and compares them with the confidants of half B
+(bootstrap of respondents and networks, $B = 1000$). Table and text for the paper in
+\code{paper-NDFU/sections/}\allowbreak\code{network\_validation.tex}; figure in
+\code{plots/09\_network\_validation/}. In short:
+\begin{itemize}
+  \item \textbf{Homophily.} Out of sample, relative degree and same-race share fall inside
+    the intervals for every group (all egos: 0.896 vs.\ 0.895 $[0.874, 0.914]$). Not
+    targeted: same religion $-3\%$ and age difference $+6\%$ (inside); same sex $-5\%$
+    $[-9, -1]$ and education difference $+9\%$ $[+2, +16]$ (small, outside). Random sets of
+    $k$ contacts are 30\% more diverse in race than real confidants: the generator spreads
+    cross-race ties evenly over egos.
+  \item \textbf{Closure.} 80.5\% of half-B confidant pairs know each other, 42.8\% are
+    especially close. Confidants are not a random draw from 30 contacts (random $k$: 8\%
+    in x1, 16\% in x2). Taking the $k$ most embedded contacts (most common neighbours with
+    the ego), x2 falls inside that band (63\%) and x1 at its lower edge (41\%); taking the
+    $k$ nearest in Gower distance, 38\% and 25\%. x2 fits closure better than x1.
+  \item \textbf{Profile.} Closure among confidants is flat to falling with the number of
+    confidants ($5+$ minus $2$--$3$: $-4.7$ $[-11.7, +1.9]$ points); x1 and x2 agree under
+    all three rules, x2g does not ($+16$ to $+28$; every interval excludes zero).
+  \item \textbf{Not reproduced.} In the networks, closure follows homophily: the most
+    embedded contacts are 70--80\% less diverse in race and religion than real confidants.
+\end{itemize}
+Caveat: the sex, religion, age and education coefficients come from Smith et al.\ (2014),
+who used the GSS 1985 and 2004 confidants, so those features are not independent of
+half B; the test is that the coefficients, the race calibration and 30 contacts together
+give the confidant-level shares.
+
+% ----------------------------------------------------------------------------
+\subsection{Frozen gate and the engine}
+\label{sec:frozengate}
+
+\paragraph{The gate.} The pass probability of a tie is still
+$w(d_{ij}) = \sigma((h - d_{ij})/0.02)$. Under the \emph{annealed} gate of
+\S\ref{sec:premiumresult} every frontier tie drew a new coin at every step, so a tie with
+small $w$ still passed now and then: with enough steps the gate only delayed adoption, and
+the result depended on the step limit (200) and the patience (25); with 2000/400 the
+premium fell 7--10\%. The \emph{frozen} gate draws one coin per tie and simulation, shared
+by both directions: a tie is open or closed for the whole run, so the gate decides who
+counts. After the draw the cascade is deterministic and stops at a fixed point (about 6.5
+steps on average); no step limit or patience is needed. This is the percolation reading of
+a stochastic threshold, in which thresholds count sources, not exposures (Centola \& Macy
+2007, p.~707 and n.~20).
+
+\paragraph{The engine} (\code{05\_unified\_engine.\{cpp,R\}}, Rcpp).
+\code{run\_exposure\_grid()} runs the whole (MSP, IUL) grid of one network, topology,
+$\lambda$ and exposure condition in one call (0.13--0.15\,ms per simulation on one core).
+\code{05\_engine\_check.R}: (1) the annealed engine reproduces the former R loop of 05,
+(2) the frozen engine an independent R cascade, (3) the sweep engine the frozen
+single-simulation engine, each in 2{,}376 of 2{,}376 cells; (4) the exposure formula
+equals hand values on a star ego; (5) every exposure condition equals an independent R
+implementation cell by cell. \code{05\_netdiffuser\_reference.R}: netdiffuseR 1.26.0
+(\code{rdiffnet} on the open ties, with an adoption mechanism that divides by the full
+degree) gives the same number of adopters as the engine in 360 of 360 cells (about 200\,ms
+against 0.15\,ms per simulation).
+
+\paragraph{The DP twin} is rewired from the x2 network ($20m$ swaps, seed $500000 + k$)
+and is the \emph{same} twin for x1 and x2, which have the same degrees: x2 $-$ x1 is a
+paired comparison in which only the closure of the network changes. The seed cluster
+($0.40 \times$ maximum degree, primary shared by the network and its twin for random,
+central and marginal) and the simulation seeds are shared by x1 and x2 and by every
+exposure condition. In the CSV files the network is \code{topology = "NET"} (it was
+``GSS'' until 2026-11, also for ATP).
+
+% ----------------------------------------------------------------------------
+\subsection{The exposure axis (supplementary material)}
+\label{sec:exposureaxis}
+
+The main text uses the base exposure $E_i = a_i/d_i$ (adopting contacts behind open ties
+over all contacts). The supplement varies how adopting contacts add up, with one formula
+and two dials (``C1'' of \code{playground/PR3-similarity-vs-diversity/expresion\_unica.pdf}):
+\begin{equation*}
+  E_i = \frac{\sum_g A_\theta(a_{ig}) + 2\kappa\, e^{a}_{i}}{\sum_g A_\theta(n_{ig}) + 2\kappa\, e^{N}_{i}},
+  \qquad A_\theta(x) = \frac{x}{1 + \theta (x - 1)},
+\end{equation*}
+where $g$ runs over the circles of $i$'s contacts (race $\times$ religion cells), $a_{ig}$
+and $n_{ig}$ are the adopting (behind open ties) and all contacts of $i$ in circle $g$, and
+$e^{a}_{i}$, $e^{N}_{i}$ the ties among adopting contacts and among all contacts of $i$.
+Provisional names after Traag (2016): \textbf{independent reinforcement} $\theta$ (Kish's
+discount of redundant sources in a circle) and \textbf{cohesive reinforcement} $\kappa$ (a
+bonus for every pair of adopting contacts who know each other). $\theta = \kappa = 0$ is
+the base. Both arms sit on one signed axis, $c$ = (value of the second adopter) $- 1$:
+$c = -2\theta/(1+\theta)$ for $\theta$, $c = 2\kappa$ for $\kappa$. The sweep uses
+$c = -1, -0.5$ ($\theta = 1, 1/3$), $0$, $+0.5, +1$ ($\kappa = 0.25, 0.5$), and every arm
+level has a \textbf{permuted control} (same circle sizes, or the same number of pairs per
+ego, with random members): real $-$ permuted is the part of the effect that comes from
+\emph{where} the circles and pairs are. Results: \code{scripts/06c\_exposure\_axis.R}.
+
+% ----------------------------------------------------------------------------
+\subsection{Results of the relaunch}
+\label{sec:pr4results}
+
+\code{05\_unified\_diffusion\_sweep\_main.R} (2026-11-05): GSS and ATP, levels x2 and x1,
+five seeding strategies, nine exposure conditions, six $\lambda$, the $41 \times 25$ grid
+and 24 networks per set: $2 \times 2 \times 5 \times 2{,}656{,}800 = 53.1$ million
+simulations in about 25 minutes on 8 cores; then 06, 06b ($B = 1000$), 06c, 06d and 07.
+All intervals are 95\% run-bootstrap intervals (a run is a network, its twin and the
+primary seed draw; 24 per set). The tables below were generated from the CSV files.
+
+\paragraph{The premium on the main networks} (x2, base exposure, random seeding):
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+$\lambda$ & \hd{$\beta_{\text{DP}}$ (odds)}{te $12 \times 12$} & odds drop
+  & \hd{$\bar\Phi_{\text{net}} - \bar\Phi_{\text{DP}}$}{(pp)}
+  & \hd{\% of plane}{with gap $> 0.10$} & \hd{$MSP_c$ shift}{DP $-$ net} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{GSS 2004 nodes (GSS\_x2)}} \\
+0.5 & \ci{-0.644}{-0.665}{-0.624} & $-47\%$ & \ci{5.02}{4.84}{5.18} & \ci{22.7}{22.0}{24.1} & \ci{0.100}{0.093}{0.103} \\
+0.6 & \ci{-0.792}{-0.817}{-0.772} & $-55\%$ & \ci{5.62}{5.46}{5.78} & \ci{24.4}{23.8}{25.2} & \ci{0.102}{0.095}{0.106} \\
+0.7 & \ci{-0.975}{-1.007}{-0.948} & $-62\%$ & \ci{6.39}{6.21}{6.56} & \ci{26.1}{24.6}{26.8} & \ci{0.101}{0.096}{0.108} \\
+0.8 & \ci{-1.130}{-1.164}{-1.102} & $-68\%$ & \ci{7.00}{6.78}{7.20} & \ci{26.8}{25.3}{27.3} & \ci{0.102}{0.095}{0.106} \\
+0.9 & \ci{-1.256}{-1.284}{-1.228} & $-72\%$ & \ci{7.50}{7.29}{7.71} & \ci{27.4}{26.1}{28.1} & \ci{0.099}{0.095}{0.105} \\
+1.0 & \ci{-1.374}{-1.407}{-1.342} & $-75\%$ & \ci{8.08}{7.84}{8.34} & \ci{28.8}{27.3}{29.3} & \ci{0.102}{0.095}{0.106} \\
+\midrule
+$\lambda$-mean & \ci{-1.028}{-1.054}{-1.006} & $-64\%$ & \ci{6.60}{6.43}{6.76} & \ci{26.0}{25.2}{26.6} & \ci{0.101}{0.096}{0.104} \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{ATP 2014 nodes (ATP\_x2)}} \\
+0.5 & \ci{-0.588}{-0.623}{-0.551} & $-44\%$ & \ci{5.49}{5.08}{5.86} & \ci{21.0}{19.9}{22.1} & \ci{0.090}{0.075}{0.097} \\
+0.6 & \ci{-0.706}{-0.745}{-0.665} & $-51\%$ & \ci{6.01}{5.60}{6.39} & \ci{21.9}{20.9}{23.2} & \ci{0.090}{0.075}{0.100} \\
+0.7 & \ci{-0.837}{-0.884}{-0.788} & $-57\%$ & \ci{6.50}{6.07}{6.91} & \ci{23.3}{22.0}{24.5} & \ci{0.093}{0.080}{0.099} \\
+0.8 & \ci{-0.991}{-1.042}{-0.937} & $-63\%$ & \ci{7.10}{6.67}{7.52} & \ci{24.5}{23.4}{25.8} & \ci{0.094}{0.081}{0.102} \\
+0.9 & \ci{-1.138}{-1.198}{-1.080} & $-68\%$ & \ci{7.61}{7.17}{8.02} & \ci{25.6}{24.5}{26.7} & \ci{0.091}{0.082}{0.102} \\
+1.0 & \ci{-1.287}{-1.354}{-1.222} & $-72\%$ & \ci{8.06}{7.61}{8.49} & \ci{26.3}{24.7}{27.2} & \ci{0.097}{0.086}{0.109} \\
+\midrule
+$\lambda$-mean & \ci{-0.924}{-0.973}{-0.874} & $-60\%$ & \ci{6.80}{6.37}{7.19} & \ci{23.8}{22.7}{24.8} & \ci{0.093}{0.080}{0.101} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Reading.} \textbf{The premium survives the new networks and the frozen gate in both
+samples, at every $\lambda$, and no interval comes near zero.} Rewiring the ties of x2 lowers
+the odds of adoption by 44--75\% (GSS: $\lambda$-mean $\beta_{\text{DP}} = -1.028$
+$[-1.054, -1.006]$, probability scale 6.60 pp $[6.43, 6.76]$; ATP: $-0.924$
+$[-0.973, -0.874]$ and 6.80 pp $[6.37, 7.19]$). It grows with $\lambda$ as before (GSS
+5.0 $\to$ 8.1 pp, ATP 5.5 $\to$ 8.1 pp). The rational channel is flat in $\lambda$ (2.48 pp in
+GSS, 2.64 in ATP) and the social channel carries the growth (2.54 $\to$ 5.61 and
+2.82 $\to$ 5.42 pp). DP needs about 0.1 more openness to tip ($MSP_c$ 0.14 vs.\ 0.24 in GSS,
+0.20 vs.\ 0.29 in ATP; ratios 1.73 and 1.47). The premium still needs the gate: with the gate
+nearly open ($h \ge 0.75$) the gap is $-0.5$ to $2.7$ pp in GSS and 0.2 to 1.1 pp in ATP, so 91--100\%
+of the plane mean comes from the part where the gate selects.
+
+\paragraph{Against the previous design} (96 ERGM networks, annealed gate,
+\S\ref{sec:premiumresult}; GSS, random seeding, $\lambda$-mean). The premium is larger:
+6.60 pp $[6.43, 6.76]$ against 5.46 $[5.30, 5.57]$, $\beta_{\text{DP}}$ $-1.028$ against
+$-0.851$; the band covers 26.0\% of the plane against 20.4\%, and the tipping shift is
+0.101 against 0.070. The exploratory runs (\code{playground/PR4-rcpp-engine},
+$\lambda = 0.7$) attribute the increase to the frozen gate (about $+1$ pp: a closed tie never
+opens, so both topologies need more openness and the gap widens where the gate selects)
+and to the race calibration (about $+0.5$ pp), partly undone by closure (about $-0.5$ pp,
+below). The intervals for random and marginal seeding are five times narrower than before
+(width of $\beta_{\text{DP}}$ 0.05 against 0.27), probably because small groups are no
+longer isolated, so where the primary seed lands matters less. The shape is unchanged: an
+L-shaped band along the tipping frontier, a flat rational channel, a stable tipping shift.
+
+\paragraph{Seeding strategies} ($\lambda$-mean):
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & \multicolumn{2}{c}{GSS\_x2} & \multicolumn{2}{c}{ATP\_x2} \\
+strategy & $\beta_{\text{DP}}$ & gap (pp) & $\beta_{\text{DP}}$ & gap (pp) \\
+\midrule
+central & \ci{-1.022}{-1.054}{-0.988} & \ci{6.66}{6.45}{6.86} & \ci{-0.942}{-0.969}{-0.918} & \ci{6.97}{6.79}{7.16} \\
+closeness & \ci{-1.060}{-1.095}{-1.026} & \ci{6.87}{6.69}{7.07} & \ci{-0.970}{-1.000}{-0.943} & \ci{7.23}{7.04}{7.43} \\
+eigen & \ci{-0.979}{-1.008}{-0.950} & \ci{6.42}{6.25}{6.58} & \ci{-0.923}{-0.957}{-0.893} & \ci{6.85}{6.63}{7.07} \\
+random & \ci{-1.028}{-1.054}{-1.006} & \ci{6.60}{6.43}{6.76} & \ci{-0.924}{-0.973}{-0.874} & \ci{6.80}{6.37}{7.19} \\
+marginal & \ci{-1.048}{-1.099}{-0.980} & \ci{6.57}{6.11}{6.91} & \ci{-0.973}{-1.005}{-0.942} & \ci{7.24}{7.02}{7.45} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Reading.} With the calibrated networks the hub strategies no longer beat random
+seeding: central $-$ random is 0.06 pp $[-0.19, 0.33]$ in GSS and 0.18 $[-0.22, 0.60]$ in ATP
+(0.15 $[0.05, 0.31]$ with the ERGM networks). Closeness has the largest premium in both
+samples (closeness $-$ random: 0.27 $[0.07, 0.52]$ and 0.44 $[0.00, 0.90]$), eigen the
+smallest in GSS (eigen $-$ random $-0.18$ $[-0.38, 0.04]$), and random and marginal
+coincide. Every difference between strategies is below 0.5 pp, against a premium of
+6.4--7.2 pp: the seeding strategy is a second-order factor.
+
+\paragraph{What closure does: x2 vs.\ x1} (\code{06d\_closure\_contrast.R}; the same DP
+twin, so the difference is paired; $\lambda$-mean, pp; last column: the same difference over
+the selective half of the plane, $h \le 0.5$):
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+ & strategy & premium x2 & premium x1 & x2 $-$ x1 & relative & x2 $-$ x1, $h \le 0.5$ \\
+\midrule
+GSS & central & \ci{6.66}{6.46}{6.86} & \ci{7.44}{7.29}{7.60} & \ci{-0.78}{-1.01}{-0.56} & $-10.5\%$ & \ci{-1.39}{-1.79}{-0.98} \\
+GSS & closeness & \ci{6.87}{6.69}{7.06} & \ci{7.55}{7.36}{7.73} & \ci{-0.67}{-0.85}{-0.51} & $-8.9\%$ & \ci{-1.22}{-1.56}{-0.88} \\
+GSS & eigen & \ci{6.42}{6.25}{6.59} & \ci{7.23}{7.08}{7.37} & \ci{-0.81}{-0.99}{-0.65} & $-11.2\%$ & \ci{-1.62}{-1.91}{-1.34} \\
+GSS & random & \ci{6.60}{6.43}{6.78} & \ci{7.14}{6.88}{7.36} & \ci{-0.53}{-0.73}{-0.33} & $-7.5\%$ & \ci{-0.81}{-1.14}{-0.48} \\
+GSS & marginal & \ci{6.57}{6.13}{6.93} & \ci{7.19}{6.96}{7.43} & \ci{-0.62}{-1.02}{-0.28} & $-8.6\%$ & \ci{-1.04}{-1.79}{-0.43} \\
+\midrule
+ATP & central & \ci{6.97}{6.77}{7.15} & \ci{7.66}{7.53}{7.79} & \ci{-0.68}{-0.87}{-0.50} & $-8.9\%$ & \ci{-1.29}{-1.59}{-0.98} \\
+ATP & closeness & \ci{7.23}{7.04}{7.42} & \ci{7.73}{7.57}{7.88} & \ci{-0.50}{-0.66}{-0.35} & $-6.5\%$ & \ci{-0.89}{-1.18}{-0.61} \\
+ATP & eigen & \ci{6.85}{6.62}{7.06} & \ci{7.56}{7.43}{7.69} & \ci{-0.71}{-0.89}{-0.53} & $-9.4\%$ & \ci{-1.30}{-1.61}{-1.00} \\
+ATP & random & \ci{6.80}{6.38}{7.18} & \ci{7.15}{6.72}{7.52} & \ci{-0.35}{-0.72}{0.03} & $-4.9\%$ & \ci{-0.57}{-1.25}{0.14} \\
+ATP & marginal & \ci{7.24}{7.02}{7.45} & \ci{7.38}{7.07}{7.64} & \ci{-0.14}{-0.34}{0.05} & $-1.9\%$ & \ci{-0.24}{-0.58}{0.10} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Reading.} \textbf{Closure lowers the premium, in both samples and every
+strategy}: by 7--11\% of the x1 premium in GSS ($-0.53$ pp $[-0.73, -0.33]$ with random
+seeding, $-0.67$ to $-0.81$ with the hub strategies) and by 2--9\% in ATP, where the
+intervals for random and marginal seeding touch zero. The effect is 1.5--2 times larger in
+the selective half of the plane, where the gate filters. Choosing x2 over x1 makes the main
+result smaller, not larger. This is the direction of the GWESP draws of the exploration
+(more clustering, smaller premium): the premium comes from the homophily that x1 and x2
+share, not from closure.
+
+\paragraph{The exposure axis} (\code{06c\_exposure\_axis.R}; random seeding; premium in pp;
+the permuted column is the premium of the arm's permuted control at $\lambda = 0.7$, and the
+last one real $-$ permuted at $\lambda = 0.7$):
+
+\begin{center}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+condition & $\lambda = 0.5$ & $\lambda = 0.7$ & $\lambda = 1.0$ & permuted, 0.7 & real $-$ permuted, 0.7 \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{GSS\_x2}} \\
+$\theta = 1$ ($c = -1.0$) & \ci{7.01}{6.75}{7.25} & \ci{8.56}{8.27}{8.83} & \ci{8.33}{8.06}{8.58} & 8.71 & -0.16 $[-0.36, 0.06]$ \\
+$\theta = 1/3$ ($c = -0.5$) & \ci{7.05}{6.84}{7.24} & \ci{8.72}{8.48}{8.93} & \ci{11.54}{11.21}{11.88} & 9.59 & -0.87 $[-1.07, -0.67]$ \\
+base ($c = +0.0$) & \ci{5.02}{4.85}{5.19} & \ci{6.39}{6.21}{6.58} & \ci{8.08}{7.82}{8.35} & -- & -- \\
+$\kappa = 0.25$ ($c = +0.5$) & \ci{3.00}{2.83}{3.16} & \ci{3.18}{3.01}{3.35} & \ci{3.85}{3.65}{4.05} & 2.84 & 0.34 $[0.22, 0.47]$ \\
+$\kappa = 0.5$ ($c = +1.0$) & \ci{2.79}{2.62}{2.95} & \ci{2.91}{2.75}{3.08} & \ci{3.39}{3.19}{3.57} & 2.51 & 0.41 $[0.32, 0.50]$ \\
+\midrule
+\multicolumn{6}{@{}l}{\emph{ATP\_x2}} \\
+$\theta = 1$ ($c = -1.0$) & \ci{7.25}{6.85}{7.62} & \ci{8.56}{8.14}{8.94} & \ci{8.86}{8.46}{9.23} & 10.31 & -1.75 $[-1.92, -1.58]$ \\
+$\theta = 1/3$ ($c = -0.5$) & \ci{6.70}{6.28}{7.08} & \ci{8.17}{7.74}{8.56} & \ci{9.50}{9.08}{9.88} & 9.55 & -1.37 $[-1.51, -1.24]$ \\
+base ($c = +0.0$) & \ci{5.49}{5.10}{5.84} & \ci{6.50}{6.07}{6.90} & \ci{8.06}{7.62}{8.48} & -- & -- \\
+$\kappa = 0.25$ ($c = +0.5$) & \ci{3.57}{3.19}{3.91} & \ci{3.74}{3.35}{4.09} & \ci{4.17}{3.75}{4.56} & 3.25 & 0.49 $[0.41, 0.57]$ \\
+$\kappa = 0.5$ ($c = +1.0$) & \ci{3.35}{2.97}{3.70} & \ci{3.38}{2.99}{3.73} & \ci{3.74}{3.33}{4.14} & 2.76 & 0.61 $[0.51, 0.70]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Reading.} \textbf{The premium never changes sign along the axis}: 1.9 to 12.2 pp in
+GSS and 2.6 to 11.7 pp in ATP over every seeding, $\lambda$ and condition (0 of 270 negative
+in each). Its size does depend on how adopting contacts add up. Independent reinforcement
+($c < 0$) mostly raises it ($-0.9$ to $+4.0$ pp against the base in GSS, $+0.5$ to $+2.1$ in
+ATP) and cohesive reinforcement ($c > 0$) lowers it to 2.4--4.6 pp. But the permuted controls
+move it as much or more: with $\theta$, real $-$ permuted is $-2.0$ to $+0.5$ pp in GSS and
+$-2.0$ to $-1.0$ pp in ATP; with $\kappa$, $+0.3$ to $+1.1$ pp (ranges over every seeding and
+$\lambda$). The change comes from how many circles or pairs a set of contacts has, not from
+where they are in the network. The main text keeps the base exposure; this table goes to the
+supplement.
+
+\paragraph{The reverse-premium corner} (robust DP wins: one-sided max-$T$ per strategy
+$\times$ $\lambda$ panel, familywise 5\%, as in \S\ref{sec:premiumresult}). \textbf{GSS}: robust
+at $\lambda = 0.5$--$0.7$ in all five strategies (39--44, 32--44 and 8--18 robust corner cells),
+and deeper than with the ERGM networks: DP ahead by up to 11--15 pp, against 3--7 pp before.
+It is gone from $\lambda = 0.8$ (before: detectable but negligible there). \textbf{ATP}: only
+small robust cells ($\le 0.3$ pp) at $\lambda \le 0.7$, although single cells reach 3--5 pp. The
+corner stays a weak-coupling feature and, with these networks, a GSS one. A plausible reason
+for the deeper corner is the frozen gate (not isolated here): a tie that is closed never opens, so where the gate is wide open and agents are
+averse, homophily keeps the resistant among the resistant (the mechanism of
+\S\ref{sec:premiumresult}).
+
+\paragraph{Why the corner is a GSS feature: consolidation} \label{sec:consolidation}
+(\code{scripts/06e\_consolidation.R}; x2, base exposure, random seeding, the seeds of 05).
+In GSS, aversion is tied to the Blau attributes: age, sex, education, race and religion explain
+19\% of the variance of $q$, and $q$ is assortative over ties (0.076). In ATP they explain 2.7\%
+(assortativity 0.022; $q$ also has only 7 values, 10\% of nodes at $q = 1$). Two manipulations
+separate association from distribution: permuting $q$ across nodes (same distribution, no
+association) and mapping $q$ by rank onto the other survey's distribution (same association):
+
+\begin{center}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+ & & \multicolumn{3}{c}{robust corner cells (DP ahead $> 2$ pp, $z > 3.5$)} \\
+survey & $q$ & $\lambda = 0.5$ & $0.6$ & $0.7$ \\
+\midrule
+GSS & real & 33 & 26 & 10 \\
+GSS & permuted & 0 & 0 & 0 \\
+GSS & ATP distribution, same ranks & 18 & 35 & 27 \\
+ATP & real & 0 & 0 & 0 \\
+ATP & GSS distribution, same ranks & 11 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Permuting $q$ removes the GSS corner; changing its distribution does not. The corner is
+a consolidation effect: when aversion is socially patterned, homophily seats the averse among the
+averse, and where the gate is open and $\lambda$ low nobody reaches them; the DP twin mixes them
+with adopters. In ATP aversion is barely patterned, so there is no trap. The premium itself
+survives permuting $q$ (GSS 5.2, 6.2, 6.9 pp at $\lambda = 0.5, 0.7, 1.0$, against 5.0, 6.4, 8.1
+with the real $q$; ATP 5.2, 6.2, 7.4 against 5.5, 6.5, 8.1): it comes from homophily through the
+gate, and consolidation only shifts it (down at low $\lambda$, up at high $\lambda$). The same
+three checks (association, corner $2 \times 2$, premium with permuted $q$) are to be run on every
+new survey (ELSOC, GSS 2014).
+
+\paragraph{What breaking the network destroys} (\code{07\_structural\_diagnosis.R}; means over
+24 networks, GSS; ATP within a few percent). From x2 to x1 only closure changes: global and
+local clustering halve ($0.149 \to 0.075$ and $0.151 \to 0.077$), degree assortativity falls
+from 0.39 to 0.31, modularity from 0.40 to 0.37, and the homophily on the five axes stays
+(race, sex and religion identical; age and education within 5\%). The DP twin removes the
+rest: attribute assortativity drops to about 0 on every axis (race $0.69 \to 0.00$), the
+mean Gower distance over ties rises by 57\% ($0.226 \to 0.355$), clustering falls to 0.039
+(what the degree sequence alone produces), degree assortativity to 0 and modularity to
+0.15. x2 $\to$ x1 $\to$ DP thus separates closure from homophily: closure moves the premium by
+2--11\% (downward), and the premium itself goes with the homophily that only DP removes.
+
+\paragraph{Sensitivity to the level of closure: x3} (three times the triangles of every node:
+option \code{--closure=3} of 02; base exposure, five strategies, the same DP twin; 06d adds
+it when its sweep exists). The premium keeps falling as closure grows but stays
+far from zero. GSS, random seeding, $\lambda$-mean: x1 7.14, x2 6.60, x3 5.79 pp $[5.45, 6.08]$
+(x3 $-$ x1 $= -1.34$ $[-1.65, -1.08]$, $-19\%$); ATP: 7.15, 6.80, 6.13 pp $[5.54, 6.65]$
+($-14\%$). Over the five strategies x3 is 10--20\% below x1. The validation does not pick
+between x2 and x3 (both fall inside the GSS 2004 band with the embeddedness rule; x3 near
+its upper edge), so the level of closure belongs to the limitations: a factor of 2 costs the
+premium 2--11\%, a factor of 3 costs 10--20\%.
+
+\paragraph{What the intervals cover now.} The nodes are resampled for every network, so the run
+bootstrap covers the draw of agents from the survey's complete cases, the ties, the seed and
+the dynamics. It does not cover the sampling error of the GSS 2004 targets, the uncertainty of
+the coefficients of Smith et al.\ (2014), or the choice of the closure level (x2 vs.\ x3,
+below). The link-free gap remains the statistic to lead with in the paper; $\beta_{\text{DP}}$
+depends on the surface basis (\S\ref{sec:premiumresult}).
+
+\paragraph{Still open.}
+\begin{itemize}
+  \item The validation shows two small homophily misfits (same sex $-5\%$, education
+    difference $+9\%$) and that the generator ties closure to homophily; neither is
+    expected to change the sign of the premium, but both belong in the limitations.
+  \item ``Other'' (1--2\% of the nodes) is not calibrated.
+  \item The level of closure is a choice: x2 sits inside the GSS 2004 band only if
+    confidants are the most embedded contacts.
+\end{itemize}
+
+% ============================================================================
 \section{To verify before writing any of this into the paper}
 \label{sec:verify}
 
@@ -1042,6 +1674,10 @@ seeded $0.40 \times$ the degree of the primary, so central is the like-for-like 
   \item[$\square$] Whether Tur 2024's homophily-rewiring $\rho$ has a formal analogue we
     should cite when claiming nesting (their $\rho$ $\approx$ our imputation; not
     identical constructs).
+  \item[$\boxtimes$] Whether the additive composition has more than conventional support.
+    \emph{Resolved 2026-11-10} (\S\ref{sec:mechanisms}): it is the best-response form of
+    conformity and coordination games; learning does not give Tur's form; no study measures
+    the cross-partial; the premium survives both complementary forms.
   \item[$\square$] The random-utility framing sentence for IUL (already drafted in
     \code{JOURNAL\_FIT\_ANALYSIS.md}, \S 4d) composes cleanly with the
     situational-utility framing: $U_i(t) = \Gamma + \lambda \Ee_i$ is a private valuation
