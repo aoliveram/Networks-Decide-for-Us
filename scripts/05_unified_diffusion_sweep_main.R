@@ -18,6 +18,10 @@
 #                               Tur's gamma form (new base-exposure sweep, ~2.5 min for 4 sets x 5 seedings);
 #                               GSS and ATP sets only
 #  10. 07                       per survey (structural diagnosis: x2, x1, DP)
+#  11. declared lambda sensitivity (Prompt 6.2; when x2 and random are in the run): 05 with
+#      --conditions=base --lambdas=0.5,...,1,1.25,1.5 --tag=lambda_ext per survey (in step 3),
+#      then 06 and 06e with --tag=lambda_ext (outputs in <stage>/<set>/lambda_ext/; ~3 min in all)
+#  12. 06i                      q in the GSS format vs c09 (ELSOC only; ~1 min)
 # Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP, GSS14, ELSOC (PR #5); LEVEL in x2 (main), x1.
 # ELSOC and GSS14 sweep 13 exposure conditions (+ the ideology theta arm), ~1.7 min per
 # survey x level x seeding.
@@ -43,6 +47,8 @@ stopifnot(all(SURVEYS %in% c("GSS", "ATP", "GSS14", "ELSOC")), all(LEVELS %in% c
           all(SEEDINGS %in% c("random", "central", "marginal", "closeness", "eigen")))
 SKIP_ANALYSIS <- "--skip-analysis" %in% ARGS; SKIP_SWEEP <- "--skip-sweep" %in% ARGS
 ALL_FIVE <- setequal(SEEDINGS, c("random", "central", "marginal", "closeness", "eigen"))
+LAMBDA_EXT <- "x2" %in% LEVELS && "random" %in% SEEDINGS     # step 11: declared sensitivity lambda 1.25, 1.5
+LAMBDAS_EXT <- "0.5,0.6,0.7,0.8,0.9,1,1.25,1.5"
 
 rscript <- file.path(R.home("bin"), "Rscript")
 banner  <- function(...) {
@@ -71,6 +77,11 @@ for (s in SURVEYS) for (l in LEVELS) for (sd in SEEDINGS) {
   banner("SWEEP ", s, "_", l, " | seeding ", toupper(sd))
   run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), paste0("--level=", l), paste0("--seeding=", sd)))
 }
+if (LAMBDA_EXT) for (s in SURVEYS) {
+  banner("SWEEP ", s, "_x2 | lambda_ext (base, random, lambda up to 1.5)")
+  run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), "--level=x2", "--seeding=random", "--conditions=base",
+                                        paste0("--lambdas=", LAMBDAS_EXT), "--tag=lambda_ext"))
+}
 }
 
 if (!SKIP_ANALYSIS) {
@@ -90,10 +101,18 @@ if (!SKIP_ANALYSIS) {
                                    paste0("--seedings=", paste(SEEDINGS, collapse = ","))), fatal = FALSE)
   }
   for (s in SURVEYS) { banner("07 ", s); run("07_structural_diagnosis.R", paste0("--survey=", s), fatal = FALSE) }
+  if (LAMBDA_EXT) {
+    for (s in SURVEYS) { banner("06 ", s, "_x2 | lambda_ext"); run("06_premium_sensitivity.R", c(paste0("--set=", s, "_x2"), "--seeding=random", "--tag=lambda_ext"), fatal = FALSE) }
+    banner("06e consolidation | lambda_ext")
+    run("06e_consolidation.R", c(paste0("--surveys=", paste(SURVEYS, collapse = ",")), "--tag=lambda_ext", paste0("--lambdas=", LAMBDAS_EXT),
+                                 "--lambdas-premium=0.5,0.7,1,1.25,1.5"), fatal = FALSE)
+  }
+  if ("ELSOC" %in% SURVEYS && "x2" %in% LEVELS) { banner("06i q format (ELSOC)"); run("06i_q_format.R", fatal = FALSE) }
 }
 
 banner("ALL DONE in ", round(as.numeric(difftime(Sys.time(), t_all, units = "mins")), 1), " min")
 message("Sweep:    output/05_unified_diffusion/<set>/  (unified_premium_results_<seeding>.csv, exposure_axis_<seeding>.rds)")
 message("Premium:  output/06_premium_sensitivity/<set>/, output/06b_premium_bootstrap/<set>/, output/06c_exposure_axis/<set>/,")
-message("          output/06d_closure_contrast/, output/06e_consolidation/, output/06f_rule_robustness/")
+message("          output/06d_closure_contrast/, output/06e_consolidation/, output/06f_rule_robustness/, output/06i_q_format/")
+message("lambda:   output/{05_unified_diffusion,06_premium_sensitivity}/<survey>_x2/lambda_ext/, output/06e_consolidation/lambda_ext/")
 message("Figures:  plots/05_unified_diffusion/<set>/, plots/06*/<set>/, plots/07_structural_diagnosis/<survey>/")

@@ -20,6 +20,11 @@
 # Outputs: output/06e_consolidation/{association,corner,premium_qperm}.csv (one block of rows
 #          per survey; a run replaces the rows of its surveys and keeps the others)
 # Usage (repo root): Rscript scripts/06e_consolidation.R [--surveys=GSS,ATP] [--swap-with=ELSOC:GSS,GSS14:ATP]
+#   Declared lambda sensitivity (Prompt 6.2; reads the 05 sweep run with --tag=lambda_ext):
+#   Rscript scripts/06e_consolidation.R --surveys=GSS,ATP,GSS14,ELSOC --tag=lambda_ext \
+#           --lambdas=0.5,0.6,0.7,0.8,0.9,1,1.25,1.5 --lambdas-premium=0.5,0.7,1,1.25,1.5
+#   --lambdas= sets the corner's lambdas (default 0.5, 0.6, 0.7), --lambdas-premium= those of part 3
+#   (default 0.5, 0.7, 1.0); --tag= writes to output/06e_consolidation/<tag>/.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 suppressWarnings(suppressMessages({ library(data.table); library(parallel) }))
 source("scripts/05_unified_engine.R")
@@ -29,7 +34,11 @@ SURVEYS <- { a <- grep("^--surveys=", ARGS, value = TRUE); if (length(a)) strspl
 SWAP <- c(GSS = "ATP", ATP = "GSS", GSS14 = "ATP", ELSOC = "GSS")
 a <- grep("^--swap-with=", ARGS, value = TRUE)
 if (length(a)) for (kv in strsplit(strsplit(sub(".*=", "", a), ",")[[1]], ":")) SWAP[kv[1]] <- kv[2]
-OUT <- "output/06e_consolidation"; dir.create(OUT, recursive = TRUE, showWarnings = FALSE)
+num_list <- function(k, d) { a <- grep(paste0("^--", k, "="), ARGS, value = TRUE); if (length(a)) as.numeric(strsplit(sub(".*=", "", a), ",")[[1]]) else d }
+LAM_CORNER <- num_list("lambdas", c(0.5, 0.6, 0.7)); LAM_PREM <- num_list("lambdas-premium", c(0.5, 0.7, 1.0))
+TAG <- { a <- grep("^--tag=", ARGS, value = TRUE); if (length(a)) sub(".*=", "", a) else "" }
+OUT <- if (nzchar(TAG)) file.path("output/06e_consolidation", TAG) else "output/06e_consolidation"
+dir.create(OUT, recursive = TRUE, showWarnings = FALSE)
 NEED <- unique(c(SURVEYS, SWAP[SURVEYS]))
 NETS <- lapply(setNames(NEED, NEED), function(S) readRDS(sprintf("data/02_calibrated_networks/%s_x2.rds", S)))
 POOL <- lapply(NETS, function(L) unlist(lapply(L, function(g) V(g)$mur_score)))
@@ -72,7 +81,7 @@ run_all <- function(...) rbindlist(lapply(SURVEYS, function(S) rbindlist(mclappl
 
 # 2. corner
 H2 <- seq(0, 1, by = 1/24); H2 <- H2[H2 >= 0.5 - 1e-9]
-res <- run_all(c("real", "perm", "swap", "swap_perm"), H2, seq(0, 1, by = 0.025), c(0.5, 0.6, 0.7))
+res <- run_all(c("real", "perm", "swap", "swap_perm"), H2, seq(0, 1, by = 0.025), LAM_CORNER)
 w <- dcast(res, survey + run + cond + lambda + h + G ~ topo, value.var = "phi")[, lead := 100 * (DP - NET)]
 cell <- w[, .(lead = mean(lead), z = mean(lead) / (sd(lead) / sqrt(.N))), by = .(survey, cond, lambda, h, G)]
 corner <- merge(
@@ -85,14 +94,15 @@ corner <- merge(
 corner[, swap_with := SWAP[survey]]
 corner <- upsert(corner, "corner.csv"); print(corner[survey %in% SURVEYS], digits = 3)
 for (S in SURVEYS) {                                  # the real condition must reproduce the sweep
-  f <- sprintf("output/05_unified_diffusion/%s_x2/unified_premium_results_random.csv", S); if (!file.exists(f)) next
-  sw <- dcast(fread(f)[lambda %in% c(0.5, 0.6, 0.7)], lambda + run_id + social_distance_h + innovation_iul_Gamma ~ topology, value.var = "num_adopters")
+  sdir <- sprintf("output/05_unified_diffusion/%s_x2", S); if (nzchar(TAG)) sdir <- file.path(sdir, TAG)
+  f <- file.path(sdir, "unified_premium_results_random.csv"); if (!file.exists(f)) next
+  sw <- dcast(fread(f)[lambda %in% LAM_CORNER], lambda + run_id + social_distance_h + innovation_iul_Gamma ~ topology, value.var = "num_adopters")
   m <- merge(w[survey == S & cond == "real"], sw, by.x = c("lambda", "run", "h", "G"), by.y = c("lambda", "run_id", "social_distance_h", "innovation_iul_Gamma"))
   message(S, ": real condition identical to the sweep in ", sum(abs(m$NET.x * 1000 - m$NET.y) < 1e-6 & abs(m$DP.x * 1000 - m$DP.y) < 1e-6), " of ", nrow(m), " cells")
 }
 
 # 3. premium with permuted q
-res3 <- run_all(c("real", "perm"), seq(0, 1, by = 1/24), seq(0, 1, by = 0.025), c(0.5, 0.7, 1.0))
+res3 <- run_all(c("real", "perm"), seq(0, 1, by = 1/24), seq(0, 1, by = 0.025), LAM_PREM)
 g <- dcast(res3[, .(phi = mean(phi)), by = .(survey, run, topo, cond, lambda)], survey + run + cond + lambda ~ topo, value.var = "phi")[, gap := 100 * (NET - DP)]
 set.seed(1)
 prem <- g[, .(premium_pp = mean(gap), lo = quantile(replicate(2000, mean(sample(gap, replace = TRUE))), .025),
