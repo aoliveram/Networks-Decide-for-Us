@@ -1678,10 +1678,11 @@ moves to $\Gamma \approx 0.30$--$0.35$, where the GSS corner is. The premium its
 6.6, 8.7): it comes from homophily through the gate, and consolidation only shifts it (down at low
 $\lambda$, up at high $\lambda$).
 
-\noindent\textbf{The corner exists only with $\lambda < 1$} (2026-11-16; 06e with \code{--tag=lambda\_ext}, the corner
+\noindent\textbf{The corner is confined to $\lambda \le 1$} (2026-11-16; 06e with \code{--tag=lambda\_ext}, the corner
 counted at every $\lambda$ of 0.5--1.0 and at 1.25 and 1.5). Robust cells over the whole upper half, real $q$, $\lambda =
 0.5, 0.6, \ldots, 1.0$: GSS 2004 30, 30, 15, 6, 0, 0; GSS 2014 46, 43, 31, 17, 9, 0; ELSOC 23, 18, 13, 10, 6, 0; ATP 7, 7,
-0, 0, 0, 0. At $\lambda = 1.25$ and 1.5 there is none, and the largest DP lead anywhere in the upper half is 0.1 pp. With
+0, 0, 0, 0. At $\lambda = 1.25$ and 1.5 there is none, and the largest DP lead anywhere in the upper half is 0.1 pp. Under the other four seedings (06j) it is the same:
+one robust cell left at $\lambda = 1.0$ (GSS 2014, central), none at 1.25 or 1.5 (largest DP lead 0.67 pp). With
 ELSOC's $q$ in the GSS format the corner lasts one step longer, to $\lambda = 1.0$ (11 cells at $\Gamma$ 0.175--0.20;
 \S\ref{sec:rule-qformat}), and is gone at 1.25. The step-2 estimates put $\lambda$ at 0.7--1.5
 (\S\ref{sec:rule-lambda}): the corner is a weak-coupling feature that the data place at the edge of, or below, the
@@ -2461,6 +2462,14 @@ ELSOC 2018 & 6.95 & \ci{8.66}{8.45}{8.84} & \ci{11.05}{10.77}{11.31} & \ci{13.22
   \item \textbf{The reverse corner is gone at $\lambda \ge 1$}: no robust cell in any survey (DP ahead by
     $> 2$ pp with $z > 3.5$, whole upper half $h \ge 0.6$), and at 1.25 and 1.5 the DP lead in the upper half is
     at most 0.1 pp (\code{output/06e\_consolidation/lambda\_ext/corner.csv}).
+  \item \textbf{Every seeding strategy} (\code{scripts/06j\_corner\_by\_seeding.R}; base exposure, x2, the five
+    seedings, whole plane): the corner fades with $\lambda$ in all 20 survey $\times$ seeding combinations. At
+    $\lambda = 1.0$ one robust cell is left (GSS 2014, central seeding), but single cells still put DP ahead by
+    up to 19 pp in ELSOC with central and 17 with eigen seeding, and 5--8 pp in GSS 2014, without passing the
+    robustness screen (a few networks cascade, most do not). \textbf{At $\lambda \ge 1.25$ there is no robust
+    cell in any combination and the largest DP lead anywhere is 0.67 pp.} The premium grows with $\lambda$
+    under every seeding (to 9.4--13.9 pp at 1.5; eigen and marginal flatten in GSS 2004). Figure:
+    \code{plots/06j\_corner\_by\_seeding/corner\_by\_seeding.pdf}.
 \end{itemize}
 Reading for the paper (the user decides): if the data ask for $\lambda > 1$, the premium is larger, not
 smaller, and the only region where the twin wins disappears. The swept range 0.5--1.0 is the conservative

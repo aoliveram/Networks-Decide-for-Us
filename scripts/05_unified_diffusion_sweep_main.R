@@ -19,8 +19,9 @@
 #                               GSS and ATP sets only
 #  10. 07                       per survey (structural diagnosis: x2, x1, DP)
 #  11. declared lambda sensitivity (Prompt 6.2; when x2 and random are in the run): 05 with
-#      --conditions=base --lambdas=0.5,...,1,1.25,1.5 --tag=lambda_ext per survey (in step 3),
-#      then 06 and 06e with --tag=lambda_ext (outputs in <stage>/<set>/lambda_ext/; ~3 min in all)
+#      --conditions=base --lambdas=0.5,...,1,1.25,1.5 --tag=lambda_ext per survey and seeding (in
+#      step 3), then 06 and 06e with --tag=lambda_ext (random seeding) and 06j (the corner by
+#      seeding); outputs in <stage>/<set>/lambda_ext/ (~15 min in all)
 #  12. 06i                      q in the GSS format vs c09 (ELSOC only; ~1 min)
 # Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP, GSS14, ELSOC (PR #5); LEVEL in x2 (main), x1.
 # ELSOC and GSS14 sweep 13 exposure conditions (+ the ideology theta arm), ~1.7 min per
@@ -77,9 +78,9 @@ for (s in SURVEYS) for (l in LEVELS) for (sd in SEEDINGS) {
   banner("SWEEP ", s, "_", l, " | seeding ", toupper(sd))
   run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), paste0("--level=", l), paste0("--seeding=", sd)))
 }
-if (LAMBDA_EXT) for (s in SURVEYS) {
-  banner("SWEEP ", s, "_x2 | lambda_ext (base, random, lambda up to 1.5)")
-  run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), "--level=x2", "--seeding=random", "--conditions=base",
+if (LAMBDA_EXT) for (s in SURVEYS) for (sd in SEEDINGS) {
+  banner("SWEEP ", s, "_x2 | lambda_ext (base, ", sd, ", lambda up to 1.5)")
+  run("05_unified_diffusion_sweep.R", c(paste0("--survey=", s), "--level=x2", paste0("--seeding=", sd), "--conditions=base",
                                         paste0("--lambdas=", LAMBDAS_EXT), "--tag=lambda_ext"))
 }
 }
@@ -106,6 +107,7 @@ if (!SKIP_ANALYSIS) {
     banner("06e consolidation | lambda_ext")
     run("06e_consolidation.R", c(paste0("--surveys=", paste(SURVEYS, collapse = ",")), "--tag=lambda_ext", paste0("--lambdas=", LAMBDAS_EXT),
                                  "--lambdas-premium=0.5,0.7,1,1.25,1.5"), fatal = FALSE)
+    banner("06j corner by seeding | lambda_ext"); run("06j_corner_by_seeding.R", fatal = FALSE)
   }
   if ("ELSOC" %in% SURVEYS && "x2" %in% LEVELS) { banner("06i q format (ELSOC)"); run("06i_q_format.R", fatal = FALSE) }
 }
