@@ -81,3 +81,6 @@ output/02_calibrated_networks/steps/
 # the cell results of 06i_q_format.R (~30 s, seeded); the .tex tables next to them ARE tracked
 output/10_ELSOC_rule/*.rds
 output/06i_q_format/*.rds
+
+# Prompt 7b.1: cell results of 06k_noisy_rule.R (~9 min, seeded); paragraph.txt next to them IS tracked
+output/06k_noisy_rule/*.rds
