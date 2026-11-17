@@ -2,7 +2,7 @@
 # SURVEYS ADDED IN PR #5 (ELSOC 2016-2023, GSS 2014): loaders, recodes and the
 # per-survey configuration of the calibrated networks.
 # source("scripts/01_survey_data.R") from the repo root (02, 02c, 02_ELSOC_homophily,
-# 03_ELSOC_MUR_calculation, 03_GSS14_MUR_calculation, 06e, 07, 09).
+# 03_ELSOC_MUR_calculation, 03_GSS14_MUR_calculation, 06e, 06i, 07, 09, 10).
 #
 # Raw data live outside the repo, next to GSS 2004 and ATP 2014:
 #   <NDFU_SURVEYS>/ELSOC 2016-2023/ELSOC_Long_2016_2023.RData   (20,761 rows, waves 1-7 = 2016-2023)
@@ -50,6 +50,23 @@
 #              confidants 15.1/71.0/13.9%. Decided with the user, 2026-11-11 (it replaces the
 #              earlier 0-4 / 5, 11, 12 / 6-10).
 #   alter age  < 12 set to missing (132 alters)
+#
+# ELSOC PANEL (elsoc_panel(); since Prompt 6.2, from playground/PR6.1-elsoc-mechanism): one row per
+# respondent x wave with the pieces of the rule Gamma + lambda E >= q measured in the same people
+# (10_ELSOC_rule.R) and the two q of 06i_q_format.R:
+#   c20 movement valued most (named = a movement was named: the filter of c21-c24); own, fam, fri =
+#   c22, c23, c24 (how often the respondent / family / friends took part in THAT movement, last 12
+#   months, 1 never ... 5 very often; 2021: c22 only); eff = c21_05 ("the actions and protests of this
+#   movement can bring social change", 1-5) and the SIMCA block c21_01-11; p1-p4 = c08 (frequency of
+#   petition, march, strike, social media, 1-5), p5 = c08_05 (cacerolazo, 2019, 2021, 2022);
+#   d1-d4 = c09 (willingness for the same four acts; 2016, 2018, 2022); f06, f07 = f05_06, f05_07.
+#   q_c09   1 - (sum c09 - 4) / 16: the q of the networks (elsoc_nodes, 03_ELSOC_MUR_calculation.R)
+#   q_gss4  the GSS format on the same four acts, per item: 1 done in the past year (c08 >= 2 in the
+#           wave); 2 done before (c08 = 1 now but >= 2 in an EARLIER wave of the panel; 2018: 2016-2017);
+#           3 might do it (not done and c09 >= 2); 4 would never (not done and c09 = 1);
+#           q = 1 - sum(4 - x) / 12, as 03_GSS_MUR_calculation.R. The 2018 refresh sample has no history.
+#   q_gss3  the same on the three acts comparable with the GSS items (petition, march, social media)
+#   w       ponderador02 of the wave, mean 1 in the wave
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 suppressWarnings(suppressMessages({ library(data.table); library(haven) }))
 
@@ -171,6 +188,39 @@ elsoc_nodes <- function(wave = 3) {
   out[, propensity_score := (rowSums(.SD) - 4) / 16, .SDcols = ELSOC_C09]
   out[, mur_score := 1 - propensity_score][]
 }
+
+# ELSOC panel for the rule (10_ELSOC_rule.R) and the q in the GSS format (06i_q_format.R); see the header
+AGEGRP <- c("18-29", "30-44", "45-59", "60+")
+age_group <- function(a) AGEGRP[findInterval(a, c(-Inf, 30, 45, 60))]
+MOV_NAMED <- c(1:11, 13:15)                       # c20 codes of a named movement (12 = Ninguno)
+.panel_cache <- new.env()
+elsoc_panel <- function() {
+  if (!is.null(.panel_cache$d)) return(.panel_cache$d)
+  df <- elsoc_load()
+  d <- df[, .(id = as.numeric(idencuesta), ola = as.integer(ola), muestra = as.integer(muestra),
+              w = as.numeric(ponderador02), sex = elsoc_sex(m0_sexo), age = num_pos(m0_edad),
+              educ = elsoc_educ_ego(m01), relig = elsoc_relig_ego(m38), ideol = elsoc_ideol_ego(c15),
+              c20 = num_pos(c20), own = num_pos(c22), fam = num_pos(c23), fri = num_pos(c24),
+              p1 = num_pos(c08_01), p2 = num_pos(c08_02), p3 = num_pos(c08_03), p4 = num_pos(c08_04), p5 = num_pos(c08_05),
+              d1 = num_pos(c09_01), d2 = num_pos(c09_02), d3 = num_pos(c09_03), d4 = num_pos(c09_04),
+              f06 = num_pos(f05_06), f07 = num_pos(f05_07))]
+  for (k in 1:11) set(d, j = sprintf("c21_%02d", k), value = num_pos(df[[sprintf("c21_%02d", k)]]))
+  d[, `:=`(year = unname(ELSOC_YEAR[as.character(ola)]), educ_num = unname(EDU_YEARS[educ]), agegrp = age_group(age),
+           named = c20 %in% MOV_NAMED, eff = c21_05)]
+  d[, w := w / mean(w), by = ola]
+  d[, q_c09 := 1 - (d1 + d2 + d3 + d4 - 4) / 16]
+  setorder(d, id, ola)
+  for (k in 1:4) {                                # history: c08 >= 2 for the same act in an EARLIER wave
+    pk <- paste0("p", k)
+    d[, (paste0("hist", k)) := { x <- get(pk) >= 2; x[is.na(x)] <- FALSE; c(FALSE, head(cummax(x), -1)) == 1 }, by = id]
+    d[, (paste0("x", k)) := fifelse(get(pk) >= 2, 1, fifelse(get(paste0("hist", k)), 2, fifelse(get(paste0("d", k)) >= 2, 3, 4)))]
+  }
+  d[, q_gss4 := 1 - ((4 - x1) + (4 - x2) + (4 - x3) + (4 - x4)) / 12]
+  d[, q_gss3 := 1 - ((4 - x1) + (4 - x2) + (4 - x4)) / 9]
+  .panel_cache$d <- d
+  d
+}
+wmean <- function(x, w) { k <- !is.na(x) & !is.na(w); if (!any(k)) return(NA_real_); sum(x[k] * w[k]) / sum(w[k]) }
 
 # ---- GSS 2004 and 2014 ---------------------------------------------------------------------------------
 race_gss <- function(d) with(d, dplyr::case_when(hispanic %in% c(2:6, 10, 15, 20:24, 30, 40, 41) ~ "Hispanic",   # as in 02

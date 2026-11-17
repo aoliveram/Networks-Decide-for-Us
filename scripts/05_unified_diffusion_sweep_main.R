@@ -18,13 +18,17 @@
 #                               Tur's gamma form (new base-exposure sweep, ~2.5 min for 4 sets x 5 seedings);
 #                               GSS and ATP sets only
 #  10. 07                       per survey (structural diagnosis: x2, x1, DP)
+#  11. 06j                      the reverse corner by survey x seeding x lambda (x2, all five seedings)
+#  12. 06i                      q in the GSS format vs c09 (ELSOC only; ~1 min)
 # Sets: <SURVEY>_<LEVEL>, SURVEY in GSS, ATP, GSS14, ELSOC (PR #5); LEVEL in x2 (main), x1.
 # ELSOC and GSS14 sweep 13 exposure conditions (+ the ideology theta arm), ~1.7 min per
 # survey x level x seeding.
 #
-# Cost on 8 performance cores (2026-11-05: 99 min in all): ~1.2 min per survey x
-# level x seeding with all 9 conditions (~25 min for 2 x 2 x 5); 06b ~17 min per set
-# (B = 1000); the rest a few minutes.
+# lambda grid: 0.5-1.5 every 0.1 (11 values; LAMBDA_GRID of 05_unified_engine.R) since Prompt 6.3
+# (2026-11-16); it was 0.5-1.0 (6 values). The checkpoints' fingerprints include the grid.
+# Cost on 8 performance cores with the 0.5-1.0 grid (2026-11-05: 99 min in all; the four surveys
+# ~3.6 h on 2026-11-12): ~1.2 min per survey x level x seeding with all 9 conditions; 06b ~17 min
+# per set (B = 1000); the rest a few minutes. The 11-value grid costs ~1.8 times as much.
 #
 # Usage (repo root; log with 2>&1 | tee logs/05_main.log):
 #   Rscript scripts/05_unified_diffusion_sweep_main.R
@@ -90,10 +94,13 @@ if (!SKIP_ANALYSIS) {
                                    paste0("--seedings=", paste(SEEDINGS, collapse = ","))), fatal = FALSE)
   }
   for (s in SURVEYS) { banner("07 ", s); run("07_structural_diagnosis.R", paste0("--survey=", s), fatal = FALSE) }
+  if ("x2" %in% LEVELS) { banner("06j corner by seeding"); run("06j_corner_by_seeding.R", fatal = FALSE) }
+  if ("ELSOC" %in% SURVEYS && "x2" %in% LEVELS) { banner("06i q format (ELSOC)"); run("06i_q_format.R", fatal = FALSE) }
 }
 
 banner("ALL DONE in ", round(as.numeric(difftime(Sys.time(), t_all, units = "mins")), 1), " min")
 message("Sweep:    output/05_unified_diffusion/<set>/  (unified_premium_results_<seeding>.csv, exposure_axis_<seeding>.rds)")
 message("Premium:  output/06_premium_sensitivity/<set>/, output/06b_premium_bootstrap/<set>/, output/06c_exposure_axis/<set>/,")
-message("          output/06d_closure_contrast/, output/06e_consolidation/, output/06f_rule_robustness/")
+message("          output/06d_closure_contrast/, output/06e_consolidation/, output/06f_rule_robustness/, output/06i_q_format/")
+message("          output/06j_corner_by_seeding/")
 message("Figures:  plots/05_unified_diffusion/<set>/, plots/06*/<set>/, plots/07_structural_diagnosis/<survey>/")

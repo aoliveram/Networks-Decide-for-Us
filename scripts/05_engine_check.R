@@ -27,7 +27,7 @@
 suppressWarnings(suppressMessages({ library(igraph); library(intergraph) }))
 source("scripts/05_unified_engine.R")
 
-H <- seq(0, 1, by = 1/8); G <- seq(0, 1, by = 0.1); L <- c(0.5, 0.7, 1.0)
+H <- seq(0, 1, by = 1/8); G <- seq(0, 1, by = 0.1); L <- c(0.5, 0.7, 1.0, 1.5)
 grid <- expand.grid(h = H, Gamma = G, lambda = L)
 load_net <- function(k) asIgraph(readRDS(sprintf("data/02_GSS_network_ergm/GSS_net_sim_1000_%03d.rds", k)))
 pairs <- lapply(1:4, function(k) make_pair(load_net(k), k))

@@ -37,6 +37,10 @@
 %   ELSOC homophily from 2017 only, weighted validations, the relaunch of the four surveys and the
 %   decomposition of 06h; sec:pr4 kept as the record of the PR #4 networks; sec:consolidation and the
 %   06f numbers of sec:mechanisms updated.
+%   2026-11-16 (PR #6, Prompts 6.2 and 6.3): new section sec:rule-data (the rule estimated in ELSOC);
+%   Prompt 6.3 (2026-11-17): the lambda grid of the sweep is 0.5-1.5 every 0.1 (eleven values; it was
+%   0.5-1.0); headline = lambda-mean over 0.5-1.5, with 0.5-1.0 for continuity; sec:pr5results,
+%   sec:consolidation, sec:mechanisms (06f) and sec:rule-lambdasens rewritten with the relaunch.
 % Compile: pdflatex MAKING-IT-BOTTOM-UP.tex  (run twice)
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
@@ -62,10 +66,10 @@
 
 \title{Making NDFU bottom-up:\\ the unified adoption rule and its two variants}
 \author{NDFU internal design note}
-\date{2026-08-11, updated 2026-11-12 \\[4pt]
+\date{2026-08-11, updated 2026-11-16 \\[4pt]
 \normalsize Status: the unified rule is the engine of 05 (Rcpp since PR \#4, \S\ref{sec:pr4}).\\
 \normalsize Companion scripts: \code{02\_network\_calibrated.R}, \code{05\_unified\_diffusion\_sweep.R},
-\code{06*}, \code{07}, \code{09}}
+\code{06*}, \code{07}, \code{09}, \code{10}}
 
 \begin{document}
 \maketitle
@@ -722,6 +726,18 @@ narrow-appeal vendors more, with an additive utility (p.~829). \textbf{None of t
 the sign of $\partial^2 U / \partial\Gamma\,\partial\Ee$ at the individual level.} (Manski
 1993 is cited only through Brock \& Durlauf and Soetevent.)
 
+\paragraph{Empirical backing of the sum (2026-11-16).} Two pieces of evidence go beyond the convention.
+(i) Oliver (1993, Annu.\ Rev.\ Sociol.\ 19, p.~279), on the multiplicative models of collective
+action (interest times efficacy): ``Empirically, the multiplicative model rarely yields a significant
+improvement over a linear model including the interest and efficacy terms''; her n.~4 says the claim
+rests on her own analyses and personal communications, and that such null results are rarely
+published. (ii) ELSOC measures the pieces in the same people (\S\ref{sec:rule-forms}): the pure
+product $\Gamma_i E_i$ loses to the sum by 181 and 138 points of AIC, and it predicts that nobody takes
+part without exposure, while 14--15\% of those with $q \le 0.5$ and no participating family or friends do
+(the $E = 0$ test). The cross-partial, with perceived efficacy as $\Gamma_i$, is \emph{negative}
+($-3.8$ and $-3.0$, $p < 0.001$): substitutes, not complements. Box~2 below (bounded complements) is
+therefore a robustness check against a direction the data do not show.
+
 \paragraph{Where quality lives (our derivation from Morris's game).} In a two-action game
 with each neighbor, the advantage of adopting is always $-a + (a + b)\,\Ee$, with $a$ the loss
 from adopting when the neighbor did not and $b$ the gain when she did. It is linear in the
@@ -760,11 +776,12 @@ textbook case of learning (Ryan and Gross's hybrid corn, the running example of 
 \fbox{\parbox{0.92\textwidth}{\textbf{The defense of the additive rule.} Quality and social
 proof add because peers contribute a utility of their own that does not depend on quality
 (legitimacy, safety, pure coordination). If that utility grows with quality (box~2), the
-result holds. Pure learning (box~3) is outside the scope of the model. Two reasons beyond
+result holds. Pure learning (box~3) is outside the scope of the model. Three reasons beyond
 the convention: (i) it is the best-response form of every local-interaction game; (ii) it is
 what the model needs, because everything interesting happens to agents with $q_i > \Gamma$
 who adopt through their peers --- if peers only informed about a common quality, those agents
-would learn not to adopt.}}
+would learn not to adopt; (iii) it is what the data show where the pieces are measured in the
+same people (ELSOC, \S\ref{sec:rule-forms}; Oliver 1993, p.~279).}}
 \end{center}
 
 \paragraph{Robustness.} The premium does not depend on the composition. The numbers come from
@@ -777,7 +794,8 @@ adoption in the network minus its DP twin, in pp, with 95\% run-bootstrap interv
     $\Gamma + (\lambda_0 + \varphi\Gamma)\Ee \ge q$ \emph{is} the main rule with
     $\lambda(\Gamma) = \lambda_0 + \varphi\Gamma$: a diagonal path through the
     $(\Gamma, \lambda)$ grid already swept, interpolated linearly in $\lambda$ and clamped to
-    $[0.5, 1]$ (a pure network good, $\lambda_0 = 0$, is out of range).
+    $[0.5, 1.5]$, the swept range since Prompt 6.3 (it was $[0.5, 1]$; a pure network good,
+    $\lambda_0 = 0$, is out of range).
   \item \textbf{Level 2, box 4, new sweep.} $\Gamma\cdot\Acount^{\gamma} \ge q$ is one more
     vector of node thresholds, $\Ee_i \ge (q_i/\Gamma)^{1/\gamma}/k_i$, so the engine runs it
     unchanged. Checks: the trick reproduces the main rule cell by cell, the engine equals an
@@ -793,12 +811,15 @@ adoption in the network minus its DP twin, in pp, with 95\% run-bootstrap interv
 \input{../output/06f_rule_robustness/table_gamma.tex}
 \end{center}
 \noindent The premium is positive everywhere: 5.5--10.8 pp on the $\lambda(\Gamma)$ paths over
-all four sets and five seedings (lowest lower bound 5.2), and 4.6--10.3 pp under the
+all four sets and five seedings (lowest lower bound 5.2; the constant rows, $\lambda = 0.5$--$1.5$, span
+5.1--13.1), and 4.6--10.3 pp under the
 $\gamma$-form (lowest lower bound 4.3; positive in all 24 networks in all 120
 set $\times$ seeding $\times$ $\gamma$ combinations). As with the
 linear rule, a region of the plane favors the DP twin (2--21\% of the cells in GSS $\times2$,
 by $\gamma$ and seeding) without changing the sign of the average. (Numbers on the networks of
-2026-11-11, \S\ref{sec:pr5recipe}; with the networks of PR \#4 they were 4.6--8.5 and 4.0--8.8 pp.) At low $\gamma$ many agents are immune
+2026-11-11, \S\ref{sec:pr5recipe}, and the $\lambda$ grid of Prompt 6.3: with the clamp at 1.5 the
+steepest path, $0.5 + 2\Gamma$, falls by 0.3--0.4 pp, the others do not move; with the networks of PR \#4 they
+were 4.6--8.5 and 4.0--8.8 pp.) At low $\gamma$ many agents are immune
 (29\% at $\gamma = 0.2$, 1\% at $\gamma = 1$), and immunity depends on degree
 (\S\ref{sec:immunity}). Not yet run: boxes 2 or 4 crossed with $\theta$ or $\kappa$.
 
@@ -865,7 +886,7 @@ Exposure tradition & \checkmark\ Valente/Granovetter fractional; \code{netdiffus
 Preferences-fixed framing & \checkmark\ clean (``situational utility rises''; Brock--Durlauf) & defensible, but against the grain of the very citation it borrows (\S\ref{sec:preferences}) \\
 Quality $\times$ social proof & substitutes (social contribution independent of $\Gamma$): conformity, safety, pure coordination (box 1) & \textbf{complements} ($\partial^2 U / \partial \Gamma\, \partial \Acount > 0$), unbounded; no mechanism yields it, not even learning (box 4, \S\ref{sec:mechanisms}) \\
 Immunity & $q_i > \Gamma + \lambda$, degree-independent (\S\ref{sec:immunity}) & $q_i > \Gamma k_i^{\gamma}$, \textbf{degree-dependent} (averse $+$ poorly connected) --- arguably more realistic \\
-Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.0]$, not calibrated & \textbf{run as robustness} (\code{06f}): premium 4.6--10.8 pp, positive everywhere (\S\ref{sec:mechanisms}) \\
+Empirical status & \checkmark\ \textbf{run on the full design} (\S\ref{sec:premiumresult}); $\lambda$ swept over $[0.5, 1.5]$, not calibrated (ELSOC: 0.7--1.5, \S\ref{sec:rule-lambda}) & \textbf{run as robustness} (\code{06f}): premium 4.6--10.8 pp, positive everywhere (\S\ref{sec:mechanisms}) \\
 Hub behavior & bounded ($\Ee \le 1$) & at high $\gamma$, a saturated hub receives reinforcement $\sim k^{\gamma}$ --- may over-fire on dense networks \\
 \bottomrule
 \end{tabularx}
@@ -1606,7 +1627,7 @@ averse, homophily keeps the resistant among the resistant (the mechanism of
 
 \paragraph{Where the corner comes from: consolidation} \label{sec:consolidation}
 (\code{scripts/06e\_consolidation.R}; x2, base exposure, random seeding, the seeds of 05; updated
-2026-11-12 to the networks of \S\ref{sec:pr5recipe}). In GSS, aversion is tied to the Blau attributes:
+2026-11-12 to the networks of \S\ref{sec:pr5recipe} and 2026-11-17 to the $\lambda$ grid 0.5--1.5). In GSS, aversion is tied to the Blau attributes:
 age, sex, education, race and religion explain 18\% of the variance of $q$ over the nodes of the
 networks, and $q$ is assortative over ties (0.081). In ATP they explain 2.8\% (assortativity 0.028;
 $q$ also has only 7 values, 9\% of nodes at $q = 1$). Two manipulations separate association from
@@ -1614,32 +1635,33 @@ distribution: permuting $q$ across nodes (same distribution, no association) and
 rank onto another survey's distribution (same association):
 
 \begin{center}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}lccllll@{}}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lcclccccccccc@{}}
 \toprule
- & & & & \multicolumn{3}{c}{robust corner cells (DP ahead $> 2$ pp, $z > 3.5$)} \\
-survey & $R^2$ of $q$ & $q$ assort. & $q$ & $\lambda = 0.5$ & $0.6$ & $0.7$ \\
+ & & & & \multicolumn{9}{c}{robust corner cells (DP ahead $> 2$ pp, $z > 3.5$), $\lambda =$} \\
+survey & $R^2$ of $q$ & $q$ assort. & $q$ & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 1.0 & 1.1 & 1.2 & 1.3--1.5 \\
 \midrule
-GSS 2004 & 0.175 & 0.081 & real & 30 & 30 & 15 \\
- & & & permuted & 0 & 0 & 0 \\
- & & & ATP distribution & 22 (30) & 35 & 31 \\
- & & & both & 0 (7) & 0 (7) & 0 (6) \\
+GSS 2004 & 0.175 & 0.081 & real & 30 & 30 & 15 & 6 & 0 & 0 & 0 & 0 & 0 \\
+ & & & permuted & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & ATP distribution & 22 (30) & 35 & 31 & 18 (25) & 0 (18) & 0 (18) & 0 (18) & 0 (9) & 0 (5, 0, 0) \\
+ & & & both & 0 (7) & 0 (7) & 0 (6) & 0 (4) & 0 & 0 & 0 & 0 & 0 \\
 \midrule
-GSS 2014 & 0.232 & 0.104 & real & 35 (46) & 43 & 31 \\
- & & & permuted & 5 & 0 & 0 \\
- & & & ATP distribution & 15 (34) & 34 & 36 \\
- & & & both & 0 & 0 (6) & 0 \\
+GSS 2014 & 0.232 & 0.104 & real & 35 (46) & 43 & 31 & 8 (17) & 0 (9) & 0 & 0 & 0 & 0 \\
+ & & & permuted & 5 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & ATP distribution & 15 (34) & 34 & 36 & 23 (28) & 8 (25) & 0 (22) & 0 (11) & 0 (4) & 0 \\
+ & & & both & 0 & 0 (6) & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 \midrule
-ELSOC 2018 & 0.243 & 0.158 & real & 0 (23) & 0 (18) & 11 (13) \\
- & & & permuted & 0 & 0 & 0 \\
- & & & GSS 2004 distribution & 20 & 11 & 0 \\
- & & & both & 0 & 0 & 0 \\
+ELSOC 2018 & 0.243 & 0.158 & real & 0 (23) & 0 (18) & 11 (13) & 10 & 6 & 0 & 0 & 0 & 0 \\
+ & & & permuted & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & GSS 2004 distribution & 20 & 11 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & both & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 \midrule
-ATP 2014 & 0.028 & 0.028 & real & 7 & 7 & 0 \\
- & & & permuted & 0 & 4 (10) & 0 \\
- & & & GSS 2004 distribution & 13 & 13 & 0 \\
- & & & both & 5 & 6 & 0 \\
+ATP 2014 & 0.028 & 0.028 & real & 7 & 7 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & permuted & 0 & 4 (10) & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & GSS 2004 distribution & 13 & 13 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+ & & & both & 5 & 6 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1660,10 +1682,24 @@ has only a shallow one (up to 3.7--6.9 pp, 7 cells; with the PR \#4 networks it 
 permuting $q$ also removes at $\lambda = 0.5$. The distribution decides \emph{where} the corner sits: ELSOC's
 more averse population is reached only at higher $\Gamma$; mapped onto the GSS 2004 distribution, its corner
 moves to $\Gamma \approx 0.30$--$0.35$, where the GSS corner is. The premium itself survives permuting $q$
-(GSS 5.6, 6.7, 7.7 pp at $\lambda = 0.5, 0.7, 1.0$, against 5.4, 6.8, 8.5 with the real $q$; ATP 6.2, 7.6,
-9.3 against 6.4, 7.7, 9.7; GSS 2014 5.9, 7.2, 8.3 against 5.6, 6.9, 8.9; ELSOC 5.5, 6.7, 8.1 against 5.4,
-6.6, 8.7): it comes from homophily through the gate, and consolidation only shifts it (down at low
-$\lambda$, up at high $\lambda$).
+(GSS 5.6, 6.7, 7.7, 8.9 pp at $\lambda = 0.5, 0.7, 1.0, 1.5$, against 5.4, 6.8, 8.5, 9.5 with the real $q$; ATP
+6.2, 7.6, 9.3, 11.3 against 6.4, 7.7, 9.7, 11.5; GSS 2014 5.9, 7.2, 8.3, 10.1 against 5.6, 6.9, 8.9, 11.0; ELSOC
+5.5, 6.7, 8.1, 9.3 against 5.4, 6.6, 8.7, 13.2): it comes from homophily through the gate, and consolidation
+only shifts it (down at low $\lambda$, up at high $\lambda$, most in ELSOC).
+
+\noindent\textbf{The corner is confined to $\lambda < 1$} (the main sweep since Prompt 6.3, 2026-11-17; on
+2026-11-16 the same was found with the \code{lambda\_ext} sensitivity at 1.25 and 1.5). With the real $q$ the last
+robust cells are at $\lambda = 0.8$ (GSS 2004, ATP at 0.6) or 0.9 (GSS 2014, ELSOC); from $\lambda = 1.0$ to 1.5 there
+is none, and above 1 the largest DP lead anywhere in the upper half is 0.3 pp. Under the other four seedings (06j)
+it is the same: one robust cell left at $\lambda = 1.0$ (GSS 2014, central), none at 1.1--1.5 in the 20 survey
+$\times$ seeding combinations (largest DP lead 2.5 pp, GSS 2014 at $\lambda = 1.1$). With ELSOC's $q$ in the GSS format
+the corner lasts two steps longer, to $\lambda = 1.1$ (11 cells at 1.0, $\Gamma$ 0.175--0.20; 5 at 1.1, $\Gamma = 0.15$;
+\S\ref{sec:rule-qformat}). The distribution of $q$ also moves it in $\lambda$: GSS 2004 and GSS 2014 with their own association but the
+ATP distribution keep robust cells in the upper half, outside the GSS box, up to $\lambda = 1.3$ (GSS 2004: 18, 18,
+18, 9, 5 at 0.9--1.3) and 1.2 (GSS 2014); permuted, none. The step-2 estimates put $\lambda$
+at 0.7--1.5 (\S\ref{sec:rule-lambda}): the corner is a weak-coupling feature that the data place at the edge of, or
+below, the plausible range. At high $\lambda$ consolidation works the other way: the premium with the real $q$
+exceeds the premium with $q$ permuted, most in ELSOC (13.2 against 9.3 pp at $\lambda = 1.5$; \S\ref{sec:rule-lambdasens}).
 
 \paragraph{What breaking the network destroys} (\code{07\_structural\_diagnosis.R}; means over
 24 networks, GSS; ATP within a few percent). From x2 to x1 only closure changes: global and
@@ -2018,69 +2054,84 @@ input; the GSS 2004 confidants stay the target.
 
 The runner \code{05\_unified\_diffusion\_sweep\_main.R} with all four surveys (2026-11-11/12, after
 \code{02c} and both validations): four surveys, levels x2 and x1, five seeding strategies, 9 exposure
-conditions (13 for ELSOC and GSS 2014, with the $\theta$ arm on ideology circles), six $\lambda$, the
+conditions (13 for ELSOC and GSS 2014, with the $\theta$ arm on ideology circles), the
 $41 \times 25$ grid and 24 networks per set; then 06, 06b ($B = 1000$), 06c, 06d, 06e, 06f (GSS and ATP)
-and 07, and 06g. About 3.5 hours on 8 cores. Run-bootstrap intervals as in \S\ref{sec:pr4results}.
+and 07, and 06g. Run-bootstrap intervals as in \S\ref{sec:pr4results}.
+\textbf{Relaunched on 2026-11-16/17 (Prompt 6.3) with eleven $\lambda$, 0.5--1.5 every 0.1} (it was six,
+0.5--1.0; decided with the user: $\lambda$ need not be $\le 1$, and the ELSOC ladder gives 0.7--1.5,
+\S\ref{sec:rule-lambda}); 6.5 hours on 8 cores, plus 06g, 06h and 06j. The new sweep reproduces the old
+one in all 519{,}552{,}000 values of 0.5--1.0 (40 survey $\times$ level $\times$ seeding sets, every
+condition and output) and the \code{lambda\_ext} sweep of Prompt 6.2 in all 6{,}888{,}000 simulations
+(including $\lambda = 1.5$). \textbf{The headline is now the $\lambda$-mean over 0.5--1.5}; the mean over
+0.5--1.0 is kept for continuity with what was reported before (its numbers do not change).
 
-\paragraph{The premium} (x2, base exposure, random seeding, $\lambda$-mean; the rational and social
-channels split the gap; $MSP_c$: the first MSP at which half adopt, averaged over $\Gamma$):
+\paragraph{The premium} (x2, base exposure, random seeding, $\lambda$-mean over 0.5--1.5 unless stated; the
+rational and social channels split the gap; $MSP_c$: the first MSP at which half adopt, averaged over $\Gamma$):
 
 \begin{center}
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}lcccccccc@{}}
+\scriptsize
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{@{}lccccccccc@{}}
 \toprule
  & \hd{$\beta_{\text{DP}}$}{te $12 \times 12$} & \hd{odds}{drop}
-  & \hd{gap (pp)}{$\lambda$-mean} & \hd{gap (pp)}{$\lambda = 0.5 \to 1.0$}
+  & \hd{gap (pp)}{$\lambda$-mean} & \hd{gap (pp)}{0.5--1.0} & \hd{gap (pp)}{$\lambda = 0.5 \to 1.0 \to 1.5$}
   & \hd{rational /}{social (pp)} & \hd{\% of plane}{gap $> 0.10$} & \hd{$MSP_c$}{net / DP} & \hd{$\Phi$ (\%)}{net / DP} \\
 \midrule
-GSS 2004 & \ci{-1.207}{-1.258}{-1.153} & $-70\%$ & \ci{7.07}{6.74}{7.39} & 5.37 $\to$ 8.54 & 2.28 / 4.80 & \ci{26.1}{24.2}{26.7} & 0.15 / 0.24 & 64.5 / 57.5 \\
-ATP 2014 & \ci{-1.140}{-1.197}{-1.088} & $-68\%$ & \ci{8.05}{7.61}{8.49} & 6.38 $\to$ 9.65 & 2.76 / 5.30 & \ci{26.8}{24.8}{27.4} & 0.21 / 0.31 & 62.3 / 54.3 \\
-GSS 2014 & \ci{-1.116}{-1.167}{-1.059} & $-67\%$ & \ci{7.26}{6.80}{7.66} & 5.64 $\to$ 8.92 & 2.33 / 4.93 & \ci{27.7}{25.4}{28.9} & 0.18 / 0.26 & 64.3 / 57.0 \\
-ELSOC 2018 & \ci{-0.993}{-1.021}{-0.961} & $-63\%$ & \ci{6.95}{6.78}{7.09} & 5.42 $\to$ 8.66 & 2.43 / 4.52 & \ci{23.1}{22.6}{23.8} & 0.26 / 0.37 & 48.7 / 41.8 \\
+GSS 2004 & \ci{-1.462}{-1.530}{-1.399} & $-77\%$ & \ci{8.02}{7.61}{8.42} & 7.07 & 5.37 $\to$ 8.54 $\to$ 9.47 & 2.27 / 5.75 & \ci{27.2}{25.5}{28.0} & 0.15 / 0.24 & 69.1 / 61.0 \\
+ATP 2014 & \ci{-1.540}{-1.611}{-1.479} & $-79\%$ & \ci{9.33}{8.86}{9.80} & 8.05 & 6.38 $\to$ 9.65 $\to$ 11.46 & 2.74 / 6.58 & \ci{27.9}{25.9}{28.5} & 0.21 / 0.32 & 68.4 / 59.1 \\
+GSS 2014 & \ci{-1.410}{-1.483}{-1.326} & $-76\%$ & \ci{8.57}{7.98}{9.06} & 7.26 & 5.64 $\to$ 8.92 $\to$ 10.98 & 2.31 / 6.25 & \ci{29.9}{28.0}{30.9} & 0.17 / 0.26 & 69.3 / 60.7 \\
+ELSOC 2018 & \ci{-1.525}{-1.567}{-1.477} & $-78\%$ & \ci{8.99}{8.75}{9.19} & 6.95 & 5.42 $\to$ 8.66 $\to$ 13.22 & 2.42 / 6.58 & \ci{26.0}{25.2}{26.7} & 0.26 / 0.38 & 55.4 / 46.4 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \noindent\textbf{The premium replicates in all four surveys}, at every $\lambda$, seeding and level, and no
-interval comes near zero (6.0 to 9.3 pp over the 40 survey $\times$ level $\times$ seeding combinations, $\lambda$-mean). It
-grows with $\lambda$; the rational channel is flat in $\lambda$ and the social channel carries the growth;
-DP needs about 0.1 more openness to tip in every survey. ELSOC adopts less overall (mean $q$ 0.73) and its
-band covers less of the plane, but the premium is the same size: 6.95 pp against 7.07 in GSS 2004. With
-the PR \#4 recipe it was 6.60 (GSS) and 6.80 (ATP), and 6.02 (ELSOC) with the first ELSOC networks.
+interval comes near zero: 8.0--9.3 pp with random seeding on x2, 7.7 to 10.7 pp over the 40 survey $\times$ level
+$\times$ seeding combinations ($\lambda$-mean; 6.0--9.3 over 0.5--1.0). It grows with $\lambda$ over the whole
+grid; the rational channel is flat in $\lambda$ (2.2--2.8 pp) and the social channel carries the growth; DP
+needs about 0.1 more openness to tip in every survey. Above $\lambda = 1$ the growth \textbf{slows down in the
+GSS family and ATP} (0.6--0.7 pp per 0.1 of $\lambda$ on 0.5--1.0, 0.2--0.4 above; GSS 2004 flattens most) and
+\textbf{accelerates in ELSOC} (0.65 $\to$ 0.9 pp per 0.1), which is consolidation (\S\ref{sec:rule-lambdasens}).
+So the ordering changes with the window: on 0.5--1.0 ELSOC had the smallest premium (6.95 against 7.07 in
+GSS 2004), on 0.5--1.5 it is second (8.99, after ATP 9.33), although it adopts less overall (mean $q$ 0.73)
+and its band covers the least of the plane. On the odds scale the $\lambda$-mean $\beta_{\text{DP}}$ is
+$-1.41$ to $-1.54$ (odds $-76$ to $-79\%$; $-0.99$ to $-1.21$ on 0.5--1.0). With the PR \#4 recipe and the old
+grid the premium was 6.60 (GSS) and 6.80 (ATP), and 6.02 (ELSOC) with the first ELSOC networks.
 
 \paragraph{What each change of the recipe does} (\code{scripts/06h\_calibration\_steps.R}; x2 networks of
-every step, base exposure, random seeding, $\lambda$-mean; differences paired by run):
+every step, base exposure, random seeding; differences paired by run; $\lambda$-mean over 0.5--1.5 and, for
+continuity, 0.5--1.0):
 
 \begin{center}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llcc@{}}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}llcccc@{}}
 \toprule
- & step & premium (pp) & change (pp) \\
+ & & \multicolumn{2}{c}{$\lambda$ 0.5--1.5} & \multicolumn{2}{c}{$\lambda$ 0.5--1.0} \\
+ & step & premium (pp) & change (pp) & premium (pp) & change (pp) \\
 \midrule
-GSS 2004 & PR \#4: race by group, Smith et al.\ coefficients, no weights & \ci{6.60}{6.43}{6.77} & \\
- & own GSS 2004 coefficients & \ci{6.41}{6.12}{6.69} & \ci{-0.19}{-0.45}{0.04} \\
- & + weights & \ci{6.74}{6.42}{7.06} & \ci{+0.33}{-0.17}{0.84} \\
- & + religion and sex by group (main) & \ci{7.07}{6.72}{7.39} & \ci{+0.33}{-0.02}{0.70} \\
+GSS 2004 & PR \#4: race by group, Smith et al., no weights & \ci{7.80}{7.51}{8.06} & & \ci{6.60}{6.43}{6.77} & \\
+ & own GSS 2004 coefficients & \ci{7.49}{7.11}{7.81} & \ci{-0.31}{-0.65}{-0.01} & \ci{6.41}{6.12}{6.69} & \ci{-0.19}{-0.45}{0.04} \\
+ & + weights & \ci{7.79}{7.40}{8.17} & \ci{+0.30}{-0.26}{0.88} & \ci{6.74}{6.42}{7.06} & \ci{+0.33}{-0.17}{0.84} \\
+ & + religion and sex by group (main) & \ci{8.02}{7.57}{8.42} & \ci{+0.23}{-0.22}{0.71} & \ci{7.07}{6.72}{7.39} & \ci{+0.33}{-0.02}{0.70} \\
 \midrule
-ATP 2014 & PR \#4 & \ci{6.80}{6.36}{7.18} & \\
- & own GSS 2004 coefficients & \ci{6.80}{6.25}{7.24} & \ci{0.00}{-0.23}{0.24} \\
- & + weights & \ci{8.10}{7.78}{8.37} & \ci{+1.31}{0.89}{1.81} \\
- & + religion and sex by group (main) & \ci{8.05}{7.63}{8.48} & \ci{-0.05}{-0.46}{0.34} \\
+ATP 2014 & PR \#4 & \ci{7.76}{7.28}{8.19} & & \ci{6.80}{6.36}{7.18} & \\
+ & own GSS 2004 coefficients & \ci{7.76}{7.15}{8.25} & \ci{0.00}{-0.25}{0.23} & \ci{6.80}{6.25}{7.24} & \ci{0.00}{-0.23}{0.24} \\
+ & + weights & \ci{9.35}{8.97}{9.63} & \ci{+1.59}{1.10}{2.16} & \ci{8.10}{7.78}{8.37} & \ci{+1.31}{0.89}{1.81} \\
+ & + religion and sex by group (main) & \ci{9.33}{8.86}{9.77} & \ci{-0.02}{-0.47}{0.39} & \ci{8.05}{7.63}{8.48} & \ci{-0.05}{-0.46}{0.34} \\
 \midrule
-GSS 2014 & race by group, Smith et al.\ coefficients, weighted & \ci{7.22}{6.96}{7.48} & \\
- & own coefficients, religion and sex by group (main) & \ci{7.26}{6.80}{7.69} & \ci{+0.04}{-0.36}{0.42} \\
+GSS 2014 & race by group, Smith et al., weighted & \ci{8.49}{8.14}{8.83} & & \ci{7.22}{6.96}{7.48} & \\
+ & own coefficients, religion and sex by group (main) & \ci{8.57}{7.96}{9.07} & \ci{+0.07}{-0.40}{0.49} & \ci{7.26}{6.80}{7.69} & \ci{+0.04}{-0.36}{0.42} \\
 \midrule
-ELSOC & education and ideology by group, weighted & \ci{6.52}{6.38}{6.66} & \\
- & + religion by group & \ci{6.78}{6.61}{6.95} & \ci{+0.26}{0.11}{0.41} \\
- & + sex (main) & \ci{6.95}{6.78}{7.10} & \ci{+0.16}{0.02}{0.31} \\
+ELSOC & education and ideology by group, weighted & \ci{8.63}{8.44}{8.82} & & \ci{6.52}{6.38}{6.66} & \\
+ & + religion by group & \ci{8.87}{8.68}{9.06} & \ci{+0.24}{0.05}{0.41} & \ci{6.78}{6.61}{6.95} & \ci{+0.26}{0.11}{0.41} \\
+ & + sex (main) & \ci{8.99}{8.75}{9.20} & \ci{+0.12}{-0.08}{0.32} & \ci{6.95}{6.78}{7.10} & \ci{+0.16}{0.02}{0.31} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent Every step moves the premium by less than half a point, except the weights in ATP ($+1.3$ pp); GSS 2014,
-already weighted, does not move.
+\noindent Every step moves the premium by less than half a point, except the weights in ATP ($+1.6$ pp; $+1.3$ on
+0.5--1.0); GSS 2014, already weighted, does not move.
 The ATP panel over-represents white and educated respondents: weighted, the nodes are 65\% white instead
 of 77\% (Hispanic 14\% instead of 8\%, Black 12\% instead of 8\%), less educated (14.2 against 15.2 years)
 and younger. A more diverse population gives homophily more to sort, so the DP twin destroys more; in the
@@ -2088,7 +2139,7 @@ GSS the sample is closer to the population and the weights move the premium by $
 through the current pipeline give exactly their PR \#4 premium (GSS 6.60), so the changes come from the
 networks alone.
 
-\paragraph{Seeding strategies} ($\lambda$-mean, pp):
+\paragraph{Seeding strategies} ($\lambda$-mean over 0.5--1.5, pp):
 
 \begin{center}
 \footnotesize
@@ -2097,22 +2148,24 @@ networks alone.
 \toprule
 strategy & GSS 2004 & ATP 2014 & GSS 2014 & ELSOC 2018 \\
 \midrule
-central & \ci{7.23}{7.05}{7.41} & \ci{7.87}{7.64}{8.10} & \ci{7.30}{7.05}{7.57} & \ci{6.32}{6.18}{6.47} \\
-closeness & \ci{7.71}{7.52}{7.94} & \ci{8.53}{8.32}{8.76} & \ci{8.06}{7.86}{8.26} & \ci{7.18}{7.07}{7.28} \\
-eigen & \ci{6.70}{6.35}{7.04} & \ci{7.79}{7.55}{8.00} & \ci{7.22}{7.04}{7.43} & \ci{6.02}{5.85}{6.19} \\
-random & \ci{7.07}{6.74}{7.39} & \ci{8.05}{7.61}{8.49} & \ci{7.26}{6.80}{7.66} & \ci{6.95}{6.78}{7.09} \\
-marginal & \ci{7.42}{7.16}{7.69} & \ci{8.42}{8.11}{8.71} & \ci{7.24}{6.76}{7.69} & \ci{6.99}{6.84}{7.13} \\
+central & \ci{8.70}{8.42}{8.99} & \ci{9.22}{8.93}{9.50} & \ci{8.86}{8.49}{9.24} & \ci{8.39}{8.20}{8.57} \\
+closeness & \ci{8.99}{8.77}{9.28} & \ci{9.97}{9.74}{10.21} & \ci{9.41}{9.15}{9.67} & \ci{9.34}{9.19}{9.47} \\
+eigen & \ci{7.74}{7.25}{8.24} & \ci{9.09}{8.79}{9.34} & \ci{8.78}{8.49}{9.05} & \ci{8.03}{7.81}{8.23} \\
+random & \ci{8.02}{7.61}{8.42} & \ci{9.33}{8.86}{9.80} & \ci{8.57}{7.98}{9.06} & \ci{8.99}{8.75}{9.19} \\
+marginal & \ci{8.42}{8.07}{8.78} & \ci{9.75}{9.40}{10.07} & \ci{8.25}{7.65}{8.83} & \ci{9.05}{8.87}{9.21} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\noindent The strategy stays second order but matters a little more than in PR \#4. Closeness has the
-largest premium everywhere (closeness $-$ random $+0.2$ to $+0.8$ pp, every interval above zero) and eigen
-the smallest (closeness $-$ eigen $+0.7$ to $+1.2$ pp). Central $-$ random is null in the GSS family
-($-0.2$ to $+0.2$) and negative in ELSOC ($-0.63$ $[-0.81, -0.43]$, with eigen $-$ random $-0.93$; why is open).
+\noindent The strategy stays second order. Closeness has the largest premium everywhere (closeness $-$
+random $+0.3$ to $+1.0$ pp, every interval above zero) and eigen the smallest in GSS 2004, ATP and ELSOC
+(closeness $-$ eigen $+0.6$ to $+1.3$ pp; in GSS 2014 marginal is lowest). Central $-$ random is null in ATP and
+GSS 2014, positive in GSS 2004 ($+0.68$ $[0.26, 1.15]$; null on 0.5--1.0) and negative in ELSOC ($-0.61$
+$[-0.83, -0.36]$, with eigen $-$ random $-0.97$; why is open). On 0.5--1.0 the table was 6.0--8.5 pp with the
+same ordering.
 
-\paragraph{What closure does: x2 vs.\ x1} (\code{06d}; the same DP twin; $\lambda$-mean, pp; last column
-the selective half, $h \le 0.5$):
+\paragraph{What closure does: x2 vs.\ x1} (\code{06d}; the same DP twin; $\lambda$-mean over 0.5--1.5, pp; last
+column the selective half, $h \le 0.5$):
 
 \begin{center}
 \footnotesize
@@ -2121,39 +2174,43 @@ the selective half, $h \le 0.5$):
 \toprule
  & strategy & premium x2 & premium x1 & x2 $-$ x1 & relative & x2 $-$ x1, $h \le 0.5$ \\
 \midrule
-GSS & random & \ci{7.07}{6.71}{7.40} & \ci{7.85}{7.57}{8.12} & \ci{-0.77}{-1.08}{-0.44} & $-9.9\%$ & \ci{-1.11}{-1.65}{-0.56} \\
-GSS & eigen & \ci{6.70}{6.35}{7.05} & \ci{7.98}{7.74}{8.22} & \ci{-1.28}{-1.58}{-0.97} & $-16.0\%$ & \ci{-1.75}{-2.25}{-1.27} \\
-GSS & marginal & \ci{7.42}{7.14}{7.70} & \ci{7.81}{7.58}{8.04} & \ci{-0.39}{-0.64}{-0.16} & $-5.0\%$ & \ci{-0.62}{-1.12}{-0.18} \\
-ATP & random & \ci{8.05}{7.59}{8.43} & \ci{8.70}{8.30}{9.06} & \ci{-0.65}{-0.94}{-0.37} & $-7.5\%$ & \ci{-0.96}{-1.47}{-0.45} \\
-ATP & central & \ci{7.87}{7.64}{8.11} & \ci{9.24}{9.03}{9.43} & \ci{-1.37}{-1.60}{-1.12} & $-14.8\%$ & \ci{-2.31}{-2.71}{-1.86} \\
-ATP & marginal & \ci{8.42}{8.10}{8.72} & \ci{8.94}{8.72}{9.18} & \ci{-0.52}{-0.76}{-0.29} & $-5.8\%$ & \ci{-0.63}{-1.08}{-0.23} \\
-GSS14 & random & \ci{7.26}{6.81}{7.71} & \ci{8.15}{7.76}{8.50} & \ci{-0.89}{-1.22}{-0.60} & $-10.9\%$ & \ci{-1.47}{-2.08}{-0.92} \\
-GSS14 & eigen & \ci{7.22}{7.03}{7.42} & \ci{8.29}{8.11}{8.48} & \ci{-1.07}{-1.30}{-0.84} & $-12.9\%$ & \ci{-1.71}{-2.15}{-1.32} \\
-GSS14 & closeness & \ci{8.06}{7.85}{8.27} & \ci{8.62}{8.42}{8.83} & \ci{-0.56}{-0.79}{-0.33} & $-6.5\%$ & \ci{-0.79}{-1.20}{-0.38} \\
-ELSOC & random & \ci{6.95}{6.79}{7.09} & \ci{7.21}{7.08}{7.35} & \ci{-0.27}{-0.38}{-0.15} & $-3.7\%$ & \ci{-0.35}{-0.54}{-0.17} \\
-ELSOC & eigen & \ci{6.02}{5.86}{6.19} & \ci{6.60}{6.43}{6.76} & \ci{-0.58}{-0.79}{-0.38} & $-8.8\%$ & \ci{-0.80}{-1.15}{-0.46} \\
-ELSOC & closeness & \ci{7.18}{7.07}{7.29} & \ci{7.21}{7.02}{7.38} & \ci{-0.03}{-0.20}{0.16} & $-0.4\%$ & \ci{0.01}{-0.22}{0.27} \\
+GSS & random & \ci{8.02}{7.55}{8.43} & \ci{8.96}{8.63}{9.32} & \ci{-0.94}{-1.34}{-0.51} & $-10.5\%$ & \ci{-1.30}{-1.90}{-0.68} \\
+GSS & eigen & \ci{7.74}{7.22}{8.25} & \ci{9.24}{8.95}{9.55} & \ci{-1.51}{-1.93}{-1.05} & $-16.3\%$ & \ci{-2.07}{-2.64}{-1.51} \\
+GSS & marginal & \ci{8.42}{8.04}{8.77} & \ci{8.80}{8.51}{9.08} & \ci{-0.37}{-0.60}{-0.13} & $-4.2\%$ & \ci{-0.66}{-1.18}{-0.20} \\
+ATP & random & \ci{9.33}{8.83}{9.72} & \ci{10.06}{9.67}{10.41} & \ci{-0.73}{-1.03}{-0.43} & $-7.3\%$ & \ci{-1.04}{-1.58}{-0.50} \\
+ATP & central & \ci{9.22}{8.92}{9.49} & \ci{10.56}{10.35}{10.78} & \ci{-1.35}{-1.60}{-1.08} & $-12.8\%$ & \ci{-2.40}{-2.83}{-1.94} \\
+ATP & marginal & \ci{9.75}{9.39}{10.06} & \ci{10.22}{10.01}{10.45} & \ci{-0.47}{-0.73}{-0.22} & $-4.6\%$ & \ci{-0.69}{-1.15}{-0.25} \\
+GSS14 & random & \ci{8.57}{8.00}{9.09} & \ci{9.47}{8.88}{9.97} & \ci{-0.90}{-1.18}{-0.64} & $-9.5\%$ & \ci{-1.66}{-2.29}{-1.08} \\
+GSS14 & eigen & \ci{8.78}{8.49}{9.05} & \ci{9.86}{9.62}{10.10} & \ci{-1.08}{-1.40}{-0.79} & $-11.0\%$ & \ci{-1.87}{-2.32}{-1.43} \\
+GSS14 & marginal & \ci{8.25}{7.62}{8.80} & \ci{8.68}{8.28}{9.05} & \ci{-0.43}{-0.99}{0.10} & $-5.0\%$ & \ci{-0.76}{-1.67}{0.13} \\
+ELSOC & random & \ci{8.99}{8.77}{9.19} & \ci{9.38}{9.21}{9.53} & \ci{-0.38}{-0.54}{-0.23} & $-4.1\%$ & \ci{-0.41}{-0.62}{-0.20} \\
+ELSOC & eigen & \ci{8.03}{7.81}{8.25} & \ci{8.74}{8.55}{8.93} & \ci{-0.72}{-0.94}{-0.49} & $-8.2\%$ & \ci{-0.89}{-1.26}{-0.53} \\
+ELSOC & closeness & \ci{9.34}{9.19}{9.48} & \ci{9.40}{9.19}{9.60} & \ci{-0.07}{-0.27}{0.15} & $-0.7\%$ & \ci{0.01}{-0.23}{0.29} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \noindent Random seeding plus the strategies with the largest and smallest effect in each survey (all
 twenty rows in \code{output/06d\_closure\_contrast/}). \textbf{Closure lowers the premium, never raises it}:
-by 5--16\% in GSS 2004, 6--15\% in ATP, 6--13\% in GSS 2014 and 0--9\% in ELSOC (closeness the only interval
-that includes zero), 1.5 times more in the selective half. ELSOC's x1 networks have less closure to begin
+by 4--16\% in GSS 2004, 5--13\% in ATP, 5--11\% in GSS 2014 and 1--8\% in ELSOC (ELSOC closeness and GSS 2014
+marginal the only intervals that include zero; at single $\lambda$ the largest x2 $-$ x1 anywhere is $+0.01$ pp),
+1.5 times more in the selective half. On 0.5--1.0 it was 5--16, 6--15, 6--13 and 0--9\%. ELSOC's x1 networks have less closure to begin
 with (transitivity 0.061 against 0.094), so doubling it adds fewer triangles inside homophilous groups.
 The premium goes with homophily, not with closure. The $\times 3$ sensitivity of \S\ref{sec:pr4results} was
 not rerun with the new recipe.
 
-\paragraph{The exposure axis} (\code{06c}; every seeding and $\lambda$). \textbf{The premium never changes
-sign}: 1.8 to 15.4 pp in GSS 2004, 2.5 to 14.9 in ATP, 2.0 to 14.9 in GSS 2014 and 2.0 to 14.4 in ELSOC (0 of
-270, 270, 390 and 390 intervals below zero). The pattern of PR \#4 holds: independent reinforcement
-(race $\times$ religion or education $\times$ religion circles) raises the premium against the base ($-0.6$
-to $+5.0$ pp), cohesive reinforcement lowers it to 2.3--5.9 pp, and the permuted controls move it as much or
-more (real $-$ permuted: $-3.3$ to $-0.7$ pp for $\theta$, $+0.3$ to $+2.0$ for $\kappa$, over the four
-surveys). \textbf{Ideology circles} add little of their own: real $-$ permuted is $-0.9$ to $-0.35$ pp in
-ELSOC, where the networks sort on ideology (assortativity 0.31), and $-0.4$ to $0.0$ in GSS 2014, where they
-barely do (0.04).
+\paragraph{The exposure axis} (\code{06c}; every seeding and $\lambda$ of 0.5--1.5). \textbf{The premium never
+changes sign}: 1.8 to 15.4 pp in GSS 2004, 2.1 to 14.9 in ATP, 2.0 to 14.9 in GSS 2014 and 2.0 to 18.1 in ELSOC
+(0 of 495, 495, 715 and 715 intervals below zero). On 0.5--1.0 the pattern of PR \#4 holds: independent
+reinforcement (race $\times$ religion or education $\times$ religion circles) raises the premium against the
+base ($-0.6$ to $+5.0$ pp), cohesive reinforcement lowers it, and the permuted controls move it as much or more.
+\textbf{Above $\lambda \approx 1$ the strong independent arm turns}: with $\theta = 1$ the premium falls below the
+base (random seeding, $\lambda = 1.5$: $-1.3$ GSS 2004, $-2.3$ ATP, $-2.6$ GSS 2014, $-1.1$ ELSOC pp; down to $-3.6$
+over the seedings), while $\theta = 1/3$ still raises it up to $\lambda \approx 1.3$; cohesive reinforcement lowers
+it more as $\lambda$ grows ($\kappa = 0.5$: $-5.5$ to $-7.5$ pp at 1.5; premium 2.3--9.1 pp with $\kappa$). Real $-$
+permuted over the whole grid: $-4.0$ to $+0.5$ pp for $\theta$, $+0.3$ to $+3.4$ for $\kappa$. \textbf{Ideology
+circles} add little of their own: real $-$ permuted is $-0.9$ to $+0.1$ pp in ELSOC, where the networks sort on
+ideology (assortativity 0.31), and $-0.4$ to $0.0$ in GSS 2014, where they barely do (0.04).
 
 \paragraph{The reverse-premium corner} (06b, one-sided max-$T$ per strategy $\times$ $\lambda$, robust DP wins
 over the whole plane; random seeding unless stated). \textbf{GSS 2004}: robust at $\lambda = 0.5$--$0.8$ (56,
@@ -2163,11 +2220,13 @@ up to 16--17 pp. \textbf{ELSOC}: robust at $\lambda = 0.5$--$0.9$ (23, 17, 13, 1
 (50 with eigen seeding at $\lambda = 0.9$), at higher IUL: $\Gamma \approx 0.6$ at $\lambda = 0.5$, entering the
 GSS box only from $\lambda = 0.7$. \textbf{ATP}: now robust too but shallow, at $\lambda = 0.5$--$0.7$ (38, 25,
 9 cells; 7, 13 and 9 inside the box), up to 3.7--6.9 pp. The figures still draw the GSS box (decided with the
-user). Consolidation explains the four (\S\ref{sec:consolidation}): permuting $q$ removes every deep corner,
-and mapping ELSOC's $q$ onto the GSS 2004 distribution moves its corner to $\Gamma \approx 0.30$--$0.35$.
+user). \textbf{From $\lambda = 1.0$ on there is no robust cell} with random seeding in any survey, and above 1
+none under any of the five seedings (20 combinations; largest DP lead anywhere at $\lambda > 1$: 2.5 pp, GSS 2014 at
+$\lambda = 1.1$, eigen seeding). Consolidation explains the four (\S\ref{sec:consolidation}): permuting $q$ removes
+every deep corner, and mapping ELSOC's $q$ onto the GSS 2004 distribution moves its corner to $\Gamma \approx 0.30$--$0.35$.
 
-\paragraph{The rule} (\code{06f}, GSS and ATP; \S\ref{sec:mechanisms}): complements in shares and the
-$\gamma$-form keep the premium at 4.6--10.8 pp, positive in all 24 networks in every combination.
+\paragraph{The rule} (\code{06f}, GSS and ATP; \S\ref{sec:mechanisms}): complements in shares (paths clamped to
+$[0.5, 1.5]$) and the $\gamma$-form keep the premium at 4.6--10.8 pp, positive in all 24 networks in every combination.
 
 \paragraph{What breaking the network destroys} (\code{07}). In all four surveys x2 $\to$ x1 halves clustering
 (GSS 0.185 $\to$ 0.094, ELSOC 0.121 $\to$ 0.061) and keeps every categorical assortativity exactly (age and
@@ -2196,6 +2255,306 @@ religion 0.55).
   \item \code{c22}--\code{c24} (participation of the respondent, family and friends in the movement they
     value most) are not used yet; they are the closest measure of perceived exposure (Prompt 6.1).
 \end{itemize}
+\noindent\emph{Update 2026-11-16.} Both ELSOC items are closed in \S\ref{sec:rule-data}: $q$ = \code{c09}
+(main) with the GSS format as a declared sensitivity (\code{06i}, \S\ref{sec:rule-qformat}); \code{c22}--\code{c24}
+are the data of the rule (\code{10\_ELSOC\_rule.R}).
+
+% ============================================================================
+\section{PR \#6: the rule in the data (ELSOC) and \texorpdfstring{$\lambda$}{lambda} up to 1.5}
+\label{sec:rule-data}
+
+Prompt 6.1 (2026-11-12, exploratory, \code{playground/PR6.1-elsoc-mechanism/}) asked what ELSOC adds
+beyond a fourth replication of the premium. Decided with the user on 2026-11-16: \textbf{ELSOC is the
+case of the mechanism}, not the main case. GSS 2004 and ATP remain the core of the premium; the
+outburst of October 2019 (18-O) as a test of the networks goes to a second paper (the pilot of 6.1 was not
+robust; \S\ref{sec:rule-18O}). This section is the part that enters the paper.
+
+\paragraph{Why ELSOC.} \textbf{ELSOC is the only one of the four surveys that measures $q$, the exposure
+$E$ and the behaviour $y$ in the same people}, in a panel. GSS 2004 and GSS 2014 measure $q$ (and the GSS
+2004 confidants) but not what the respondent's contacts do; ATP measures $q$ only. In ELSOC the
+respondent names the social movement they value most (\code{c20}; 67\% name one in 2018) and then reports
+how often, in the last 12 months, they took part in it (\code{c22}) and how often their family
+(\code{c23}) and friends (\code{c24}) did, plus whether its actions can bring social change
+(\code{c21\_05}). With the willingness items \code{c09}, which are the $q$ of the networks, the rule
+$\Gamma + \lambda E_i \ge q_i$ can be estimated in engine units. Script:
+\code{scripts/10\_ELSOC\_rule.R} (about 15 s; $B = 500$; outputs in \code{output/10\_ELSOC\_rule/},
+figures in \code{plots/10\_ELSOC\_rule/}); the panel is \code{elsoc\_panel()} of \code{01\_survey\_data.R}.
+
+% ----------------------------------------------------------------------------
+\subsection{Measurement and the model in engine units}
+\label{sec:rule-model}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.4cm}@{}}
+\toprule
+Piece & Item & Scale \\
+\midrule
+$y_i$ adoption & \code{c22} $\ge 2$: took part in the movement valued most in the last 12 months & 0/1 (ordinal 1--5 as robustness) \\
+$q_i$ aversion & \code{c09}, 4 items (petition, march, strike, social media): the $q$ of the networks & $1 - (\Sigma - 4)/16 \in [0, 1]$ \\
+$\Gamma_i$ quality & \code{c21\_05}: ``the actions and protests of this movement can bring social change'' & $(x - 1)/4$ \\
+$E_i$ exposure & \code{c23}, \code{c24}: how often family and friends took part in \emph{that} movement & mean of $(x - 1)/4$ \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\noindent The rule with noise is a random-utility threshold model (Brock \& Durlauf 2001 at positive
+temperature, \S\ref{sec:brockdurlauf}):
+\[
+y_i^* = \Gamma_i + \lambda E_i - q_i + \varepsilon_i, \qquad y_i = \mathbf 1[y_i^* \ge 0], \qquad
+\varepsilon_i \sim \text{logistic}(0, \sigma),
+\]
+so $\operatorname{logit} P(y_i = 1) = \beta_0 + \beta_\Gamma \Gamma_i + \beta_E E_i + \beta_q q_i$ (plus wave
+effects), and the rule is the restriction $\beta_\Gamma = -\beta_q = 1/\sigma$, $\beta_E = \lambda/\sigma$.
+Because $q$ is exactly the engine's \code{mur\_score}, everything is read in its units:
+$\hat\lambda = \beta_E/(-\beta_q)$ (how much aversion is offset by going from $E = 0$ to $E = 1$),
+$\hat w_\Gamma = \beta_\Gamma/(-\beta_q)$ (the weight of perceived efficacy; the rule says 1),
+$\hat\sigma = 1/(-\beta_q)$ (the noise of the rule; the engine has none) and
+$\hat\Gamma_t = (\beta_0 + \beta_t + \beta_\Gamma\bar\Gamma)/(-\beta_q)$ (the $q$ at which a person of mean
+efficacy and no exposure takes part with probability 1/2, by wave). $q$ ($\alpha \approx 0.81$) and $E$ (two
+items) have similar reliabilities, so the ratio $\hat\lambda$ is roughly free of attenuation. Survey weights:
+\code{ponderador02} of each wave; intervals: bootstrap over respondents. ELSOC's $E$ is a perceived frequency
+on a 1--5 scale, not the engine's share of gated adopting contacts $\Ee_i$; the mapping is approximate, and
+the structural exposure S7 below is the closest analogue.
+
+\paragraph{The identification ladder.} No specification is causal; each says what it removes. The main
+threat is \emph{projection}: those who take part see their friends take part, and people march together.
+With perceived exposure the endogenous, contextual and correlated effects are not separated (Manski 1993),
+and latent homophily confounds contagion even in panels (Shalizi \& Thomas 2011).
+\begin{itemize}
+  \item S1: waves 2016, 2018 and 2022 pooled (the waves with \code{c09}), $q$ of the same wave. The
+    association; an \textbf{upper bound}.
+  \item S2: S1 + own attributes, the movement named and identification with it.
+  \item S3: lagged $q$ (2016, 2018, 2022 $\to$ $y$ of 2017, 2019, 2023), so $q$ cannot be an effect of that
+    year's participation; S3b: 2018 and 2019 with the $q$ of 2018 (the jump of the 18-O).
+  \item S4: lagged $E$ and lagged $y$, consecutive waves, same movement: removes contemporaneous projection.
+  \item S5: person fixed effects (linear probability): removes stable homophily.
+  \item S6: family and friends separately (relatives are not chosen for affinity).
+  \item S7: \textbf{structural exposure}. For every 2017 confidant (\code{r13}, up to five per ego, with
+    sex, age, education, religion and ideology: the data the networks are calibrated on), the probability
+    that a person with those attributes takes part (weighted logit on the 2017 cross-section), averaged over
+    the ego's confidants. No projection; homophily is controlled with the ego's own attributes or own
+    predicted probability. It is what the imputed networks feed the engine; $q$ of 2016.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{How large is \texorpdfstring{$\lambda$}{lambda}?}
+\label{sec:rule-lambda}
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\input{../output/10_ELSOC_rule/tab_rule_ladder.tex}
+\end{center}
+\noindent Figure: \code{plots/10\_ELSOC\_rule/rule\_lambda\_ladder.pdf}.
+\begin{enumerate}
+  \item \textbf{With perceived contemporaneous exposure, $\hat\lambda$ = 2.5--2.8}, far above the swept range.
+    It is an upper bound: it includes projection and common shocks. Controls raise it (S2: 4.7) because they
+    take part of $q$'s weight, not of $E$'s. The robustness variants of S1 (below) move it between 1.3
+    (binary $E$) and 2.7.
+  \item \textbf{The estimates that remove projection fall in the range or next to it}: S4 1.05 [0.37, 2.64]
+    (1.50 without the lagged outcome); S7 1.41 [0.71, 2.50] without controls and 0.77 [$-$0.06, 1.88] net
+    of the ego's own attributes. The structural exposure also predicts the perceived one (slope 0.69
+    [0.52, 0.85]; 0.51 [0.30, 0.70] with controls): perception is not pure projection. The recommended
+    range is $\lambda \approx 0.7$--$1.5$, with 2.5 as the upper bound; the former swept range 0.5--1.0 was the
+    lower part of what the data allow. Hence, first, the declared sensitivity at 1.25 and 1.5 (Prompt 6.2) and
+    then the general sweep over 0.5--1.5 (Prompt 6.3; \S\ref{sec:rule-lambdasens}).
+  \item \textbf{Perceived efficacy does not enter as the rule says}: $\hat w_\Gamma \approx 0$ in every
+    specification ($-0.08$ [$-0.36$, 0.28] in S1), and the restriction $\beta_\Gamma = -\beta_q$ is rejected
+    ($\beta_\Gamma + \beta_q = -2.24$ [$-3.14$, $-1.34$]). Dropping efficacy does not worsen the fit.
+    $\Gamma$ behaves as a common parameter (of the wave and the movement), which is the engine's
+    convention.
+  \item \textbf{The rule is noisy}: $\hat\sigma \approx 0.48$ in units of $q$ with \code{c22} as outcome (it
+    includes measurement error), 0.21 with the march (\code{c08\_02}) as outcome, because $q$ contains the
+    willingness to march.
+\end{enumerate}
+$\hat\Gamma_t$ is negative ($-0.39$, $-0.21$, $-0.14$ in 2016, 2018, 2022): without exposure not even the
+least averse person has an even chance of taking part. \textbf{With perceived exposure held fixed, the 18-O
+moved $\Gamma$ by only $+0.06$ [$-0.06$, $+0.18$]} (S3b: $-0.14$ in 2018, $-0.08$ in 2019). The rise in
+participation in 2019 (38\% to 51\% among those naming a movement) goes with exposure (mean $E$ from 0.22 to
+0.35, $\hat\lambda\,\Delta E \approx 0.3$); with perceived $E$, that is an upper bound of the social part.
+
+% ----------------------------------------------------------------------------
+\subsection{Add or multiply?}
+\label{sec:rule-forms}
+
+\begin{center}
+\small
+\input{../output/10_ELSOC_rule/tab_rule_forms.tex}\\[6pt]
+\textbf{The $E = 0$ test} (S1): participation with no exposure (family and friends ``never''), by $q$\\[2pt]
+\input{../output/10_ELSOC_rule/tab_rule_E0.tex}
+\end{center}
+\noindent Weighted logits; $\Delta$AIC within sample; CV log-loss: 10 folds by respondent. Interaction: the
+coefficient of $\Gamma E$ (complements) or $E q$.
+\begin{itemize}
+  \item \textbf{The pure product loses by 181 (S1) and 138 (S3) points of AIC} against the sum, and has the
+    worst cross-validated loss of every form with exposure. It also predicts that nobody takes part without
+    exposure, which is false: with $E = 0$, 14--15\% of those with $q \le 0.5$ take part.
+  \item \textbf{Efficacy and exposure are substitutes, not complements}: the $\Gamma E$ term is
+    \emph{negative} in both samples ($-3.83$ and $-2.96$, $p < 0.001$; 16 and 9 points of AIC). Efficacy
+    matters (in log-odds) for those whom nobody around brings in. It is an individual-level estimate of the
+    cross-partial that \S\ref{sec:mechanisms} found missing in the published literature we read (with
+    perceived efficacy as $\Gamma_i$). It agrees with Oliver (1993, p.~279): ``the multiplicative model rarely yields a significant
+    improvement over a linear model including the interest and efficacy terms''.
+  \item $E q$ improves the AIC of the sum a little (8 and 4 points): in log-odds exposure weighs somewhat more for the
+    more averse.
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\subsection{The shape of exposure}
+\label{sec:rule-shape}
+
+The margin of each person is the index without exposure, $\hat m_i = \beta_0 + \beta_\Gamma\Gamma_i +
+\beta_q q_i + \beta_t$. A threshold rule says that exposure moves those near the threshold more than those
+far from it; the additive logit already implies that, and the question is whether the data show more.
+\begin{center}
+\footnotesize
+\input{../output/10_ELSOC_rule/tab_rule_threshold.tex}\\[6pt]
+\input{../output/10_ELSOC_rule/tab_rule_exposure_bins.tex}
+\end{center}
+\noindent \textbf{The slope of exposure is the rule's at every distance from the threshold} (first table:
+empirical linear slope of $P(y)$ on $E$ within quintiles of the margin against the slope the additive logit
+implies; 0.98 against 0.96 in the most averse quintile). \textbf{Exposure is concave}: the first step (some
+participation of family or friends) moves participation more than the linear index predicts (7.6\% $\to$
+44.6\% observed, 11.8\% $\to$ 36.7\% by the rule) and high exposure less (88\% observed at the top against
+98\%). A GAM with $s(\text{margin}) + s(E)$ improves the AIC by 195 points over the linear index, and a
+tensor surface $te(\text{margin}, E)$ adds nothing to it (AIC $-0.2$): the curvature is in $E$, not in an
+interaction with the threshold (figure \code{plots/10\_ELSOC\_rule/rule\_threshold.pdf}). For the engine,
+the linear rule overstates what high exposure does; a concave exposure ($\Ee^{\gamma}$, $\gamma < 1$) is the
+natural extension (not run; listed for the second paper). Caveat: ELSOC's $E$ is a frequency scale, so its
+curvature need not be the curvature in shares.
+
+\paragraph{Correction to the numbers of Prompt 6.1.} In the playground script
+(\code{02\_rule\_estimation.R}) an in-place \code{data.table} assignment
+(\code{d1 <- SPECS\$S1\$data}, then \code{d1[, y := own >= 3]}) changed the S1 sample after the robustness block, so the
+S1 forms, the $E = 0$ test, the threshold table, the GAM and the IPW row were computed with
+$y = $ \code{c22} $\ge 3$. \code{10\_ELSOC\_rule.R} copies every sample. The ladder, S7, the S3 forms, the
+other robustness rows and the $q$ comparison are identical to 6.1. What changes: the product loses by 181
+instead of 163 points in S1; the complements term is negative in S1 too (6.1: not significant, $p = 0.43$);
+participation at $E = 0$ and $q \le 0.5$ is 14--15\% (6.1: 9--10\%); the IPW $\hat\lambda$ is 2.67 (6.1:
+2.04); and the ``saturation far from the threshold'' of 6.1 is not there --- the curvature is in $E$ at every
+margin. The conclusions of 6.1 (sum, not product; $\Gamma$ common; $\lambda$ 0.7--1.5) hold and the
+substitutes result is stronger.
+
+\begin{center}
+\small
+\textbf{Robustness of S1} (point estimates)\\[2pt]
+\input{../output/10_ELSOC_rule/tab_rule_robustness.tex}
+\end{center}
+\noindent The measurement of $E$ moves $\hat\lambda$ between 1.3 (binary) and 2.7 (continuous); the
+ordinal outcome and the correction for selection into naming a movement (IPW on attributes and $q$) leave it
+at 2.7. With the march as outcome $\hat\lambda$ falls to 0.37: $E$ (family and friends in \emph{their}
+movement) is not the exposure to marching.
+
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\textbf{What the rule in the data identifies and what it does not.} It
+identifies the \emph{form} of the association between participation, aversion, efficacy and exposure in the
+same people: additive, with efficacy and exposure as substitutes, no weight of individual efficacy (a common
+$\Gamma$), concave in exposure, with noise $\sigma \approx 0.5$ in units of $q$. It does not identify the
+causal effect of exposure. Perceived exposure gives an upper bound ($\lambda$ 2.5--2.8); the designs that
+remove projection give 0.65--1.41, and the one net of the ego's attributes has an interval that includes 0.
+Selection: only those who name a movement answer \code{c21}--\code{c24} (IPW leaves $\hat\lambda$ at 2.7).}}
+\end{center}
+
+% ----------------------------------------------------------------------------
+\subsection{\texorpdfstring{$\lambda$}{lambda} above 1: part of the main result}
+\label{sec:rule-lambdasens}
+
+Prompt 6.2 (2026-11-16) ran $\lambda = 1.25$ and $1.5$ as a declared sensitivity (base exposure, random seeding, x2,
+a \code{lambda\_ext} folder under each stage). The user then decided that $\lambda$ need not be $\le 1$ ($q$ and $E$
+live in $[0, 1]$; $\lambda > 1$ only says that full exposure offsets more than the whole range of aversion), and
+\textbf{Prompt 6.3 (2026-11-16/17) extended the general sweep to 0.5--1.5 every 0.1}: every survey, level, seeding
+and exposure condition, 06--07 rerun (\S\ref{sec:pr5results}). The \code{lambda\_ext} sweep is reproduced in all
+6{,}888{,}000 simulations (including $\lambda = 1.5$) and its folders were removed.
+
+\begin{center}
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+ & \hd{premium (pp)}{$\lambda$-mean 0.5--1.5} & \hd{premium (pp)}{0.5--1.0} & $\lambda = 1.0$ & $\lambda = 1.2$ & $\lambda = 1.5$ & \hd{$\beta_{\text{DP}}$ (s, $k = 10$)}{$\lambda = 1.0 \to 1.5$} & \hd{$q$ permuted}{$\lambda = 1.5$} \\
+\midrule
+GSS 2004 & \ci{8.02}{7.61}{8.42} & 7.07 & \ci{8.54}{8.14}{8.95} & \ci{9.08}{8.48}{9.66} & \ci{9.47}{8.84}{10.07} & $-1.45 \to -1.67$ & 8.86 \\
+ATP 2014 & \ci{9.33}{8.86}{9.80} & 8.05 & \ci{9.65}{9.17}{10.13} & \ci{10.56}{9.98}{11.09} & \ci{11.46}{10.86}{12.07} & $-1.50 \to -2.02$ & 11.34 \\
+GSS 2014 & \ci{8.57}{7.98}{9.06} & 7.26 & \ci{8.92}{8.27}{9.47} & \ci{9.68}{8.99}{10.31} & \ci{10.98}{9.92}{11.93} & $-1.40 \to -1.77$ & 10.09 \\
+ELSOC 2018 & \ci{8.99}{8.75}{9.19} & 6.95 & \ci{8.66}{8.44}{8.83} & \ci{10.52}{10.21}{10.77} & \ci{13.22}{12.67}{13.64} & $-1.37 \to -2.49$ & 9.30 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent Premium = mean over the $\Gamma \times h$ plane of adoption in the network minus its DP twin, pp,
+x2, base exposure, random seeding, 95\% run-bootstrap intervals (06b, $B = 1000$); $\beta_{\text{DP}}$ from 06 (per
+$\lambda$, $s(k = 10)$ surface); $q$ permuted from 06e.
+\begin{itemize}
+  \item \textbf{The premium keeps growing above $\lambda = 1$ in all four surveys}: 9.5--13.2 pp at
+    $\lambda = 1.5$, every interval far from zero, and under every seeding (9.3--13.9 pp at 1.5; 06j). The
+    rational channel stays flat (2.2--2.8 pp) and the social channel carries the growth.
+  \item \textbf{In the GSS family and ATP it slows down}: 0.6--0.7 pp per 0.1 of $\lambda$ on 0.5--1.0, 0.2--0.4
+    above 1 (GSS 2004 0.19; with eigen and marginal seeding it flattens). Saturation: at $\lambda = 1.5$ the network
+    adopts almost fully ($\Phi > 0.95$) in 63--68\% of the plane, the twin in 51--54\%.
+  \item \textbf{In ELSOC it accelerates} (0.9 pp per 0.1), and the acceleration is consolidation: with $q$
+    permuted the ELSOC premium is 9.3 pp at 1.5, against 13.2 with the real $q$. Where aversion is socially
+    patterned and $\lambda$ is high, the network brings in whole groups of averse people that the twin, mixing
+    them, leaves stranded --- the mirror image of the corner, which appears at low $\lambda$
+    (\S\ref{sec:consolidation}).
+  \item \textbf{The reverse corner is gone at $\lambda \ge 1$}: with random seeding no robust cell in any survey
+    from $\lambda = 1.0$ on (06b, one-sided max-$T$; also the screen of 06e, DP ahead by $> 2$ pp with $z > 3.5$), and
+    above 1 the DP lead in the upper half is at most 0.3 pp.
+  \item \textbf{Every seeding strategy} (\code{scripts/06j\_corner\_by\_seeding.R}; base exposure, x2, the five
+    seedings, whole plane): the corner fades with $\lambda$ in all 20 survey $\times$ seeding combinations. At
+    $\lambda = 1.0$ one robust cell is left (GSS 2014, central seeding), but single cells still put DP ahead by
+    up to 19 pp in ELSOC with central and 17 with eigen seeding, and 5--8 pp in GSS 2014, without passing the
+    screen (a few networks cascade, most do not). \textbf{At $\lambda = 1.1$--1.5 there is no robust cell in any
+    combination}; the largest DP lead anywhere is 2.5 pp (GSS 2014, $\lambda = 1.1$, $\Gamma = 0.2$) and 0.7 pp from
+    $\lambda = 1.2$. Figure: \code{plots/06j\_corner\_by\_seeding/corner\_by\_seeding.pdf}.
+  \item \textbf{The exposure axis changes above 1} (\S\ref{sec:pr5results}): strong independent reinforcement
+    ($\theta = 1$) lowers the premium below the base from $\lambda \approx 1.0$--1.1 (GSS family and ATP; ELSOC at 1.5),
+    though it stays positive everywhere (2.0--18.1 pp over every condition).
+\end{itemize}
+Reading for the paper: if the data ask for $\lambda > 1$, the premium is larger, not smaller, and the only region
+where the twin wins disappears. The headline is the $\lambda$-mean over 0.5--1.5; the mean over 0.5--1.0 is the
+conservative figure and the one reported before.
+
+% ----------------------------------------------------------------------------
+\subsection{Which \texorpdfstring{$q$}{q}: willingness or the GSS format}
+\label{sec:rule-qformat}
+
+\code{scripts/06i\_q\_format.R} (about 30 s): the premium and the corner of ELSOC with $q$ = \code{c09}
+(willingness, the networks' $q$) and $q$ in the GSS format on the same respondents and four acts (done in the
+past year, from \code{c08} 2018; done before, from \code{c08} 2016--2017; might do it, \code{c09} $\ge 2$;
+would never), on the same networks (node ids rebuilt as 02 draws them, checked against every node's attributes
+and $q$; the \code{c09} condition reproduces the main sweep in all 61{,}776 cells, $\lambda$ 0.5--1.5 every 0.1). The GSS format is
+less averse (mean 0.63 against 0.73; 18\% at $q = 1$ against 28\%) and slightly more patterned ($R^2$ on the
+Blau attributes 0.27 against 0.24; assortativity 0.16 both; correlation between the two 0.74). In the step-2
+rule it fits better (lagged design: AIC $-72$, AUC 0.73 against 0.69; $\hat\lambda$ 2.0 against 2.5).
+\begin{center}
+\footnotesize
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+$q$ & \hd{premium (pp)}{$\lambda$-mean 0.5--1.5} & \hd{premium (pp)}{0.5--1.0} & $\lambda = 1.0$ & $\lambda = 1.5$ & \hd{robust corner cells}{$\lambda = 0.5, 0.6, \ldots$ (0 after)} \\
+\midrule
+\code{c09} (main) & \ci{8.99}{8.75}{9.20} & \ci{6.95}{6.79}{7.10} & \ci{8.66}{8.45}{8.85} & \ci{13.22}{12.70}{13.66} & 23, 18, 13, 10, 6 \\
+GSS format & \ci{9.29}{9.06}{9.50} & \ci{7.65}{7.46}{7.84} & \ci{9.06}{8.83}{9.28} & \ci{12.36}{12.00}{12.68} & 33, 31, 25, 18, 15, 11, 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\noindent The premium is a little larger with the GSS format on 0.5--1.0, smaller at 1.5, and about the same over
+the whole grid (9.3 against 9.0 pp). Its corner sits at lower $\Gamma$ (0.15--0.55 against 0.35--0.60) and survives up
+to $\lambda = 1.1$ (11 cells at $\lambda = 1.0$, $\Gamma$ 0.175--0.20; 5 at 1.1, $\Gamma = 0.15$), two steps longer than
+with \code{c09}; permuting either $q$ removes it. With both $q$ the corner is gone at $\lambda \ge 1.2$.
+
+% ----------------------------------------------------------------------------
+\subsection{The 18-O pilot (not in the paper)}
+\label{sec:rule-18O}
+
+Prompt 6.1 ran the October 2019 outburst through the 24 ELSOC x2 networks and their twins (seeds = those who
+marched in 2018, a calibrated jump of $\Gamma$; \code{elsoc\_mecanismo.pdf}, \S4, in the playground of
+Prompt 6.1). The network with homophily predicts larger gaps between groups (as it should), but with the engine's rule
+it does not predict the profile of the new protesters better than the twin (it exaggerates the education
+gradient in 22 of 22 continuous configurations); with $\lambda \ge 1.5$ the cascade explodes; with the
+estimated noise the comparison flips. Not robust: it goes to the second paper (``the 18-O as a test of the
+network''), with the noise of the rule fixed from pre-outburst waves, public exposure by commune, the 2019
+\code{r13} network as validation and a concave exposure. In the paper, one sentence in the limitations at
+most.
 
 
 % ============================================================================
@@ -2220,8 +2579,10 @@ religion 0.55).
     identical constructs).
   \item[$\boxtimes$] Whether the additive composition has more than conventional support.
     \emph{Resolved 2026-11-10} (\S\ref{sec:mechanisms}): it is the best-response form of
-    conformity and coordination games; learning does not give Tur's form; no study measures
-    the cross-partial; the premium survives both complementary forms.
+    conformity and coordination games; learning does not give Tur's form; no published study measures
+    the cross-partial; the premium survives both complementary forms. \emph{2026-11-16}: ELSOC
+    measures it (negative: substitutes) and the sum beats the product by 138--181 AIC points
+    (\S\ref{sec:rule-forms}); Oliver (1993, p.~279) checked against the PDF.
   \item[$\square$] The random-utility framing sentence for IUL (already drafted in
     \code{JOURNAL\_FIT\_ANALYSIS.md}, \S 4d) composes cleanly with the
     situational-utility framing: $U_i(t) = \Gamma + \lambda \Ee_i$ is a private valuation

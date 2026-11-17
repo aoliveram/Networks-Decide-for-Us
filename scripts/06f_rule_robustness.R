@@ -11,7 +11,8 @@
 #   for each Gamma this is the main rule with lambda(Gamma) = lambda0 + phi * Gamma,
 #   so it is a diagonal path through the (Gamma, lambda) grid that 05 already swept.
 #   Adoption at lambda(Gamma) is interpolated linearly between the two nearest swept
-#   lambdas; lambda(Gamma) is clamped to the swept range [0.5, 1.0].
+#   lambdas; lambda(Gamma) is clamped to the swept range [0.5, 1.5] (the grid of 05 since
+#   Prompt 6.3; it was [0.5, 1.0]).
 # Level 2, Tur's gamma form (Tur et al. 2018, 2024), a new sweep:
 #     Gamma * A_i^gamma >= q_i  <=>  A_i >= c*_i = (q_i / Gamma)^(1/gamma)  <=>  E_i >= c*_i / k_i
 #   (A_i = adopting contacts with an open tie, k_i = degree). It is one more vector of
@@ -48,7 +49,8 @@ dir.create(OUT, recursive = TRUE, showWarnings = FALSE); dir.create(PLOTS, recur
 N_RUNS <- 24L; B <- 2000L
 G_SWEEP <- seq(0.025, 1, by = 0.025); H_SWEEP <- seq(0, 1, by = 1/24)
 GAMMAS <- c(0.2, 0.25, 1/3, 0.5, 0.75, 1)
-LAMBDAS <- seq(0.5, 1, by = 0.1)
+LAMBDAS <- LAMBDA_GRID          # the grid of 05 (0.5-1.5 every 0.1)
+STEP <- 0.1; stopifnot(isTRUE(all.equal(diff(LAMBDAS), rep(STEP, length(LAMBDAS) - 1))))
 LAM_SEED <- 0.7
 TOL <- 1e-9          # A_i >= c* with an integer c* must not fail by rounding
 
@@ -160,10 +162,10 @@ lvl1 <- rbindlist(lapply(SETS, function(SET) rbindlist(lapply(SEEDINGS, function
   w <- dcast(d, lambda + run_id + social_distance_h + innovation_iul_Gamma ~ topology, value.var = "num_adopters")
   w[, gap := (NET - DP) / d$N_nodes[1]]
   a <- xtabs(gap ~ run_id + G + lambda, w[, .(gap = mean(gap)), by = .(run_id, G = innovation_iul_Gamma, lambda)])
-  Gs <- as.numeric(dimnames(a)[[2]])
+  Gs <- as.numeric(dimnames(a)[[2]]); stopifnot(isTRUE(all.equal(as.numeric(dimnames(a)[[3]]), LAMBDAS)))
   rbindlist(lapply(seq_len(nrow(PATHS)), function(p) {
-    lam <- pmin(1, pmax(0.5, PATHS$lambda0[p] + PATHS$phi[p] * Gs))
-    lo <- pmin(length(LAMBDAS) - 1L, floor((lam - 0.5) / 0.1 + 1e-9) + 1L); wt <- (lam - LAMBDAS[lo]) / 0.1
+    lam <- pmin(max(LAMBDAS), pmax(min(LAMBDAS), PATHS$lambda0[p] + PATHS$phi[p] * Gs))
+    lo <- pmin(length(LAMBDAS) - 1L, floor((lam - LAMBDAS[1]) / STEP + 1e-9) + 1L); wt <- (lam - LAMBDAS[lo]) / STEP
     per_run <- vapply(seq_len(dim(a)[1]), function(r)
       mean((1 - wt) * a[cbind(r, seq_along(Gs), lo)] + wt * a[cbind(r, seq_along(Gs), lo + 1L)]), 0)
     ci <- boot_ci(per_run)

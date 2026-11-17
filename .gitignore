@@ -76,3 +76,8 @@ CLAUDE.md
 # Intermediate networks of 06h_calibration_steps.R (02 --tag=steps/<x> rebuilds them)
 data/02_calibrated_networks/steps/
 output/02_calibrated_networks/steps/
+
+# Prompt 6.2: fitted models of 10_ELSOC_rule.R (they carry ELSOC microdata in their model frames) and
+# the cell results of 06i_q_format.R (~30 s, seeded); the .tex tables next to them ARE tracked
+output/10_ELSOC_rule/*.rds
+output/06i_q_format/*.rds

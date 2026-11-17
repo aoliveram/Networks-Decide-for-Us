@@ -23,7 +23,9 @@
 #     (pairs of contacts who know each other), at c = -1, -0.5, +0.5, +1, each with
 #     its permuted control. Networks with 'ideol' (ELSOC, GSS14) add the theta arm with
 #     ideology circles (c = -1, -0.5 and permuted controls): 13 conditions.
-#   - Grid: IUL Gamma 0..1 by 0.025 (41), MSP h 0..1 by 1/24 (25), lambda 0.5..1.0 by 0.1.
+#   - Grid: IUL Gamma 0..1 by 0.025 (41), MSP h 0..1 by 1/24 (25), lambda 0.5..1.5 by 0.1
+#     (11; LAMBDA_GRID of 05_unified_engine.R; it was 0.5..1.0 until Prompt 6.3, 2026-11-16:
+#     lambda need not be <= 1, the ELSOC ladder gives 0.7-1.5). --lambdas= replaces it.
 #   - Seeding: one strategy per invocation (--seeding=) picks the PRIMARY node:
 #       random    a uniformly drawn node
 #       central   the highest-degree node
@@ -53,6 +55,12 @@
 #   Rscript scripts/05_unified_diffusion_sweep.R --survey=ATP --level=x1 --seeding=central
 #   Rscript scripts/05_unified_diffusion_sweep.R --conditions=base        # base exposure only
 #   Rscript scripts/05_unified_diffusion_sweep.R --test                   # smoke test, sandbox
+#   Rscript scripts/05_unified_diffusion_sweep.R --survey=ELSOC --conditions=base \
+#           --lambdas=0.5,0.75,1 --tag=<tag>                                 # another lambda grid
+#     --lambdas= replaces the lambda grid; --tag= writes everything (checkpoints, CSV, figures) to
+#     output|plots/05_unified_diffusion/<SET>/<tag>/, so the main results are untouched. A cell's
+#     result does not depend on the grid (one simulation seed per cell): the common lambdas of a
+#     tagged sweep reproduce the main one exactly. 06 and 06e read it with the same --tag=.
 #   Rscript scripts/05_unified_diffusion_sweep_main.R                     # everything, then 06-07
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -71,12 +79,14 @@ LEVEL   <- tolower(arg("level", "x2"))    # x2 (main), x1; other rewired levels 
 SEEDING <- arg("seeding", "random")
 stopifnot(SEEDING %in% c("random", "central", "marginal", "closeness", "eigen"))
 COND_ARG <- arg("conditions", "all")
+TAG <- arg("tag", "")                    # sensitivity sets in a subfolder
 SET <- paste0(SURVEY, "_", LEVEL)
 
 # ------------------------------- configuration -------------------------------
 NET_FILE  <- file.path("data/02_calibrated_networks", paste0(SET, ".rds"))
-DATA_OUT  <- file.path(if (TEST_MODE) "output/05_unified_diffusion/_test" else "output/05_unified_diffusion", SET)
-PLOTS_OUT <- if (TEST_MODE) DATA_OUT else file.path("plots/05_unified_diffusion", SET)
+sub_tag   <- function(p) if (nzchar(TAG)) file.path(p, TAG) else p
+DATA_OUT  <- sub_tag(file.path(if (TEST_MODE) "output/05_unified_diffusion/_test" else "output/05_unified_diffusion", SET))
+PLOTS_OUT <- if (TEST_MODE) DATA_OUT else sub_tag(file.path("plots/05_unified_diffusion", SET))
 CKPT_DIR  <- file.path(DATA_OUT, "checkpoints", SEEDING)
 SUFFIX    <- paste0("_", SEEDING)
 
@@ -84,7 +94,7 @@ N_RUNS    <- if (TEST_MODE) 2L else 24L
 N_CORES   <- as.integer(arg("cores", if (TEST_MODE) 2 else 8))
 IUL_SWEEP <- if (TEST_MODE) seq(0, 1, by = 0.25) else seq(0, 1, by = 0.025)
 H_SWEEP   <- if (TEST_MODE) seq(0, 1, by = 0.25) else seq(0, 1, by = 1/24)
-LAMBDAS   <- if (TEST_MODE) c(0.7) else c(0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+LAMBDAS   <- if (TEST_MODE) c(0.7) else as.numeric(strsplit(arg("lambdas", paste(LAMBDA_GRID, collapse = ",")), ",")[[1]])
 TOPOLOGIES <- c("NET", "DP")
 OUTS <- c("num_adopters", "num_adopted_rational", "t50", "num_steps")
 for (d in c(CKPT_DIR, PLOTS_OUT)) dir.create(d, showWarnings = FALSE, recursive = TRUE)
@@ -219,8 +229,8 @@ heat <- function(df, title) {
 }
 cairo_pdf(file.path(PLOTS_OUT, paste0("unified_premium_heatmaps", SUFFIX, ".pdf")), width = 11, height = 4.2, onefile = TRUE)
 for (l in LAMBDAS) {
-  print(heat(filter(agg, lambda == l, topology == "NET"), sprintf("%s %s — Φ_total (λ = %.1f)", SURVEY, LEVEL, l)) +
-        heat(filter(agg, lambda == l, topology == "DP"), sprintf("%s-DP — Φ_total (λ = %.1f)", SURVEY, l)) +
+  print(heat(filter(agg, lambda == l, topology == "NET"), sprintf("%s %s — Φ_total (λ = %s)", SURVEY, LEVEL, format(l))) +
+        heat(filter(agg, lambda == l, topology == "DP"), sprintf("%s-DP — Φ_total (λ = %s)", SURVEY, format(l))) +
         plot_layout(nrow = 1, guides = "collect"))
 }
 invisible(dev.off())

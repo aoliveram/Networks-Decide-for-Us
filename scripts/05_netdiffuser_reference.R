@@ -22,7 +22,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 suppressWarnings(suppressMessages({ library(netdiffuseR); library(Matrix) }))
 source("scripts/05_unified_engine.R")
-H <- seq(0, 1, by = 1/24); G <- seq(0, 1, by = 0.025); L <- c(0.5, 0.7, 1.0)
+H <- seq(0, 1, by = 1/24); G <- seq(0, 1, by = 0.025); L <- c(0.5, 0.7, 1.0, 1.5)
 nets <- readRDS("data/02_calibrated_networks/GSS_x2.rds")
 T_MAX <- 400L      # periods given to rdiffnet; a cascade that has not stopped by then is flagged
 

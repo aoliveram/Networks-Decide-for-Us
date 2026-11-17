@@ -25,6 +25,11 @@
 # degree-preserving twin (results written before 2026-11 call NET "GSS": read as NET).
 #
 # Usage: Rscript scripts/06_premium_sensitivity.R --set=GSS_x2 --seeding=random
+#        Rscript scripts/06_premium_sensitivity.R --set=GSS_x2 --tag=<tag>
+#   --tag= reads the sweep of 05 run with the same --tag= (output/05_unified_diffusion/<set>/<tag>/),
+#   checks it against the main sweep on the common lambdas, and writes to
+#   output|plots/06_premium_sensitivity/<set>/<tag>/. The report ends with the lambda-mean premium
+#   over the grid (0.5-1.5 since Prompt 6.3: the headline), over 0.5-1.0 (continuity) and each lambda >= 1.
 #
 # Point estimates only; 06b_premium_bootstrap.R gives these statistics their
 # run-bootstrap intervals. Runtime: ~1-2 min.
@@ -41,10 +46,12 @@ if (length(SEEDING) == 0) SEEDING <- "random"
 SET <- sub("^--set=", "", grep("^--set=", ARGS, value = TRUE))
 if (length(SET) == 0) SET <- "GSS_x2"
 SURVEY <- sub("_.*", "", SET)
+TAG <- sub("^--tag=", "", grep("^--tag=", ARGS, value = TRUE))
+sub_tag <- function(p) if (length(TAG) && nzchar(TAG)) file.path(p, TAG) else p
 
-DATA_OUT  <- file.path("output/06_premium_sensitivity", SET)
-PLOTS_OUT <- file.path("plots/06_premium_sensitivity", SET)
-RES_CSV   <- file.path("output/05_unified_diffusion", SET,
+DATA_OUT  <- sub_tag(file.path("output/06_premium_sensitivity", SET))
+PLOTS_OUT <- sub_tag(file.path("plots/06_premium_sensitivity", SET))
+RES_CSV   <- file.path(sub_tag(file.path("output/05_unified_diffusion", SET)),
                        paste0("unified_premium_results_", SEEDING, ".csv"))
 dir.create(DATA_OUT, showWarnings = FALSE, recursive = TRUE)
 dir.create(PLOTS_OUT, showWarnings = FALSE, recursive = TRUE)
@@ -55,6 +62,13 @@ raw$topology[raw$topology == "GSS"] <- "NET"          # label used until 2026-11
 NET_LAB <- paste(sub("_", " ", SET))                  # e.g. "GSS x2", for the figures
 LAMBDAS <- sort(unique(raw$lambda))
 message("Loaded ", nrow(raw), " rows; lambdas: ", paste(LAMBDAS, collapse = ", "))
+MAIN_CSV <- file.path("output/05_unified_diffusion", SET, paste0("unified_premium_results_", SEEDING, ".csv"))
+if (length(TAG) && nzchar(TAG) && file.exists(MAIN_CSV)) {   # a tagged sweep must reproduce the main one on common lambdas
+  key <- c("topology", "lambda", "run_id", "social_distance_h", "innovation_iul_Gamma")
+  mm <- merge(raw[, c(key, "num_adopters")], read.csv(MAIN_CSV)[, c(key, "num_adopters")], by = key)
+  message(sprintf("Check vs the main sweep (lambda %s): identical in %d of %d simulations",
+                  paste(sort(unique(mm$lambda)), collapse = ", "), sum(mm$num_adopters.x == mm$num_adopters.y), nrow(mm)))
+}
 
 raw <- raw |>
   mutate(topology = factor(topology, levels = c("NET", "DP")),
@@ -124,8 +138,8 @@ tip <- cells |>
 
 sens <- betas |> left_join(diag, by = "lambda") |> left_join(tip, by = "lambda") |>
   mutate(OR = exp(beta_total), odds_drop_pct = 100 * (exp(beta_total) - 1),
-         d_beta_per_0.1 = c(NA, diff(beta_total)),
-         d_gap_per_0.1  = c(NA, diff(mean_gap)))
+         d_beta_per_0.1 = c(NA, diff(beta_total) / (diff(lambda) / 0.1)),   # per 0.1 of lambda
+         d_gap_per_0.1  = c(NA, diff(mean_gap) / (diff(lambda) / 0.1)))
 
 write.csv(sens, file.path(DATA_OUT, paste0("premium_lambda_sensitivity_", SEEDING, ".csv")), row.names = FALSE)
 
@@ -150,6 +164,14 @@ print(sens |> select(lambda, beta_rational, beta_social, mean_gap_rational, mean
 line("-"); message("E. TIPPING SHIFT (mean MSP at which Phi crosses 0.5)"); line("-")
 print(sens |> select(lambda, mean_MSPc_NET, mean_MSPc_DP, mean_MSPc_shift) |>
         as.data.frame(), digits = 3, row.names = FALSE)
+
+line("-"); message("PREMIUM (pp): lambda-mean over the grid (the headline), over 0.5-1.0 (continuity), and lambda >= 1"); line("-")
+message(sprintf("  mean over lambda %s-%s: %.2f pp", format(min(sens$lambda)), format(max(sens$lambda)), 100 * mean(sens$mean_gap)))
+message(sprintf("  mean over lambda 0.5-1.0: %.2f pp", 100 * mean(sens$mean_gap[sens$lambda <= 1 + 1e-9])))
+for (l in sens$lambda[sens$lambda >= 1 - 1e-9])
+  message(sprintf("  lambda %.2f: %.2f pp (NET %.3f, DP %.3f; saturated NET %.0f%%, DP %.0f%% of the plane)", l,
+                  100 * sens$mean_gap[sens$lambda == l], sens$mean_phi_NET[sens$lambda == l], sens$mean_phi_DP[sens$lambda == l],
+                  sens$pct_NET_sat[sens$lambda == l], sens$pct_DP_sat[sens$lambda == l]))
 
 # --------------------------------- plots --------------------------------------
 p1 <- ggplot(sens, aes(lambda, beta_total)) +
