@@ -6,7 +6,7 @@
 # share the seed cluster's primary and the simulation seeds, so per run
 #   premium(x2) - premium(x1) = mean over the plane of Phi(x2) - Phi(x1),
 # the effect of closure alone. Per survey, seeding strategy and lambda (and the
-# lambda mean): the premium of each level (mean over the plane of Phi_NET -
+# lambda means over 0.5-1.5 and 0.5-1.0): the premium of each level (mean over the plane of Phi_NET -
 # Phi_DP, pp), the paired difference, and the same over the selective half of
 # the plane (h <= 0.5), with 95% run-bootstrap intervals (B = 2000; one set of
 # run weights for every statistic).
@@ -48,7 +48,11 @@ if (!X3) w[, p3 := NA_real_] else w[, p3 := x3_NET - x2_DP]
 per_run <- w[, .(premium_x2 = mean(p2), premium_x1 = mean(p1), diff = mean(p2 - p1),
                  diff_selective = mean((p2 - p1)[sel]), premium_x3 = mean(p3), diff3 = mean(p3 - p1)),
              by = .(seeding, lambda, run_id)]
-per_run <- rbind(per_run, per_run[, lapply(.SD, mean), by = .(seeding, run_id), .SDcols = -"lambda"][, lambda := NA_real_], use.names = TRUE)
+per_run[, lambda_lab := sprintf("%.1f", lambda)]
+lam_mean <- function(rows, lab) per_run[rows, lapply(.SD, mean), by = .(seeding, run_id), .SDcols = -c("lambda", "lambda_lab")][
+  , `:=`(lambda = NA_real_, lambda_lab = lab)]
+# lambda means: the whole grid (0.5-1.5, the headline since Prompt 6.3) and 0.5-1.0 (continuity)
+per_run <- rbind(per_run, lam_mean(TRUE, "mean"), lam_mean(per_run$lambda <= 1 + 1e-9, "mean_0.5-1.0"), use.names = TRUE)
 
 runs <- sort(unique(per_run$run_id)); R <- length(runs)
 set.seed(20261105)
@@ -62,9 +66,8 @@ summ <- per_run[, {
     diff_selective_pp = 100 * s[1], sel_lo = 100 * s[2], sel_hi = 100 * s[3],
     premium_x3 = 100 * a3[1], x3_lo = 100 * a3[2], x3_hi = 100 * a3[3],
     diff3_pp = 100 * d3[1], diff3_lo = 100 * d3[2], diff3_hi = 100 * d3[3], rel_diff3 = d3[1] / b[1], runs = .N)
-}, by = .(seeding, lambda)]
-summ[, lambda_lab := ifelse(is.na(lambda), "mean", sprintf("%.1f", lambda))]
-setorder(summ, seeding, lambda, na.last = TRUE)
+}, by = .(seeding, lambda, lambda_lab)]
+setorder(summ, seeding, lambda, lambda_lab, na.last = TRUE)
 fwrite(summ, file.path(DATA_OUT, paste0(SURVEY, "_closure_contrast.csv")))
 f3 <- function(x, lo, hi) sprintf("%.2f [%.2f, %.2f]", x, lo, hi)
 cat("\n", SURVEY, ": premium (pp) of x2 and x1 against the same DP twin, and x2 - x1 (paired; 95% run-bootstrap CI)\n", sep = "")

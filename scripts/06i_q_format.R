@@ -13,14 +13,14 @@
 #   c09_perm, gss4_perm   permuted across the nodes of each network (no association with attributes)
 # Setting of the sweep: ELSOC_x2, its DP twin, random seeding (0.40 x maximum degree), base exposure,
 # frozen gate with the sweep's simulation seeds, plane h x Gamma = (0, 1/24, ..., 1) x (0, 0.025, ..., 1),
-# lambda 0.5-1.0 and the declared sensitivity 1.25, 1.5.
+# lambda 0.5-1.5 every 0.1 (the grid of 05 since Prompt 6.3).
 # The node ids are rebuilt as 02_network_calibrated.R draws them (set.seed(280000 + 1000 + i), probability
 # proportional to ponderador02) and checked against the attributes and mur_score of every node; the c09
-# condition reproduces the sweep of 05 cell by cell (main sweep for 0.5-1.0; --tag=lambda_ext for 1.25, 1.5).
+# condition reproduces the main sweep of 05 cell by cell.
 #
 # Outputs: output/06i_q_format/q_distribution.csv (mean q, share at q = 1, R2 on the Blau attributes,
 #            assortativity, per q), premium.csv (premium = mean over the plane of NET - DP, pp, by q and
-#            lambda, run bootstrap; and the mean over lambda 0.5-1.0 as in the sweep), corner.csv (as
+#            lambda, run bootstrap; and the means over lambda 0.5-1.5, the headline, and 0.5-1.0), corner.csv (as
 #            06e: box h >= 0.6, Gamma 0.275-0.45, and the whole upper half h >= 0.6), cells.rds
 #          plots/06i_q_format/q_format_corner.pdf
 # Usage (repo root): Rscript scripts/06i_q_format.R 2>&1 | tee logs/06i_q_format.log    (~1 min, 8 cores)
@@ -32,7 +32,7 @@ source("scripts/01_survey_data.R")
 OUT <- "output/06i_q_format"; FIG <- "plots/06i_q_format"
 for (p in c(OUT, FIG)) dir.create(p, recursive = TRUE, showWarnings = FALSE)
 options(width = 200)
-HS <- seq(0, 1, by = 1/24); GS <- seq(0, 1, by = 0.025); LAMS <- c(0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.25, 1.5)
+HS <- seq(0, 1, by = 1/24); GS <- seq(0, 1, by = 0.025); LAMS <- LAMBDA_GRID
 X2 <- readRDS("data/02_calibrated_networks/ELSOC_x2.rds"); NN <- length(X2)
 pop <- elsoc_nodes(3); d <- elsoc_panel()
 QG <- d[year == 2018, .(id, q_gss4)]; setkey(QG, id)
@@ -80,8 +80,7 @@ RES <- rbindlist(mclapply(seq_len(NN), sim, mc.cores = 8L))
 saveRDS(RES, file.path(OUT, "cells.rds"))
 message(format(Sys.time(), "%H:%M:%S"), "  simulations done (", round(as.numeric(difftime(Sys.time(), t0, units = "mins")), 1), " min)")
 # check: the c09 condition reproduces the sweep of 05
-for (f in c("output/05_unified_diffusion/ELSOC_x2/unified_premium_results_random.csv",
-            "output/05_unified_diffusion/ELSOC_x2/lambda_ext/unified_premium_results_random.csv")) {
+for (f in "output/05_unified_diffusion/ELSOC_x2/unified_premium_results_random.csv") {
   if (!file.exists(f)) { message("not found (check skipped): ", f); next }
   sw <- fread(f); sw <- sw[lambda %in% LAMS]
   w <- dcast(RES[q == "c09" & lambda %in% unique(sw$lambda)], run + lambda + h + G ~ topo, value.var = "phi")
@@ -96,7 +95,8 @@ g <- dcast(RES[, .(phi = mean(phi)), by = .(run, topo, q, lambda)], run + q + la
 set.seed(1)
 bs_ci <- function(x) { b <- replicate(2000, mean(sample(x, replace = TRUE))); c(lo = quantile(b, .025), hi = quantile(b, .975)) }
 PR <- g[, { ci <- bs_ci(gap); .(premium_pp = mean(gap), lo = ci[[1]], hi = ci[[2]]) }, by = .(q, lambda)]
-PRm <- g[lambda <= 1, .(gap = mean(gap)), by = .(run, q)][, { ci <- bs_ci(gap); .(lambda = "mean 0.5-1.0", premium_pp = mean(gap), lo = ci[[1]], hi = ci[[2]]) }, by = q]
+PRm <- rbindlist(lapply(c(1.5, 1), function(top) g[lambda <= top + 1e-9, .(gap = mean(gap)), by = .(run, q)][
+  , { ci <- bs_ci(gap); .(lambda = sprintf("mean 0.5-%.1f", top), premium_pp = mean(gap), lo = ci[[1]], hi = ci[[2]]) }, by = q]))
 PR <- rbind(PR[, lambda := as.character(lambda)], PRm)
 fwrite(PR, file.path(OUT, "premium.csv"))
 cat("\nPREMIUM (pp; mean over the plane h x Gamma; 95% run bootstrap in premium.csv):\n"); print(dcast(PR, lambda ~ q, value.var = "premium_pp"), digits = 3)

@@ -62,6 +62,9 @@ sourceCpp("scripts/05_unified_engine.cpp")
 GATE_T <- 0.02
 TAU_REF_SEED <- 0.40          # seed budget: 0.40 x the network's maximum degree
 SWAP_FACTOR <- 20             # DP twin: 20 x m degree-preserving swaps
+# the lambda grid of the sweep (Prompt 6.3, 2026-11-16: 0.5-1.5 every 0.1; it was 0.5-1.0). Written
+# through sprintf so that every value is the double that "0.6" parses to (CSV round trips match).
+LAMBDA_GRID <- as.numeric(sprintf("%.1f", seq(0.5, 1.5, by = 0.1)))
 sigmoid_gate <- function(d, h, T = GATE_T) 1 / (1 + exp((d - h) / T))
 
 # w: pass probabilities of the 2E directed ties (rows 1..E are the ties, rows

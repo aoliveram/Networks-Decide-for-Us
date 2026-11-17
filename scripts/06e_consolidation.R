@@ -6,7 +6,8 @@
 # 1. Association: R2 of q on the Blau attributes over the nodes (GSS, ATP, GSS14: age,
 #    sex, education, race, religion; ELSOC: age, sex, education, religion, ideology), and
 #    q assortativity over the ties of the network.
-# 2. Reverse corner (h >= 0.6, Gamma 0.275-0.45, lambda 0.5-0.7: the GSS 2004 corner), 2 x 2:
+# 2. Reverse corner (h >= 0.6, Gamma 0.275-0.45: the GSS 2004 corner; every lambda of the grid,
+#    0.5-1.5, since Prompt 6.3), 2 x 2:
 #      real       q as it is (reproduces the sweep cell by cell; checked)
 #      perm       q permuted across nodes: same distribution, no association
 #      swap       q mapped by rank onto ANOTHER survey's distribution (--swap-with; default
@@ -16,15 +17,13 @@
 #    every Gamma; columns upper_*), because the corner of a survey with another q
 #    distribution need not sit where the GSS corner sits. Cell results do not depend on the
 #    grid (one simulation seed per cell), so the GSS region is unchanged by the wider grid.
-# 3. Premium over the whole plane with real vs permuted q (lambda 0.5/0.7/1.0).
+# 3. Premium over the whole plane with real vs permuted q (lambda 0.5/0.7/1.0/1.5).
 # Outputs: output/06e_consolidation/{association,corner,premium_qperm}.csv (one block of rows
 #          per survey; a run replaces the rows of its surveys and keeps the others)
 # Usage (repo root): Rscript scripts/06e_consolidation.R [--surveys=GSS,ATP] [--swap-with=ELSOC:GSS,GSS14:ATP]
-#   Declared lambda sensitivity (Prompt 6.2; reads the 05 sweep run with --tag=lambda_ext):
-#   Rscript scripts/06e_consolidation.R --surveys=GSS,ATP,GSS14,ELSOC --tag=lambda_ext \
-#           --lambdas=0.5,0.6,0.7,0.8,0.9,1,1.25,1.5 --lambdas-premium=0.5,0.7,1,1.25,1.5
-#   --lambdas= sets the corner's lambdas (default 0.5, 0.6, 0.7), --lambdas-premium= those of part 3
-#   (default 0.5, 0.7, 1.0); --tag= writes to output/06e_consolidation/<tag>/.
+#   --lambdas= sets the corner's lambdas (default: the grid of 05, 0.5-1.5), --lambdas-premium= those
+#   of part 3 (default 0.5, 0.7, 1.0, 1.5); --tag= reads the 05 sweep of that tag and writes to
+#   output/06e_consolidation/<tag>/.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 suppressWarnings(suppressMessages({ library(data.table); library(parallel) }))
 source("scripts/05_unified_engine.R")
@@ -35,7 +34,7 @@ SWAP <- c(GSS = "ATP", ATP = "GSS", GSS14 = "ATP", ELSOC = "GSS")
 a <- grep("^--swap-with=", ARGS, value = TRUE)
 if (length(a)) for (kv in strsplit(strsplit(sub(".*=", "", a), ",")[[1]], ":")) SWAP[kv[1]] <- kv[2]
 num_list <- function(k, d) { a <- grep(paste0("^--", k, "="), ARGS, value = TRUE); if (length(a)) as.numeric(strsplit(sub(".*=", "", a), ",")[[1]]) else d }
-LAM_CORNER <- num_list("lambdas", c(0.5, 0.6, 0.7)); LAM_PREM <- num_list("lambdas-premium", c(0.5, 0.7, 1.0))
+LAM_CORNER <- num_list("lambdas", LAMBDA_GRID); LAM_PREM <- num_list("lambdas-premium", c(0.5, 0.7, 1.0, 1.5))
 TAG <- { a <- grep("^--tag=", ARGS, value = TRUE); if (length(a)) sub(".*=", "", a) else "" }
 OUT <- if (nzchar(TAG)) file.path("output/06e_consolidation", TAG) else "output/06e_consolidation"
 dir.create(OUT, recursive = TRUE, showWarnings = FALSE)

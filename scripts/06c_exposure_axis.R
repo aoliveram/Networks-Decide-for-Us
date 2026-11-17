@@ -81,13 +81,13 @@ summ <- per_run[, {
 setorder(summ, seeding, lambda, c, kind)
 fwrite(summ, file.path(DATA_OUT, "exposure_axis.csv"))
 cat("\nEXPOSURE AXIS,", SET, "(premium and contrasts in pp; 95% run-bootstrap intervals):\n")
-print(summ[lambda %in% c(0.5, 0.7, 1.0), .(seeding, lambda, condition, c, premium_ci, vs_base_ci, vs_perm_ci)], nrows = 500)
+print(summ[lambda %in% c(0.5, 0.7, 1.0, 1.5), .(seeding, lambda, condition, c, premium_ci, vs_base_ci, vs_perm_ci)], nrows = 500)
 cat("\nPremium range over every seeding, lambda and condition: ",
     sprintf("%.2f to %.2f pp; conditions with a negative premium: %d of %d", min(summ$premium_pp), max(summ$premium_pp),
             sum(summ$premium_pp < 0), nrow(summ)), "\n", sep = "")
 
 # ---- figure: premium along c, by seeding (rows) and lambda (columns) ----
-pd <- summ[lambda %in% c(0.5, 0.7, 1.0)]
+pd <- summ[lambda %in% c(0.5, 0.7, 1.0, 1.5)]
 pd[, lab := sprintf("λ = %.1f", lambda)]
 p <- ggplot(pd, aes(c, premium_pp, color = arm, shape = kind)) +
   geom_hline(yintercept = 0, color = "grey60", linewidth = 0.3) +
@@ -105,5 +105,5 @@ p <- ggplot(pd, aes(c, premium_pp, color = arm, shape = kind)) +
        x = "c = value of the second adopter − 1   (θ arm: c < 0; κ arm: c > 0)",
        y = "Premium, Φ(network) − Φ(DP), pp") +
   theme_bw(base_size = 9) + theme(legend.position = "bottom", plot.title = element_text(size = 9, face = "bold"))
-ggsave(file.path(PLOTS_OUT, "exposure_axis.pdf"), p, width = 8, height = 1.6 + 1.7 * uniqueN(pd$seeding), device = cairo_pdf)
+ggsave(file.path(PLOTS_OUT, "exposure_axis.pdf"), p, width = 10, height = 1.6 + 1.7 * uniqueN(pd$seeding), device = cairo_pdf)
 message("Saved ", file.path(DATA_OUT, "exposure_axis.csv"), " and ", file.path(PLOTS_OUT, "exposure_axis.pdf"))

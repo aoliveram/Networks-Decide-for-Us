@@ -26,9 +26,11 @@
 #   - te(12, 12) is where beta_DP converges; the s(k = 10) surface of 05/06
 #     understates |beta| by up to ~13% at lambda = 1 and is kept as a
 #     continuity column ("s10")
-#   - pooled beta_DP = the unweighted mean of the six per-lambda betas (the
+#   - pooled beta_DP = the unweighted mean of the per-lambda betas over the whole
+#     grid ("mean", eleven lambdas 0.5-1.5 since Prompt 6.3, the headline) and over
+#     0.5-1.0 ("mean_0.5-1.0", continuity with what was reported before); the
 #     pooled fit of 05 has one intercept per lambda but one surface under all
-#     of them, and is attenuated)
+#     of them, and is attenuated
 #
 # Two exact shortcuts make B = 1000 cheap:
 #   1. The model has no run term, so the binomial likelihood of the stacked
@@ -148,8 +150,8 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
           plot.title = element_text(size = 10, face = "bold"))
   dodge <- position_dodge(width = 0.06)
 
-  bm <- beta_tab[spec == "te12" & lambda != "mean" & variant %in% MAIN]
-  gm <- gap_tab[lambda != "mean" & variant %in% MAIN]
+  bm <- beta_tab[spec == "te12" & !grepl("^mean", lambda) & variant %in% MAIN]
+  gm <- gap_tab[!grepl("^mean", lambda) & variant %in% MAIN]
   bm[, `:=`(lam = num_l(lambda), strategy = factor(variant, MAIN))]
   gm[, `:=`(lam = num_l(lambda), strategy = factor(variant, MAIN))]
   strat_plot <- function(df, y, title, ylab) {
@@ -169,7 +171,7 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
 
   shown <- c("central - random", "random - marginal", "central - closeness",
              "central - eigen", "closeness - eigen")
-  cm <- con_tab[lambda != "mean" & scale %in% c("beta_te12", "gap_pp") & contrast %in% shown]
+  cm <- con_tab[!grepl("^mean", lambda) & scale %in% c("beta_te12", "gap_pp") & contrast %in% shown]
   cm[, `:=`(lam = num_l(lambda),
             scale = factor(scale, c("beta_te12", "gap_pp"), c("Δβ (te12)", "Δ gap (pp)")),
             contrast = factor(contrast, shown))]
@@ -178,7 +180,7 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
     geom_ribbon(aes(ymin = ci_lo, ymax = ci_hi), fill = "#2a78d6", alpha = 0.18) +
     geom_line(color = "#2a78d6", linewidth = 0.6) + geom_point(color = "#2a78d6", size = 2) +
     facet_grid(scale ~ contrast, scales = "free_y", switch = "y") +
-    scale_x_continuous(breaks = c(0.5, 0.75, 1)) +
+    scale_x_continuous(breaks = c(0.5, 1, 1.5)) +
     labs(title = "Paired contrasts between strategies (95% CI; Δβ < 0 and Δ gap > 0: the first has the larger premium)",
          x = "λ", y = NULL) +
     base_theme + theme(strip.placement = "outside", strip.text = element_text(size = 8))
@@ -206,7 +208,7 @@ draw_plots <- function(beta_tab, gap_tab, con_tab, cell_tab) {
           legend.key.width = unit(1.6, "cm"), plot.title = element_text(size = 9, face = "bold"),
           strip.text = element_text(size = 7))
 
-  cairo_pdf(file.path(PLOTS_OUT, "premium_bootstrap.pdf"), width = 11, height = 7.5, onefile = TRUE)
+  cairo_pdf(file.path(PLOTS_OUT, "premium_bootstrap.pdf"), width = 15, height = 7.5, onefile = TRUE)
   print((p_beta | p_gap) / p_con + plot_layout(heights = c(1, 1.1)))
   print(p_map)
   invisible(dev.off())
@@ -352,12 +354,14 @@ p_boot <- function(x) {
   x <- x[!is.na(x)]
   max(1 / length(x), min(1, 2 * min(mean(x <= 0), mean(x >= 0))))
 }
-lam_label <- c(L, "mean")
+MEAN_SETS <- list(mean = L, `mean_0.5-1.0` = L[as.numeric(L) <= 1 + 1e-9])   # headline: the whole grid
+lam_label <- c(L, names(MEAN_SETS))
+is_mean <- function(l) l %in% names(MEAN_SETS)
 
 # ---- beta_DP: per lambda and lambda-mean ------------------------------------
 beta_tab <- rbindlist(lapply(V, function(v) rbindlist(lapply(names(SPECS), function(s) {
   rbindlist(lapply(lam_label, function(l) {
-    if (l == "mean") { est <- mean(beta_hat[v, , s]); bs <- colMeans(BETA[v, , s, ]) }
+    if (is_mean(l)) { m <- MEAN_SETS[[l]]; est <- mean(beta_hat[v, m, s]); bs <- colMeans(BETA[v, m, s, ]) }
     else             { est <- beta_hat[v, l, s];      bs <- BETA[v, l, s, ] }
     data.table(variant = v, lambda = l, spec = s, beta = est,
                ci_lo = ci_lo(bs), ci_hi = ci_hi(bs), boot_se = sd(bs, na.rm = TRUE),
@@ -376,7 +380,7 @@ GAPR <- sapply(V, function(v) sapply(L, function(l) colMeans(D[[v]][[l]])), simp
 dimnames(GAPR) <- list(RUNS, L, V)           # [run, lambda, variant]
 gap_boot <- function(x) as.vector(W %*% x) / N_RUNS      # x: one value per run
 t_ci <- function(x) mean(x) + c(-1, 1) * qt(0.975, length(x) - 1) * sd(x) / sqrt(length(x))
-run_series <- function(v, l) if (l == "mean") rowMeans(GAPR[, , v]) else GAPR[, l, v]
+run_series <- function(v, l) if (is_mean(l)) rowMeans(GAPR[, MEAN_SETS[[l]], v]) else GAPR[, l, v]
 
 gap_tab <- rbindlist(lapply(V, function(v) rbindlist(lapply(lam_label, function(l) {
   x <- run_series(v, l); bs <- gap_boot(x); tc <- t_ci(x)
@@ -390,9 +394,10 @@ con_tab <- rbindlist(lapply(seq_len(nrow(CONTRASTS)), function(i) {
   a <- CONTRASTS$A[i]; b <- CONTRASTS$B[i]
   rbindlist(lapply(lam_label, function(l) {
     rows <- lapply(JOINT_SPECS, function(s) {
-      if (l == "mean") {
-        est <- mean(beta_hat[a, , s]) - mean(beta_hat[b, , s])
-        bs  <- colMeans(BETA[a, , s, ]) - colMeans(BETA[b, , s, ])
+      if (is_mean(l)) {
+        m <- MEAN_SETS[[l]]
+        est <- mean(beta_hat[a, m, s]) - mean(beta_hat[b, m, s])
+        bs  <- colMeans(BETA[a, m, s, ]) - colMeans(BETA[b, m, s, ])
       } else {
         est <- beta_hat[a, l, s] - beta_hat[b, l, s]
         bs  <- BETA[a, l, s, ] - BETA[b, l, s, ]
@@ -448,7 +453,7 @@ for (v in V) {
       mspc_shift      = colMeans(td - tg, na.rm = TRUE),
       mspc_ratio      = colMeans(td, na.rm = TRUE) / colMeans(tg, na.rm = TRUE))
   }
-  per_l[["mean"]] <- Reduce(`+`, per_l) / length(L)
+  for (mn in names(MEAN_SETS)) per_l[[mn]] <- Reduce(`+`, per_l[MEAN_SETS[[mn]]]) / length(MEAN_SETS[[mn]])
   for (l in lam_label) for (st in rownames(per_l[[l]])) {
     x <- per_l[[l]][st, ]
     band_tab[[length(band_tab) + 1]] <- data.table(variant = v, lambda = l, stat = st,
@@ -515,12 +520,12 @@ line("-"); message("Same, continuity spec s(k = 10) of 05/06"); line("-")
 print(dcast(beta_tab[spec == "s10", .(variant, lambda, ci = fmt_ci(beta, ci_lo, ci_hi))],
             variant ~ factor(lambda, lam_label), value.var = "ci"))
 line("-"); message("Bootstrap SE / naive BAM SE (te12)"); line("-")
-print(dcast(beta_tab[spec == "te12" & lambda != "mean"], variant ~ lambda,
+print(dcast(beta_tab[spec == "te12" & !grepl("^mean", lambda)], variant ~ lambda,
             value.var = "se_inflation"), digits = 3)
 line("-"); message("LINK-FREE PREMIUM: mean plane gap (pp), bootstrap CI"); line("-")
 print(dcast(gap_tab[, .(variant, lambda, ci = fmt_ci(gap_pp, ci_lo, ci_hi, 2))],
             variant ~ factor(lambda, lam_label), value.var = "ci"))
-line("-"); message("CONTRASTS (paired by run), lambda-mean   [beta: < 0 = A larger premium]"); line("-")
+line("-"); message("CONTRASTS (paired by run), lambda-mean over the whole grid   [beta: < 0 = A larger premium]"); line("-")
 print(con_tab[lambda == "mean", .(contrast, scale, est = round(est, 3),
                                   ci = sprintf("[%.3f, %.3f]", ci_lo, ci_hi), p_boot = signif(p_boot, 2))])
 line("-"); message("CONTRASTS per lambda: beta (te12) and gap (pp)"); line("-")

@@ -23,8 +23,9 @@
 #     (pairs of contacts who know each other), at c = -1, -0.5, +0.5, +1, each with
 #     its permuted control. Networks with 'ideol' (ELSOC, GSS14) add the theta arm with
 #     ideology circles (c = -1, -0.5 and permuted controls): 13 conditions.
-#   - Grid: IUL Gamma 0..1 by 0.025 (41), MSP h 0..1 by 1/24 (25), lambda 0.5..1.0 by 0.1
-#     (--lambdas= for the declared sensitivity 1.25, 1.5; see Usage).
+#   - Grid: IUL Gamma 0..1 by 0.025 (41), MSP h 0..1 by 1/24 (25), lambda 0.5..1.5 by 0.1
+#     (11; LAMBDA_GRID of 05_unified_engine.R; it was 0.5..1.0 until Prompt 6.3, 2026-11-16:
+#     lambda need not be <= 1, the ELSOC ladder gives 0.7-1.5). --lambdas= replaces it.
 #   - Seeding: one strategy per invocation (--seeding=) picks the PRIMARY node:
 #       random    a uniformly drawn node
 #       central   the highest-degree node
@@ -55,12 +56,11 @@
 #   Rscript scripts/05_unified_diffusion_sweep.R --conditions=base        # base exposure only
 #   Rscript scripts/05_unified_diffusion_sweep.R --test                   # smoke test, sandbox
 #   Rscript scripts/05_unified_diffusion_sweep.R --survey=ELSOC --conditions=base \
-#           --lambdas=0.5,0.6,0.7,0.8,0.9,1,1.25,1.5 --tag=lambda_ext       # declared lambda sensitivity
+#           --lambdas=0.5,0.75,1 --tag=<tag>                                 # another lambda grid
 #     --lambdas= replaces the lambda grid; --tag= writes everything (checkpoints, CSV, figures) to
-#     output|plots/05_unified_diffusion/<SET>/<tag>/, so the main results are untouched. The
-#     lambda_ext set (Prompt 6.2, 2026-11-16): base exposure, random seeding, x2, the four surveys;
-#     its 0.5-1.0 cells reproduce the main sweep exactly (one simulation seed per cell). 06 and 06e
-#     read it with the same --tag=.
+#     output|plots/05_unified_diffusion/<SET>/<tag>/, so the main results are untouched. A cell's
+#     result does not depend on the grid (one simulation seed per cell): the common lambdas of a
+#     tagged sweep reproduce the main one exactly. 06 and 06e read it with the same --tag=.
 #   Rscript scripts/05_unified_diffusion_sweep_main.R                     # everything, then 06-07
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -79,7 +79,7 @@ LEVEL   <- tolower(arg("level", "x2"))    # x2 (main), x1; other rewired levels 
 SEEDING <- arg("seeding", "random")
 stopifnot(SEEDING %in% c("random", "central", "marginal", "closeness", "eigen"))
 COND_ARG <- arg("conditions", "all")
-TAG <- arg("tag", "")                    # sensitivity sets in a subfolder (e.g. lambda_ext)
+TAG <- arg("tag", "")                    # sensitivity sets in a subfolder
 SET <- paste0(SURVEY, "_", LEVEL)
 
 # ------------------------------- configuration -------------------------------
@@ -94,7 +94,7 @@ N_RUNS    <- if (TEST_MODE) 2L else 24L
 N_CORES   <- as.integer(arg("cores", if (TEST_MODE) 2 else 8))
 IUL_SWEEP <- if (TEST_MODE) seq(0, 1, by = 0.25) else seq(0, 1, by = 0.025)
 H_SWEEP   <- if (TEST_MODE) seq(0, 1, by = 0.25) else seq(0, 1, by = 1/24)
-LAMBDAS   <- if (TEST_MODE) c(0.7) else as.numeric(strsplit(arg("lambdas", "0.5,0.6,0.7,0.8,0.9,1.0"), ",")[[1]])
+LAMBDAS   <- if (TEST_MODE) c(0.7) else as.numeric(strsplit(arg("lambdas", paste(LAMBDA_GRID, collapse = ",")), ",")[[1]])
 TOPOLOGIES <- c("NET", "DP")
 OUTS <- c("num_adopters", "num_adopted_rational", "t50", "num_steps")
 for (d in c(CKPT_DIR, PLOTS_OUT)) dir.create(d, showWarnings = FALSE, recursive = TRUE)

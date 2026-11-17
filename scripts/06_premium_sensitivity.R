@@ -25,11 +25,11 @@
 # degree-preserving twin (results written before 2026-11 call NET "GSS": read as NET).
 #
 # Usage: Rscript scripts/06_premium_sensitivity.R --set=GSS_x2 --seeding=random
-#        Rscript scripts/06_premium_sensitivity.R --set=ELSOC_x2 --tag=lambda_ext
-#   --tag= reads the sweep of 05 run with the same --tag= (output/05_unified_diffusion/<set>/<tag>/)
-#   and writes to output|plots/06_premium_sensitivity/<set>/<tag>/. lambda_ext = the declared
-#   sensitivity lambda 1.25 and 1.5 (Prompt 6.2); the report ends with the lambda-mean premium
-#   over 0.5-1.0 (the headline number, which the tagged sweep must reproduce) and each lambda > 1.
+#        Rscript scripts/06_premium_sensitivity.R --set=GSS_x2 --tag=<tag>
+#   --tag= reads the sweep of 05 run with the same --tag= (output/05_unified_diffusion/<set>/<tag>/),
+#   checks it against the main sweep on the common lambdas, and writes to
+#   output|plots/06_premium_sensitivity/<set>/<tag>/. The report ends with the lambda-mean premium
+#   over the grid (0.5-1.5 since Prompt 6.3: the headline), over 0.5-1.0 (continuity) and each lambda >= 1.
 #
 # Point estimates only; 06b_premium_bootstrap.R gives these statistics their
 # run-bootstrap intervals. Runtime: ~1-2 min.
@@ -165,9 +165,10 @@ line("-"); message("E. TIPPING SHIFT (mean MSP at which Phi crosses 0.5)"); line
 print(sens |> select(lambda, mean_MSPc_NET, mean_MSPc_DP, mean_MSPc_shift) |>
         as.data.frame(), digits = 3, row.names = FALSE)
 
-line("-"); message("PREMIUM (pp): lambda-mean over 0.5-1.0 (the headline) and every lambda > 1"); line("-")
+line("-"); message("PREMIUM (pp): lambda-mean over the grid (the headline), over 0.5-1.0 (continuity), and lambda >= 1"); line("-")
+message(sprintf("  mean over lambda %s-%s: %.2f pp", format(min(sens$lambda)), format(max(sens$lambda)), 100 * mean(sens$mean_gap)))
 message(sprintf("  mean over lambda 0.5-1.0: %.2f pp", 100 * mean(sens$mean_gap[sens$lambda <= 1 + 1e-9])))
-for (l in sens$lambda[sens$lambda > 1 + 1e-9])
+for (l in sens$lambda[sens$lambda >= 1 - 1e-9])
   message(sprintf("  lambda %.2f: %.2f pp (NET %.3f, DP %.3f; saturated NET %.0f%%, DP %.0f%% of the plane)", l,
                   100 * sens$mean_gap[sens$lambda == l], sens$mean_phi_NET[sens$lambda == l], sens$mean_phi_DP[sens$lambda == l],
                   sens$pct_NET_sat[sens$lambda == l], sens$pct_DP_sat[sens$lambda == l]))
